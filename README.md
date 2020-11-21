@@ -2,7 +2,7 @@
 
 Labelmaker is a wholesale replacement for Foundry Nuke's autolabel.py, offering much more information at a glance in the node graph. Try it - after using it for a while, you'll feel blind without it. No more opening the properties panel to see what a node is doing - Labelmaker shows you this info right in the DAG.
 
-!(https://github.com/github/charlesangus/Labelmaker/blob/assets/example.png)
+![Example of what Labelmaker does.](https://github.com/charlesangus/Labelmaker/blob/assets/example.png?raw=true)
 
 # Features
 
@@ -18,9 +18,9 @@ If the name of a node is changed to no longer start with the node class by some 
 
 I'm pretty pleased with this one - see the colour of your grades *right in the node graph*.
 
-!(https://github.com/github/charlesangus/Labelmaker/blob/assets/grade.png)
+![Colourized labels for Color knobs!](https://github.com/charlesangus/Labelmaker/blob/assets/grade.png?raw=true)
 
-Color and AColor knobs (e.g. in a Grade node) will automatically get colour swatches to let you see at a glance what the node is doing. Labelmaker uses an approximation of the AlexaToRec curve to tonemap colours, so even quite bright values should be legible. This can be disable in the preferences if you find it distracting.
+Color and AColor knobs (e.g. in a Grade node) will automatically get colour swatches to let you see at a glance what the node is doing. Labelmaker uses an approximation of the AlexaToRec curve to tonemap colours, so even quite bright values should be legible. This can be disabled in the preferences if you find it distracting.
 
 ## Channels
 
