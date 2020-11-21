@@ -40,13 +40,19 @@ class LabelMakerComposedConfig(object):
         super(LabelMakerComposedConfig, self).__init__()
         self.configs = []
 
+        use_base_config_knob = labelmaker_prefs.prefs_singleton.get_pref_knob("use_base_config")
+
         if DISABLE_BASE_CONFIG_ENV_VAR in os.environ.keys() and os.environ[DISABLE_BASE_CONFIG_ENV_VAR] == '1':
             # Do not allow the user to turn on the base config
             # if it has been disabled by the env var
-            use_base_config_knob = labelmaker_prefs.prefs_singleton.get_pref_knob("use_base_config")
             use_base_config_knob.setValue(False)
             use_base_config_knob.setEnabled(False)
         else:
+            # enable the base config knob in case it was previously
+            # disabled by the env var
+
+            use_base_config_knob.setValue(True)
+
             if os.path.exists(DEFAULT_CONFIG_PATH) and labelmaker_prefs.prefs_singleton.get_pref("use_base_config"):
                 default_config = LabelMakerConfig(name="default", path=DEFAULT_CONFIG_PATH)
                 self.configs.append(default_config)
