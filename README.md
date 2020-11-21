@@ -58,11 +58,11 @@ The regular old label knob works exactly as you'd expect, including the use of T
 
 ![Regular old labels work exactly as before.](https://github.com/charlesangus/Labelmaker/blob/assets/regular_label.png?raw=true)
 
-## Config Files
+## Configurable
 
 Labelmaker is totally configurable using simple JSON files. At some point, I would like to make a simple GUI to manage the config files. Until then, it should be fairly straightforward to modify the JSON file by hand.
 
-## Config Structure
+### Config Structure
 
 Each object in the JSON file is a node class to label. The object's value is a list, the members of which are objects representing lines in the label. They will be displayed in the order they appear in the JSON list. Knob labels can either be "dumb", as represented by an object which must have a "name" key (and optionally "label", "default", and "always_show" keys), or "smart", as represented by an object with one key, "tcl_string", the value of which is text to run through the TCL parser as if it was written in the node's label knob.
 
@@ -89,9 +89,9 @@ A (non-working) example of a simple config file to make it more clear:
 
 Labelmaker exposes a few preferences in the Nuke preferences node, including disabling colour swatches, always showing all label lines, and disabling the base config. You can also move your personal config from its default location.
 
-## Caveats
+# Caveats
 
-### Node Heights Change
+## Node Heights Change
 
 By default, most knob values are hidden from the nodes until they're changed. I like this, as it lets you more easily see at a glance which knobs have been adjusted. For example, it's immediately clear a Grade node has only had its `lift` knob adjusted, since it's the only knob readout being displayed.
 
@@ -101,11 +101,11 @@ If it really bothers you, though, there is a preference to always show all knobs
 
 Down the road, I would like to make an auto-de-overlapper to get the best of both worlds, but I haven't yet.
 
-### Performance
+## Performance
 
 I have used Labelmaker on production scripts of fairly large size without issue. Performance should be fine, as the autolabel routine runs as a low-priority idle process. However, if you encounter performance problems, please do let me know, and include the script (if possible) or at least the node count and if any particular node seemed especially problematic.
 
-### Work in Progress
+## Work in Progress
 
 Labelmaker remains very much a work in progress. I've been using various iterations of it for a while now, and the time has come to send it out into the wild. I do hope you find it useful. Please use the Github Issue Tracker to report any bugs or issues you find, and please feel free to submit a pull request if you've done any useful work on it (see "Contributing" below).
 
