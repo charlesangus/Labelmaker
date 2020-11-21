@@ -12,6 +12,8 @@ Labelmaker ships with a base config which should be suitable for most people, an
 
 Labelmaker ensures you can always tell what class a node is.
 
+![Never wonder what class a node is.](https://github.com/charlesangus/Labelmaker/blob/assets/node_class.png?raw=true)
+
 If the name of a node is changed to no longer start with the node class by some naughty comper, for example `Transform1` becomes `guy`, ruining your ability to tell at a glance whether it's a Transform, Reformat, Crop, etc., Labelmaker helpfully displays `Transform | guy` as the node name. For nodes which haven't been renamed, it will still just display `Transform1`.
 
 ## Colour Swatches
@@ -22,11 +24,19 @@ I'm pretty pleased with this one - see the colour of your grades *right in the n
 
 Color and AColor knobs (e.g. in a Grade node) will automatically get colour swatches to let you see at a glance what the node is doing. Labelmaker uses an approximation of the AlexaToRec curve to tonemap colours, so even quite bright values should be legible. This can be disabled in the preferences if you find it distracting.
 
+I've played with both colourizing only the label (as seen here), and with colourizing the whole line. I kind of prefer colourizing the whole line, but it often covers the mask input. I may add a preference to choose between the two.
+
 ## Channels
 
 Any node with a "channels" selector will show you what channels are being operated on.
 
+![Display channels.](https://github.com/charlesangus/Labelmaker/blob/assets/channels.png?raw=true)
+
 ## Masks and Unpremults
+
+Nodes will update their channel readout if they're using masks or unpremultiplying/premultiplying internally.
+
+![Clearly display masks and un/premultiplication.](https://github.com/charlesangus/Labelmaker/blob/assets/mask_unpremult.png?raw=true)
 
 Nodes which are using the NodeWrapper functionality to mask or unpremult by a channel will now display that fact in the channel readout using the indicators `M` (or `Minv`) for mask/inverted mask and `/*` for unpremult by (since this knob first divides by the matte and then multiplies by the matte, `/*` seemed an appropriate symbol).
 
@@ -36,6 +46,8 @@ For example, a Grade displaying `(rgb M red) /* alpha` would mean the node is pr
 
 Perhaps the most powerful feature of Labelmaker is the use of arbitrary TCL code on nodes.
 
+![Execute arbitrary TCL code defined in your Labelmaker config.](https://github.com/charlesangus/Labelmaker/blob/assets/tcl.png?raw=true)
+
 Some of us are used TCL in the labels of our nodes to display important information in the DAG. The downside of this is it clutters up the label knob and is easy to accidentally delete or mess up if you want to add another label.
 
 Labelmaker supports using TCL in the autolabeling, and indeed the default config uses this functionality for a number of nodes. For instance, the base config for the Shuffle node is `"in [value in]-->out [value out]"`, which will print e.g. `in rgba --> out rgba`. Moving this code to the autolabel routine keeps it out of the label knob, and allows you to change the label of every node in every script you ever open by altering the Labelmaker config.
@@ -43,6 +55,8 @@ Labelmaker supports using TCL in the autolabeling, and indeed the default config
 ## Regular Old Labels
 
 The regular old label knob works exactly as you'd expect, including the use of TCL code in the label knob.
+
+![Regular old labels work exactly as before.](https://github.com/charlesangus/Labelmaker/blob/assets/regular_label.png?raw=true)
 
 ## Config Files
 
