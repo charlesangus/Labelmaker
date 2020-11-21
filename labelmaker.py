@@ -81,6 +81,7 @@ class AutolabelReplacement(object):
             "ReadGeo2": "ReadGeo",
             "Card2": "Card",
             "DeepColorCorrect2": "DeepColorCorrect",
+            "CheckerBoard2": "CheckerBoard",
         }
         self.update_class_mappings_with_ofx_nodes()
         self.NAMELESS_NODES = ("Dot", "BackdropNode", "PostageStamp", "StickyNote")
