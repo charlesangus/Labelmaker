@@ -38,7 +38,7 @@ class CustomPrefs(object):
         self.p = nuke.toNode('preferences')
         self.preferences_wrapper = """Preferences {
         inputs 0
-        name Preferences {%s}
+        name Preferences %s
         }
         """
 
