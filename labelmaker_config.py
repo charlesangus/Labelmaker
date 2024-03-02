@@ -1,6 +1,6 @@
 import json
 import os
-from UserDict import UserDict
+from collections import UserDict
 import labelmaker_prefs
 
 # Location of the default config shipped with Labelmaker
