@@ -8,6 +8,7 @@ DEFAULTS = {
     "always_show_all": False,
     "colorize_disable": False,
     "use_base_config": True,
+    "deoverlap_enabled": True,
 }
 
 

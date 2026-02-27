@@ -80,6 +80,14 @@ class LabelmakerPrefsDialog(QDialog):
             self.use_base_config_checkbox.setEnabled(False)
         form_layout.addRow("Use Base Config:", self.use_base_config_checkbox)
 
+        # deoverlap_enabled checkbox
+        self.deoverlap_enabled_checkbox = QCheckBox()
+        self.deoverlap_enabled_checkbox.setToolTip(
+            "When enabled, Labelmaker automatically pushes downstream nodes down to "
+            "prevent overlap whenever a node's label grows taller."
+        )
+        form_layout.addRow("Enable Auto De-overlap:", self.deoverlap_enabled_checkbox)
+
         # OK / Cancel buttons
         button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         button_box.accepted.connect(self._on_accept)
@@ -94,6 +102,7 @@ class LabelmakerPrefsDialog(QDialog):
         # For use_base_config, read the raw stored value (not the env-var-masked one)
         raw_use_base_config = prefs._prefs.get("use_base_config", True)
         self.use_base_config_checkbox.setChecked(bool(raw_use_base_config))
+        self.deoverlap_enabled_checkbox.setChecked(bool(prefs.get("deoverlap_enabled")))
 
     def _browse_personal_config_path(self):
         current_path = self.personal_config_path_edit.text()
@@ -113,6 +122,7 @@ class LabelmakerPrefsDialog(QDialog):
         prefs.set("always_show_all", self.always_show_all_checkbox.isChecked())
         prefs.set("colorize_disable", self.colorize_disable_checkbox.isChecked())
         prefs.set("use_base_config", self.use_base_config_checkbox.isChecked())
+        prefs.set("deoverlap_enabled", self.deoverlap_enabled_checkbox.isChecked())
         prefs.save()
 
         labelmaker_config.reload_composed_config()

@@ -4,6 +4,7 @@ import re
 import json
 import labelmaker_config
 import labelmaker_prefs
+import labelmaker_deoverlap
 
 
 # from https://gist.github.com/anonymous/a802f51391163a2bf0e3
@@ -85,12 +86,32 @@ class AutolabelReplacement(object):
         }
         self.update_class_mappings_with_ofx_nodes()
         self.NAMELESS_NODES = ("Dot", "BackdropNode", "PostageStamp", "StickyNote")
+        self._line_counts = {}       # {node_name: int} last known line count per node
+        self._pending_deoverlap = set()  # node names whose height increased since last timer fire
+        self._deoverlap_timer = None  # created lazily on first use (PySide6 not imported at module level)
 
     def register_autolabel(self):
         nuke.addAutolabel(self.create_autolabel)
 
     def unregister_autolabel(self):
         nuke.removeAutolabel(self.create_autolabel)
+
+    def _get_deoverlap_timer(self):
+        if self._deoverlap_timer is None:
+            from PySide6 import QtCore
+            self._deoverlap_timer = QtCore.QTimer()
+            self._deoverlap_timer.setSingleShot(True)
+            self._deoverlap_timer.setInterval(150)
+            self._deoverlap_timer.timeout.connect(self._run_deoverlap)
+        return self._deoverlap_timer
+
+    def _run_deoverlap(self):
+        pending = self._pending_deoverlap.copy()
+        self._pending_deoverlap.clear()
+        for node_name in pending:
+            node = nuke.toNode(node_name)
+            if node:
+                labelmaker_deoverlap.deoverlap_downstream(node)
 
     def create_autolabel(self):
         self.update()
@@ -102,6 +123,16 @@ class AutolabelReplacement(object):
         self.mix_line_creator()
         self.label_readout_creator()
         autolabel = "\n".join(self.lines)
+        new_line_count = autolabel.count('\n') + 1
+        old_line_count = self._line_counts.get(self.node_name)
+        self._line_counts[self.node_name] = new_line_count
+        if (
+            old_line_count is not None
+            and new_line_count > old_line_count
+            and labelmaker_prefs.prefs_singleton.get("deoverlap_enabled")
+        ):
+            self._pending_deoverlap.add(self.node_name)
+            self._get_deoverlap_timer().start()  # restarts timer if already running
         return autolabel
 
     def update(self):
