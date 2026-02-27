@@ -1,6 +1,7 @@
 import json
 import os
 from collections import UserDict
+import nuke
 import labelmaker_prefs
 
 # Location of the default config shipped with Labelmaker
@@ -24,12 +25,6 @@ CONFIGS_NAMES_ENV_VAR = "LABELMAKER_CONFIGS_NAMES"
 # Do not include Labelmaker's default config or your personal config
 CONFIGS_PATHS_ENV_VAR = "LABELMAKER_CONFIGS_PATHS"
 
-# get from prefs and fallback
-PERSONAL_CONFIG_PATH = labelmaker_prefs.prefs_singleton.get_pref(
-    "personal_config_path"
-) or os.path.join(os.path.expanduser("~"), ".nuke", "labelmaker_config.json")
-
-
 class LabelMakerComposedConfig(object):
     """Compose a config out of the various configs.
 
@@ -40,22 +35,14 @@ class LabelMakerComposedConfig(object):
         super(LabelMakerComposedConfig, self).__init__()
         self.configs = []
 
-        use_base_config_knob = labelmaker_prefs.prefs_singleton.get_pref_knob("use_base_config")
+        personal_config_path = labelmaker_prefs.prefs_singleton.get(
+            "personal_config_path"
+        ) or os.path.join(os.path.expanduser("~"), ".nuke", "labelmaker_config.json")
 
-        if DISABLE_BASE_CONFIG_ENV_VAR in os.environ.keys() and os.environ[DISABLE_BASE_CONFIG_ENV_VAR] == '1':
-            # Do not allow the user to turn on the base config
-            # if it has been disabled by the env var
-            use_base_config_knob.setValue(False)
-            use_base_config_knob.setEnabled(False)
-        else:
-            # enable the base config knob in case it was previously
-            # disabled by the env var
-
-            use_base_config_knob.setValue(True)
-
-            if os.path.exists(DEFAULT_CONFIG_PATH) and labelmaker_prefs.prefs_singleton.get_pref("use_base_config"):
-                default_config = LabelMakerConfig(name="default", path=DEFAULT_CONFIG_PATH)
-                self.configs.append(default_config)
+        use_base_config = labelmaker_prefs.prefs_singleton.get("use_base_config")
+        if os.path.exists(DEFAULT_CONFIG_PATH) and use_base_config:
+            default_config = LabelMakerConfig(name="default", path=DEFAULT_CONFIG_PATH)
+            self.configs.append(default_config)
 
         if (
             CONFIGS_NAMES_ENV_VAR in os.environ.keys()
@@ -63,6 +50,16 @@ class LabelMakerComposedConfig(object):
         ):
             custom_config_names = os.environ[CONFIGS_NAMES_ENV_VAR].split(os.pathsep)
             custom_config_paths = os.environ[CONFIGS_PATHS_ENV_VAR].split(os.pathsep)
+            if len(custom_config_names) != len(custom_config_paths):
+                nuke.warning(
+                    "Labelmaker: {} and {} have different lengths ({} vs {}). "
+                    "Extra entries will be ignored.".format(
+                        CONFIGS_NAMES_ENV_VAR,
+                        CONFIGS_PATHS_ENV_VAR,
+                        len(custom_config_names),
+                        len(custom_config_paths),
+                    )
+                )
             custom_config_tuples = zip(custom_config_names, custom_config_paths)
             for custom_config_tuple in custom_config_tuples:
                 if os.path.exists(custom_config_tuple[1]):
@@ -71,9 +68,9 @@ class LabelMakerComposedConfig(object):
                     )
                     self.configs.append(custom_config)
 
-        if os.path.exists(PERSONAL_CONFIG_PATH):
+        if os.path.exists(personal_config_path):
             personal_config = LabelMakerConfig(
-                name="personal", path=PERSONAL_CONFIG_PATH
+                name="personal", path=personal_config_path
             )
             self.configs.append(personal_config)
 
@@ -82,7 +79,7 @@ class LabelMakerComposedConfig(object):
             self.composed_config_dict.update(config.get_underlying_dict())
 
     def __getitem__(self, node_class):
-        self.composed_config_dict[node_class]
+        return self.composed_config_dict[node_class]
 
     def get(self, key, default=None):
         return self.composed_config_dict.get(key, default)
@@ -146,3 +143,8 @@ class LabelMakerConfig(UserDict, object):
 
 
 composed_config_singleton = LabelMakerComposedConfig()
+
+
+def reload_composed_config():
+    global composed_config_singleton
+    composed_config_singleton = LabelMakerComposedConfig()

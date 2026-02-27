@@ -237,7 +237,7 @@ class AutolabelReplacement(object):
                 knob_label = item.get("label", item["name"])
                 # always show if user has selected to always show, otherwise fall back
                 # to the node's setting from the config
-                always_show = labelmaker_prefs.prefs_singleton.get_pref(
+                always_show = labelmaker_prefs.prefs_singleton.get(
                     "always_show_all"
                 ) or item.get("always_show", False)
                 default = item.get("default", False)
@@ -253,7 +253,7 @@ class AutolabelReplacement(object):
                 if knob_class in (
                     "Color_Knob",
                     "AColor_Knob",
-                ) and not labelmaker_prefs.prefs_singleton.get_pref("colorize_disable"):
+                ) and not labelmaker_prefs.prefs_singleton.get("colorize_disable"):
                     colorize = item.get("colorize", True)
                 # this handles knobs like translate that return a list
                 # and formats them nicely

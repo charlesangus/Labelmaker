@@ -1,65 +1,42 @@
+import json
 import os
-import nuke
-import custom_prefs
+
+PREFS_FILE = os.path.join(os.path.expanduser("~"), ".nuke", "labelmaker_prefs.json")
+
+DEFAULTS = {
+    "personal_config_path": os.path.join(os.path.expanduser("~"), ".nuke", "labelmaker_config.json"),
+    "always_show_all": False,
+    "colorize_disable": False,
+    "use_base_config": True,
+}
 
 
-def setup_prefs():
-    knobs_list = []
+class LabelmakerPrefs:
+    def __init__(self, prefs_file=PREFS_FILE):
+        self._prefs_file = prefs_file
+        self._prefs = self._load()
 
-    personal_config_path_knob = nuke.File_Knob(
-        "personal_config_path", "Personal Config Path",
-    )
-    personal_config_path_knob.setTooltip(
-        "This file holds your personal configuration for Labelmaker, which "
-        "overrides all other configs."
-    )
-    home_dir = os.path.expanduser("~")
-    default_value = os.path.join(home_dir, ".nuke", "labelmaker_config.json",)
-    personal_config_path_knob.setValue(default_value)
-    knobs_list.append(personal_config_path_knob)
+    def _load(self):
+        if os.path.exists(self._prefs_file):
+            with open(self._prefs_file, "r") as f:
+                loaded = json.load(f)
+            return {**DEFAULTS, **loaded}
+        return dict(DEFAULTS)
 
-    div_one = nuke.Text_Knob("div_one", "",)
-    knobs_list.append(div_one)
+    def get(self, key):
+        if key == "use_base_config" and os.environ.get("LABELMAKER_DISABLE_BASE_CONFIG") == "1":
+            return False
+        return self._prefs.get(key, DEFAULTS.get(key))
 
-    always_show_all_knob = nuke.Boolean_Knob(
-        "always_show_all", "Always Show All Labels",
-    )
-    always_show_all_knob.setTooltip(
-        "By default, most labels show only if the knob value "
-        "is not default. This causes the node size to change "
-        "when knobs are adjusted, but makes it easier to see "
-        "at a glance which knobs are in use. This option displays "
-        "all knob labels, all the time, keeping node sizes constant."
-    )
-    knobs_list.append(always_show_all_knob)
+    def set(self, key, value):
+        self._prefs[key] = value
 
-    colorize_enable_knob = nuke.Boolean_Knob(
-        "colorize_disable", "Disable Colorization",
-    )
-    colorize_enable_knob.setTooltip(
-        "By default, Labelmaker colorizes certain knobs, which enables "
-        "you to see what RGB/RGBA knobs are doing at a glance. "
-        "Disable this function here if you find it distracting."
-    )
-    knobs_list.append(colorize_enable_knob)
+    def save(self):
+        with open(self._prefs_file, "w") as f:
+            json.dump(self._prefs, f, indent=2)
 
-    use_base_config_knob = nuke.Boolean_Knob(
-        "use_base_config", "Use Base Config",
-    )
-    use_base_config_knob.setTooltip(
-        "Use the default base config which ships with Labelmaker "
-        "in addition to any custom or personal configs you have set up."
-    )
-    use_base_config_knob.setValue(True)
-    knobs_list.append(use_base_config_knob)
+    def reload(self):
+        self._prefs = self._load()
 
-    custom_pref_manager = custom_prefs.CustomPrefs(
-        tab_label="Labelmaker",
-        knob_name_prefix="labelmaker",
-        knobs_list=knobs_list,
-        version="0.1.0",
-    )
 
-    return custom_pref_manager
-
-prefs_singleton = setup_prefs()
+prefs_singleton = LabelmakerPrefs()
