@@ -31,6 +31,14 @@ class LabelmakerPrefsDialog(QDialog):
         form_layout = QFormLayout()
         main_layout.addLayout(form_layout)
 
+        # labelmaker_enabled checkbox (master switch — at top)
+        self.labelmaker_enabled_checkbox = QCheckBox()
+        self.labelmaker_enabled_checkbox.setToolTip(
+            "When unchecked, Labelmaker is disabled entirely and Nuke's default "
+            "autolabel behavior is restored. Takes effect immediately."
+        )
+        form_layout.addRow("Enable Labelmaker:", self.labelmaker_enabled_checkbox)
+
         # personal_config_path row: line edit + browse button
         path_row_widget = QWidget()
         path_row_layout = QHBoxLayout(path_row_widget)
@@ -96,6 +104,7 @@ class LabelmakerPrefsDialog(QDialog):
 
     def _populate_from_prefs(self):
         prefs = labelmaker_prefs.prefs_singleton
+        self.labelmaker_enabled_checkbox.setChecked(bool(prefs.get("labelmaker_enabled")))
         self.personal_config_path_edit.setText(prefs.get("personal_config_path") or "")
         self.always_show_all_checkbox.setChecked(bool(prefs.get("always_show_all")))
         self.colorize_disable_checkbox.setChecked(bool(prefs.get("colorize_disable")))
@@ -118,6 +127,7 @@ class LabelmakerPrefsDialog(QDialog):
 
     def _on_accept(self):
         prefs = labelmaker_prefs.prefs_singleton
+        prefs.set("labelmaker_enabled", self.labelmaker_enabled_checkbox.isChecked())
         prefs.set("personal_config_path", self.personal_config_path_edit.text())
         prefs.set("always_show_all", self.always_show_all_checkbox.isChecked())
         prefs.set("colorize_disable", self.colorize_disable_checkbox.isChecked())
@@ -127,6 +137,7 @@ class LabelmakerPrefsDialog(QDialog):
 
         labelmaker_config.reload_composed_config()
         labelmaker.autolabeller_singleton.config = labelmaker_config.composed_config_singleton
+        labelmaker.autolabeller_singleton.set_enabled(self.labelmaker_enabled_checkbox.isChecked())
 
         self.accept()
 

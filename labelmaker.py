@@ -96,6 +96,12 @@ class AutolabelReplacement(object):
     def unregister_autolabel(self):
         nuke.removeAutolabel(self.create_autolabel)
 
+    def set_enabled(self, enabled):
+        if enabled:
+            self.register_autolabel()
+        else:
+            self.unregister_autolabel()
+
     def _get_deoverlap_timer(self):
         if self._deoverlap_timer is None:
             from PySide6 import QtCore
@@ -479,4 +485,5 @@ class AutolabelReplacement(object):
 
 config_object = labelmaker_config.composed_config_singleton
 autolabeller_singleton = AutolabelReplacement(config_object)
-autolabeller_singleton.register_autolabel()
+if labelmaker_prefs.prefs_singleton.get("labelmaker_enabled"):
+    autolabeller_singleton.register_autolabel()

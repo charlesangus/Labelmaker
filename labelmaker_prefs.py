@@ -5,6 +5,7 @@ PREFS_FILE = os.path.join(os.path.expanduser("~"), ".nuke", "labelmaker_prefs.js
 
 DEFAULTS = {
     "personal_config_path": os.path.join(os.path.expanduser("~"), ".nuke", "labelmaker_config.json"),
+    "labelmaker_enabled": True,
     "always_show_all": False,
     "colorize_disable": False,
     "use_base_config": True,
