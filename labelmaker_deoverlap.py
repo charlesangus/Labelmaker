@@ -13,6 +13,37 @@ def deoverlap_downstream(source_node):
         nuke.Undo.enable()
 
 
+def deoverlap_all(undoable=False):
+    """De-overlap all nodes in the script by traversing from root nodes downward.
+
+    When undoable is True, undo is left enabled so each repositioning is tracked
+    by Nuke's undo system. When False (the default, used for automatic
+    label-change triggers) undo is disabled so the undo stack is not polluted.
+    """
+    if not undoable:
+        nuke.Undo.disable()
+    try:
+        all_nodes = [n for n in nuke.allNodes() if n.Class() not in NODES_TO_SKIP]
+        # Root nodes are those with no connected upstream inputs — they are the
+        # tops of each chain (including fully isolated nodes).
+        root_nodes = []
+        for node in all_nodes:
+            has_connected_input = any(
+                node.input(input_index) is not None
+                for input_index in range(node.inputs())
+            )
+            if not has_connected_input:
+                root_nodes.append(node)
+        # Process top-to-bottom so pushes cascade correctly through the graph.
+        root_nodes.sort(key=lambda node: node.ypos())
+        visited = set()
+        for root_node in root_nodes:
+            _deoverlap_chain(root_node, visited)
+    finally:
+        if not undoable:
+            nuke.Undo.enable()
+
+
 def _deoverlap_chain(node, visited):
     if node.name() in visited:
         return
