@@ -14,9 +14,14 @@ def deoverlap_downstream(source_node):
 
 
 def deoverlap_all(undoable=False):
-    """De-overlap all nodes in the script by traversing from root nodes downward.
+    """De-overlap all nodes in the script using a ypos-sorted spatial sweep.
 
-    When undoable is True, undo is left enabled so each repositioning is tracked
+    Sorts all nodes top-to-bottom, then for each node finds the maximum bottom
+    edge among all preceding nodes that overlap it horizontally, and pushes the
+    node down if needed. This handles disconnected clusters naturally because it
+    uses spatial position rather than graph topology.
+
+    When undoable is True, undo is left enabled so repositioning is tracked
     by Nuke's undo system. When False (the default, used for automatic
     label-change triggers) undo is disabled so the undo stack is not polluted.
     """
@@ -24,21 +29,47 @@ def deoverlap_all(undoable=False):
         nuke.Undo.disable()
     try:
         all_nodes = [n for n in nuke.allNodes() if n.Class() not in NODES_TO_SKIP]
-        # Root nodes are those with no connected upstream inputs — they are the
-        # tops of each chain (including fully isolated nodes).
-        root_nodes = []
+        if not all_nodes:
+            return
+
+        # Read all node positions once upfront. Store as mutable lists so
+        # in-flight pushes update the cache without re-reading from Nuke.
+        # Layout: [left, top, right, bottom]
+        position_cache = {}
         for node in all_nodes:
-            has_connected_input = any(
-                node.input(input_index) is not None
-                for input_index in range(node.inputs())
-            )
-            if not has_connected_input:
-                root_nodes.append(node)
-        # Process top-to-bottom so pushes cascade correctly through the graph.
-        root_nodes.sort(key=lambda node: node.ypos())
-        visited = set()
-        for root_node in root_nodes:
-            _deoverlap_chain(root_node, visited)
+            x = node.xpos()
+            y = node.ypos()
+            position_cache[node.name()] = [x, y, x + node.screenWidth(), y + node.screenHeight()]
+
+        # Sort top-to-bottom; use name as tiebreaker for determinism.
+        sorted_nodes = sorted(
+            all_nodes,
+            key=lambda node: (position_cache[node.name()][1], node.name())
+        )
+
+        for node_index, node in enumerate(sorted_nodes):
+            node_name = node.name()
+            node_bbox = position_cache[node_name]
+
+            # Find the maximum bottom edge among all preceding nodes that
+            # overlap this node horizontally.
+            max_predecessor_bottom = None
+            for predecessor in sorted_nodes[:node_index]:
+                predecessor_bbox = position_cache[predecessor.name()]
+                if _bboxes_overlap_horizontally(node_bbox, predecessor_bbox):
+                    if max_predecessor_bottom is None or predecessor_bbox[3] > max_predecessor_bottom:
+                        max_predecessor_bottom = predecessor_bbox[3]
+
+            if max_predecessor_bottom is None:
+                continue
+
+            required_top = max_predecessor_bottom + MINIMUM_GAP
+            if required_top > node_bbox[1]:
+                push_amount = required_top - node_bbox[1]
+                node_bbox[1] += push_amount
+                node_bbox[3] += push_amount
+                node.setYpos(int(node_bbox[1]))
+
     finally:
         if not undoable:
             nuke.Undo.enable()
@@ -65,12 +96,9 @@ def _deoverlap_chain(node, visited):
 
 def _node_bbox(node):
     """Return bounding box in DAG node coordinates (same units as xpos/ypos)."""
-    return (
-        node.xpos(),
-        node.ypos(),
-        node.xpos() + node.screenWidth(),
-        node.ypos() + node.screenHeight(),
-    )
+    x = node.xpos()
+    y = node.ypos()
+    return (x, y, x + node.screenWidth(), y + node.screenHeight())
 
 
 def _bboxes_overlap(bbox_a, bbox_b):
@@ -78,3 +106,8 @@ def _bboxes_overlap(bbox_a, bbox_b):
         bbox_a[0] > bbox_b[2] or bbox_a[2] < bbox_b[0]
         or bbox_a[1] > bbox_b[3] or bbox_a[3] < bbox_b[1]
     )
+
+
+def _bboxes_overlap_horizontally(bbox_a, bbox_b):
+    """True if the X ranges of two bboxes intersect (touching edges excluded)."""
+    return bbox_a[2] > bbox_b[0] and bbox_a[0] < bbox_b[2]
