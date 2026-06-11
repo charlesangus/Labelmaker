@@ -76,6 +76,10 @@ def deoverlap_from_nodes(source_node_names):
                 # No actual overlap: the pusher's bottom is above this node.
                 if pusher_bbox[3] < node_bbox[1]:
                     continue
+                # No actual overlap: the pusher was pushed entirely below
+                # this node earlier in the sweep.
+                if pusher_bbox[1] > node_bbox[3]:
+                    continue
                 if max_pusher_bottom is None or pusher_bbox[3] > max_pusher_bottom:
                     max_pusher_bottom = pusher_bbox[3]
 
