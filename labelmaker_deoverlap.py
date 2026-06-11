@@ -4,11 +4,95 @@ NODES_TO_SKIP = ('BackdropNode', 'Viewer')
 MINIMUM_GAP = 6  # DAG units of breathing room between nodes after de-overlap
 
 
-def deoverlap_downstream(source_node):
-    """Push graph descendants of source_node down if they overlap it after a height increase."""
+def deoverlap_from_nodes(source_node_names):
+    """Push nodes below the given source nodes down if they overlap them.
+
+    Spatial cascade: starting from the nodes whose labels grew, any node
+    physically below that overlaps a grown (or subsequently pushed) node is
+    pushed down, regardless of graph connectivity — same philosophy as
+    deoverlap_all. The sweep visits nodes top-to-bottom; each node is pushed
+    below the lowest bottom edge among the "dirty" nodes (sources plus nodes
+    already pushed) that sit above it and actually overlap it. Nodes that
+    were not grown or pushed never displace anything, so pre-existing
+    overlaps elsewhere in the script are left alone.
+
+    All node positions are read from Nuke exactly once up front; the cascade
+    runs on cached data and only nodes that actually moved get a setYpos
+    call. This keeps the cost proportional to the number of nodes involved,
+    not to graph topology.
+
+    Undo is disabled around repositioning so automatic layout adjustments do
+    not pollute the undo stack.
+    """
     nuke.Undo.disable()
     try:
-        _deoverlap_chain(source_node, set())
+        all_nodes = [n for n in nuke.allNodes() if n.Class() not in NODES_TO_SKIP]
+        if not all_nodes:
+            return
+
+        # Read all node positions once upfront. Store as mutable lists so
+        # pushes update the cache without re-reading from Nuke.
+        # Layout: [left, top, right, bottom]
+        nodes_by_name = {}
+        position_cache = {}
+        original_tops = {}
+        for node in all_nodes:
+            node_name = node.name()
+            x = node.xpos()
+            y = node.ypos()
+            nodes_by_name[node_name] = node
+            position_cache[node_name] = [x, y, x + node.screenWidth(), y + node.screenHeight()]
+            original_tops[node_name] = y
+
+        # Source names may be stale (node deleted between the label-change
+        # trigger and the debounce timer firing) — silently skip those.
+        dirty_names = set(
+            name for name in source_node_names if name in position_cache
+        )
+        if not dirty_names:
+            return
+
+        # Sweep top-to-bottom by original position (name as tiebreaker for
+        # determinism). Visiting in this order means every potential pusher
+        # is finalized before the nodes below it are considered.
+        sorted_node_names = sorted(
+            position_cache,
+            key=lambda node_name: (original_tops[node_name], node_name)
+        )
+
+        for node_name in sorted_node_names:
+            node_bbox = position_cache[node_name]
+            max_pusher_bottom = None
+            for pusher_name in dirty_names:
+                if pusher_name == node_name:
+                    continue
+                # Only nodes that started strictly above may push this one,
+                # so side-by-side neighbours are never moved.
+                if original_tops[pusher_name] >= original_tops[node_name]:
+                    continue
+                pusher_bbox = position_cache[pusher_name]
+                if not _bboxes_overlap_horizontally(node_bbox, pusher_bbox):
+                    continue
+                # No actual overlap: the pusher's bottom is above this node.
+                if pusher_bbox[3] < node_bbox[1]:
+                    continue
+                if max_pusher_bottom is None or pusher_bbox[3] > max_pusher_bottom:
+                    max_pusher_bottom = pusher_bbox[3]
+
+            if max_pusher_bottom is None:
+                continue
+
+            required_top = max_pusher_bottom + MINIMUM_GAP
+            if required_top > node_bbox[1]:
+                push_amount = required_top - node_bbox[1]
+                node_bbox[1] += push_amount
+                node_bbox[3] += push_amount
+                # This node may now overlap nodes below it in turn.
+                dirty_names.add(node_name)
+
+        for node_name, node_bbox in position_cache.items():
+            if node_bbox[1] != original_tops[node_name]:
+                nodes_by_name[node_name].setYpos(int(node_bbox[1]))
     finally:
         nuke.Undo.enable()
 
@@ -35,27 +119,29 @@ def deoverlap_all(undoable=False):
         # Read all node positions once upfront. Store as mutable lists so
         # in-flight pushes update the cache without re-reading from Nuke.
         # Layout: [left, top, right, bottom]
+        nodes_by_name = {}
         position_cache = {}
         for node in all_nodes:
+            node_name = node.name()
             x = node.xpos()
             y = node.ypos()
-            position_cache[node.name()] = [x, y, x + node.screenWidth(), y + node.screenHeight()]
+            nodes_by_name[node_name] = node
+            position_cache[node_name] = [x, y, x + node.screenWidth(), y + node.screenHeight()]
 
         # Sort top-to-bottom; use name as tiebreaker for determinism.
-        sorted_nodes = sorted(
-            all_nodes,
-            key=lambda node: (position_cache[node.name()][1], node.name())
+        sorted_node_names = sorted(
+            position_cache,
+            key=lambda node_name: (position_cache[node_name][1], node_name)
         )
 
-        for node_index, node in enumerate(sorted_nodes):
-            node_name = node.name()
+        for node_index, node_name in enumerate(sorted_node_names):
             node_bbox = position_cache[node_name]
 
             # Find the maximum bottom edge among all preceding nodes that
             # overlap this node horizontally.
             max_predecessor_bottom = None
-            for predecessor in sorted_nodes[:node_index]:
-                predecessor_bbox = position_cache[predecessor.name()]
+            for predecessor_index in range(node_index):
+                predecessor_bbox = position_cache[sorted_node_names[predecessor_index]]
                 if _bboxes_overlap_horizontally(node_bbox, predecessor_bbox):
                     if max_predecessor_bottom is None or predecessor_bbox[3] > max_predecessor_bottom:
                         max_predecessor_bottom = predecessor_bbox[3]
@@ -68,37 +154,11 @@ def deoverlap_all(undoable=False):
                 push_amount = required_top - node_bbox[1]
                 node_bbox[1] += push_amount
                 node_bbox[3] += push_amount
-                node.setYpos(int(node_bbox[1]))
+                nodes_by_name[node_name].setYpos(int(node_bbox[1]))
 
     finally:
         if not undoable:
             nuke.Undo.enable()
-
-
-def _deoverlap_chain(node, visited):
-    if node.name() in visited:
-        return
-    visited.add(node.name())
-    source_bbox = _node_bbox(node)
-    for downstream_node in node.dependent(nuke.INPUTS):
-        if downstream_node.Class() in NODES_TO_SKIP:
-            continue
-        down_bbox = _node_bbox(downstream_node)
-        # Only consider nodes physically below the source to avoid pushing sideways branches
-        if down_bbox[1] <= source_bbox[1]:
-            continue
-        if _bboxes_overlap(source_bbox, down_bbox):
-            push_amount = source_bbox[3] - down_bbox[1] + MINIMUM_GAP
-            downstream_node.setYpos(downstream_node.ypos() + push_amount)
-        # Always recurse in case this node now overlaps its own descendants
-        _deoverlap_chain(downstream_node, visited)
-
-
-def _node_bbox(node):
-    """Return bounding box in DAG node coordinates (same units as xpos/ypos)."""
-    x = node.xpos()
-    y = node.ypos()
-    return (x, y, x + node.screenWidth(), y + node.screenHeight())
 
 
 def _bboxes_overlap(bbox_a, bbox_b):
