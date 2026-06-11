@@ -80,7 +80,7 @@ The label knob works exactly as before, including TCL expressions.
 
 ## Auto De-overlap
 
-When a node's label grows taller (because more knob values come into view), Labelmaker automatically pushes downstream nodes down to prevent overlap. The push is debounced with a 150ms delay and does not pollute the undo stack. Nodes are not retracted when a label shrinks. This feature can be toggled in preferences.
+When a node's label grows taller (because more knob values come into view), Labelmaker automatically pushes any nodes the grown label now overlaps down to make room, whether or not they are connected to the grown node. Pushed nodes cascade: if pushing a node makes it overlap nodes below it, those are pushed too. The push is debounced with a 150ms delay and does not pollute the undo stack. Nodes are not retracted when a label shrinks, and pre-existing overlaps elsewhere in the script are left alone. This feature can be toggled in preferences.
 
 ## De-overlap All Nodes
 
@@ -143,7 +143,7 @@ Open the preferences dialog via **Edit > Labelmaker Preferences...**
 | Always Show All Labels | off | Show all config lines regardless of whether values are at their defaults |
 | Disable Colorization | off | Turn off colour swatches |
 | Use Base Config | on | Include the shipped `base_config.json` |
-| Enable Auto De-overlap | on | Automatically push downstream nodes down when a label grows taller |
+| Enable Auto De-overlap | on | Automatically push overlapped nodes down when a label grows taller |
 | Personal Config Path | `~/.nuke/labelmaker_config.json` | Location of your personal config overrides |
 
 Preferences are saved to `~/.nuke/labelmaker_prefs.json`.

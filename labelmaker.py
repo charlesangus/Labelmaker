@@ -114,10 +114,8 @@ class AutolabelReplacement(object):
     def _run_deoverlap(self):
         pending = self._pending_deoverlap.copy()
         self._pending_deoverlap.clear()
-        for node_name in pending:
-            node = nuke.toNode(node_name)
-            if node:
-                labelmaker_deoverlap.deoverlap_downstream(node)
+        if pending:
+            labelmaker_deoverlap.deoverlap_from_nodes(pending)
 
     def create_autolabel(self):
         self.update()
