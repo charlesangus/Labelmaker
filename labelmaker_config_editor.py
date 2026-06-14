@@ -23,7 +23,6 @@ from PySide6.QtWidgets import (
     QComboBox,
     QHBoxLayout,
     QFormLayout,
-    QGroupBox,
     QLabel,
     QLineEdit,
     QListWidget,
