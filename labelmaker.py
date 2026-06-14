@@ -1,10 +1,12 @@
-import nuke
+import contextlib
 import os
 import re
-import json
+
+import nuke
+
 import labelmaker_config
-import labelmaker_prefs
 import labelmaker_deoverlap
+import labelmaker_prefs
 
 
 # from https://gist.github.com/anonymous/a802f51391163a2bf0e3
@@ -66,10 +68,7 @@ def node_mask_input_plugged(n):
         return False
     mask_index = get_mask_input_index(n)
     mask_input = n.input(mask_index)
-    if mask_input is None:
-        return False
-    else:
-        return True
+    return mask_input is not None
 
 
 class AutolabelReplacement(object):
@@ -88,7 +87,7 @@ class AutolabelReplacement(object):
         self.NAMELESS_NODES = ("Dot", "BackdropNode", "PostageStamp", "StickyNote")
         self._line_counts = {}       # {node_name: int} last known line count per node
         self._pending_deoverlap = set()  # node names whose height increased since last timer fire
-        self._deoverlap_timer = None  # created lazily on first use (PySide6 not imported at module level)
+        self._deoverlap_timer = None  # created lazily; PySide6 is not imported at module level
 
     def register_autolabel(self):
         nuke.addAutolabel(self.create_autolabel)
@@ -198,10 +197,7 @@ class AutolabelReplacement(object):
         mask_input_side = nuke.value("this.maskChannelMask", "none")
         mask_connected = node_mask_input_plugged(self.n)
         mask_inverted = nuke.value("this.invert_mask", "false")
-        if mask_inverted == "true":
-            mask_string = "Minv"
-        else:
-            mask_string = "M"
+        mask_string = "Minv" if mask_inverted == "true" else "M"
         unpremult_and_premult = nuke.value("this.unpremult", "none")
         unpremult = "none"
         premult = "none"
@@ -260,7 +256,7 @@ class AutolabelReplacement(object):
         knob_readouts = []
         for item in knob_dict_list:
 
-            if "tcl_string" in item.keys():
+            if "tcl_string" in item:
                 tcl_string = str(item["tcl_string"])
                 try:
                     label_string = nuke.tcl("subst", tcl_string)
@@ -320,7 +316,7 @@ class AutolabelReplacement(object):
                         label_string = self.colorize_knob_readout(
                             knob_value, knob_label, knob_value_formatted
                         )
-                        # to avoid adding an extra line, we need to jam our wrapper onto the front of the first item
+                        # jam wrapper onto the first item to avoid an extra line
                         if len(self.lines) > 0:
                             self.lines[0] = "{}{}".format(
                                 self.centre_wrapper(), self.lines[0]
@@ -350,11 +346,8 @@ class AutolabelReplacement(object):
 
     def label_readout_creator(self):
         node_label_value = nuke.value("this.label", "")
-        try:
+        with contextlib.suppress(RuntimeError):
             node_label_value = nuke.tcl("subst", node_label_value)
-        except RuntimeError:
-            # TCL execution failed, so just use the label as-is
-            pass
         if node_label_value != "" and node_label_value is not None:
             self.lines.append(node_label_value)
 
@@ -465,11 +458,7 @@ class AutolabelReplacement(object):
         background_luminance = (
             color_tuple[0] * 0.34 + color_tuple[1] * 0.5 + color_tuple[2] * 0.16
         ) / 255.0
-        # since we've sort of
-        if background_luminance > 0.22:
-            text_color = "black"
-        else:
-            text_color = "white"
+        text_color = "black" if background_luminance > 0.22 else "white"
         colorized_readout = basic_colorize_span.format(
             r=color_tuple[0],
             g=color_tuple[1],

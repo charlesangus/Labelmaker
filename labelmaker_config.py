@@ -1,7 +1,9 @@
 import json
 import os
 from collections import UserDict
+
 import nuke
+
 import labelmaker_prefs
 
 # Location of the default config shipped with Labelmaker
@@ -45,8 +47,8 @@ class LabelMakerComposedConfig(object):
             self.configs.append(default_config)
 
         if (
-            CONFIGS_NAMES_ENV_VAR in os.environ.keys()
-            and CONFIGS_PATHS_ENV_VAR in os.environ.keys()
+            CONFIGS_NAMES_ENV_VAR in os.environ
+            and CONFIGS_PATHS_ENV_VAR in os.environ
         ):
             custom_config_names = os.environ[CONFIGS_NAMES_ENV_VAR].split(os.pathsep)
             custom_config_paths = os.environ[CONFIGS_PATHS_ENV_VAR].split(os.pathsep)
@@ -60,7 +62,7 @@ class LabelMakerComposedConfig(object):
                         len(custom_config_paths),
                     )
                 )
-            custom_config_tuples = zip(custom_config_names, custom_config_paths)
+            custom_config_tuples = zip(custom_config_names, custom_config_paths, strict=False)
             for custom_config_tuple in custom_config_tuples:
                 if os.path.exists(custom_config_tuple[1]):
                     custom_config = LabelMakerConfig(
@@ -120,12 +122,12 @@ class LabelMakerConfig(UserDict, object):
         labels = self[node_class]
         return labels
 
-    def add_node_class(self, node_class, labels=[]):
+    def add_node_class(self, node_class, labels=None):
         if node_class in self.keys():
             return False
         else:
             self.dirty = True
-            self[node_class] = labels
+            self[node_class] = labels if labels is not None else []
             return True
 
     def add_label(self, node_class, label):

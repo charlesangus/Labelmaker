@@ -146,9 +146,10 @@ def deoverlap_all(undoable=False):
             max_predecessor_bottom = None
             for predecessor_index in range(node_index):
                 predecessor_bbox = position_cache[sorted_node_names[predecessor_index]]
-                if _bboxes_overlap_horizontally(node_bbox, predecessor_bbox):
-                    if max_predecessor_bottom is None or predecessor_bbox[3] > max_predecessor_bottom:
-                        max_predecessor_bottom = predecessor_bbox[3]
+                if _bboxes_overlap_horizontally(node_bbox, predecessor_bbox) and (
+                    max_predecessor_bottom is None or predecessor_bbox[3] > max_predecessor_bottom
+                ):
+                    max_predecessor_bottom = predecessor_bbox[3]
 
             if max_predecessor_bottom is None:
                 continue

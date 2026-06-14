@@ -1,12 +1,12 @@
 import os
 
 from PySide6.QtWidgets import (
+    QCheckBox,
     QDialog,
     QDialogButtonBox,
     QFileDialog,
     QFormLayout,
     QHBoxLayout,
-    QCheckBox,
     QLineEdit,
     QPushButton,
     QVBoxLayout,
@@ -82,7 +82,11 @@ class LabelmakerPrefsDialog(QDialog):
         self.use_base_config_checkbox.setToolTip(
             "Use the default base config which ships with Labelmaker in addition to "
             "any custom or personal configs you have set up."
-            + (" (Disabled by LABELMAKER_DISABLE_BASE_CONFIG environment variable.)" if env_var_active else "")
+            + (
+                " (Disabled by LABELMAKER_DISABLE_BASE_CONFIG environment variable.)"
+                if env_var_active
+                else ""
+            )
         )
         if env_var_active:
             self.use_base_config_checkbox.setEnabled(False)

@@ -17,13 +17,14 @@ import copy
 import json
 import os
 
+import nuke
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor, QFont
 from PySide6.QtWidgets import (
+    QCheckBox,
     QComboBox,
-    QHBoxLayout,
     QFormLayout,
-    QGroupBox,
+    QHBoxLayout,
     QLabel,
     QLineEdit,
     QListWidget,
@@ -31,14 +32,11 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QPlainTextEdit,
     QPushButton,
-    QCheckBox,
     QSplitter,
     QStackedWidget,
     QVBoxLayout,
     QWidget,
 )
-
-import nuke
 
 import labelmaker
 import labelmaker_config
@@ -706,7 +704,9 @@ class LabelmakerConfigEditor(QWidget):
                     if not str(label.get("tcl_string", "")).strip():
                         errors.append("{} [{}]: TCL string is empty".format(class_name, index))
                 elif not str(label.get("name", "")).strip():
-                    errors.append("{} [{}]: simple label is missing a knob name".format(class_name, index))
+                    errors.append(
+                        "{} [{}]: simple label is missing a knob name".format(class_name, index)
+                    )
         try:
             json.dumps(self._working_dict)
         except (TypeError, ValueError) as error:

@@ -1,0 +1,39 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install pytest ruff
+      - run: ruff check .
+      - run: pytest tests/ -v
+
+  build:
+    needs: test
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build release zip
+        run: |
+          mkdir -p staging/Labelmaker
+          cp __init__.py labelmaker.py labelmaker_config.py labelmaker_prefs.py \
+             labelmaker_deoverlap.py labelmaker_prefs_dialog.py \
+             labelmaker_config_editor.py menu.py base_config.json README.md \
+             staging/Labelmaker/
+          touch "staging/Labelmaker/${{ github.ref_name }}"
+          cd staging
+          zip -r "../Labelmaker-${{ github.ref_name }}.zip" Labelmaker/
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: "Labelmaker-${{ github.ref_name }}.zip"
+          generate_release_notes: true

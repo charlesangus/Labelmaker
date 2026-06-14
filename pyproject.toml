@@ -1,0 +1,17 @@
+[tool.ruff]
+line-length = 100
+exclude = [".claude/", "__pycache__/", "W_hotbox_v2.0/", "benchmark_deoverlap.py"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B", "I", "SIM"]
+
+[tool.ruff.lint.isort]
+known-third-party = ["nuke", "nukescripts", "PySide6"]
+
+[tool.ruff.lint.per-file-ignores]
+"menu.py" = ["F401"]
+"tests/*.py" = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

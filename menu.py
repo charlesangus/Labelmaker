@@ -1,8 +1,9 @@
 import nuke
+
 import labelmaker
+import labelmaker_config_editor
 import labelmaker_deoverlap
 import labelmaker_prefs_dialog
-import labelmaker_config_editor
 
 edit_menu = nuke.menu("Nuke").findItem("Edit")
 
