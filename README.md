@@ -124,6 +124,29 @@ Configs are layered in this order (later entries override earlier ones):
 2. Facility configs, in order, from `LABELMAKER_CONFIGS_NAMES` / `LABELMAKER_CONFIGS_PATHS`
 3. Personal config at `~/.nuke/labelmaker_config.json` (or the path set in preferences)
 
+Overriding happens at the **node-class** level, not the individual-line level: if your
+personal config defines `Grade`, it replaces the entire `Grade` definition from the base
+config rather than merging line by line.
+
+## Config Editor
+
+Open the editor via **Edit > Labelmaker Config Editor...** to add and tune labels through
+a GUI instead of hand-editing JSON. It's a floating, non-modal window, so you can keep
+working in the DAG while it's open.
+
+- Pick which layer to edit from the **Editing layer** dropdown. Read-only layers (such as
+  a base config on a shared install) are shown as `READ-ONLY` and can be browsed but not
+  changed.
+- Each node class shows where it sits in the cascade — `overrides ...`, `overridden by ...`,
+  or, for a class defined only in a lower layer, a greyed-out **inherited** row.
+- To customize an inherited class, select it and click **Fork to Edit** (or double-click it).
+  This copies the whole class definition into the layer you're editing so you can override
+  it. Because configs replace whole classes, your copy then fully controls that class.
+- Add, delete, and reorder labels per class, switching freely between simple knob readouts
+  and TCL labels.
+- **Save** writes the layer to disk and reloads the live autolabeller, so changes apply
+  without restarting Nuke. If your personal config doesn't exist yet, saving creates it.
+
 ## Environment Variables
 
 | Variable | Description |

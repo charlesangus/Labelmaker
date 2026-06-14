@@ -109,8 +109,8 @@ class LabelMakerConfig(UserDict, object):
         return config
 
     def save_config(self):
-        with open(self.path, "w+") as f:
-            json.dump(self.data, f)
+        with open(self.path, "w") as f:
+            json.dump(self.data, f, indent=2)
         self.dirty = False
 
     def get_underlying_dict(self):
@@ -134,12 +134,12 @@ class LabelMakerConfig(UserDict, object):
     def move_label_up(self, node_class, old_index):
         node_object = self[node_class]
         node_object.insert(old_index - 1, node_object.pop(old_index))
-        self[node_object] = node_object
+        self[node_class] = node_object
 
     def move_label_down(self, node_class, old_index):
         node_object = self[node_class]
         node_object.insert(old_index + 1, node_object.pop(old_index))
-        self[node_object] = node_object
+        self[node_class] = node_object
 
 
 composed_config_singleton = LabelMakerComposedConfig()

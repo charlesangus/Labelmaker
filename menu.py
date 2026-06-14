@@ -2,6 +2,7 @@ import nuke
 import labelmaker
 import labelmaker_deoverlap
 import labelmaker_prefs_dialog
+import labelmaker_config_editor
 
 edit_menu = nuke.menu("Nuke").findItem("Edit")
 
@@ -16,6 +17,11 @@ edit_menu.addCommand(
     "Labelmaker Preferences...",
     labelmaker_prefs_dialog.show_prefs_dialog,
     index=project_settings_index + 1,
+)
+edit_menu.addCommand(
+    "Labelmaker Config Editor...",
+    labelmaker_config_editor.show_config_editor,
+    index=project_settings_index + 2,
 )
 
 node_layout_menu = edit_menu.addMenu("Node Layout")
