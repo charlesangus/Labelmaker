@@ -1,0 +1,30 @@
+[
+  {
+    "name": "labelmaker_preferences",
+    "steps": [
+      { "type": "click", "target": { "object_name": "@dag" } },
+      { "type": "keys", "keys": ["Ctrl+Alt+Shift+P"] },
+      { "type": "wait", "duration": 1.0 },
+      {
+        "type": "screenshot",
+        "target": { "object_name": "LabelmakerPrefsDialog", "class_name": "QDialog" },
+        "filename": "prefs_dialog.png"
+      },
+      { "type": "keys", "keys": ["Escape"] }
+    ]
+  },
+  {
+    "name": "labelmaker_config_editor",
+    "steps": [
+      { "type": "click", "target": { "object_name": "@dag" } },
+      { "type": "keys", "keys": ["Ctrl+Alt+Shift+C"] },
+      { "type": "wait", "duration": 1.0 },
+      {
+        "type": "screenshot",
+        "target": { "object_name": "LabelmakerConfigEditor" },
+        "filename": "config_editor.png"
+      },
+      { "type": "keys", "keys": ["Escape"] }
+    ]
+  }
+]

@@ -1,0 +1,277 @@
+#! /usr/local/Nuke16.0v6/libnuke-16.0.6.so -nx
+version 16.0 v6
+Root {
+ inputs 0
+ gsv  {
+  __default__ {
+  } 
+}
+ format "2048 1556 0 0 2048 1556 1 2K_Super_35(full-ap)"
+ proxy_type scale
+ proxy_format "1024 778 0 0 1024 778 1 1K_Super_35(full-ap)"
+ colorManagement Nuke
+ workingSpaceLUT 0
+ monitorLut sRGB
+ monitorOutLUT rec709
+ int8Lut 0
+ int16Lut 0
+ logLut 0
+ floatLut 0
+}
+BackdropNode {
+ inputs 0
+ name BackdropNode1
+ tile_color 0x556699ff
+ label screenshot:example
+ note_font_size 28
+ xpos 100
+ ypos 100
+ bdwidth 380
+ bdheight 678
+}
+BackdropNode {
+ inputs 0
+ name BackdropNode2
+ tile_color 0x556699ff
+ label "screenshot:regular knobs"
+ note_font_size 28
+ xpos 660
+ ypos 100
+ bdwidth 380
+ bdheight 488
+}
+BackdropNode {
+ inputs 0
+ name BackdropNode3
+ tile_color 0x556699ff
+ label screenshot:grade
+ note_font_size 28
+ xpos 1220
+ ypos 100
+ bdwidth 380
+ bdheight 393
+}
+BackdropNode {
+ inputs 0
+ name BackdropNode4
+ tile_color 0x556699ff
+ label screenshot:tcl
+ note_font_size 28
+ xpos 1780
+ ypos 100
+ bdwidth 380
+ bdheight 393
+}
+BackdropNode {
+ inputs 0
+ name BackdropNode5
+ tile_color 0x556699ff
+ label "screenshot:channel ops"
+ note_font_size 28
+ xpos 100
+ ypos 840
+ bdwidth 500
+ bdheight 773
+}
+BackdropNode {
+ inputs 0
+ name BackdropNode6
+ tile_color 0x556699ff
+ label "screenshot:regular label"
+ note_font_size 28
+ xpos 660
+ ypos 840
+ bdwidth 380
+ bdheight 393
+}
+BackdropNode {
+ inputs 0
+ name BackdropNode7
+ tile_color 0x556699ff
+ label screenshot:other
+ note_font_size 28
+ xpos 1220
+ ypos 840
+ bdwidth 380
+ bdheight 678
+}
+BackdropNode {
+ inputs 0
+ name BackdropNode8
+ tile_color 0x556699ff
+ label screenshot:deoverlap
+ note_font_size 28
+ xpos 1780
+ ypos 840
+ bdwidth 380
+ bdheight 678
+}
+Read {
+ inputs 0
+ file_type exr
+ file /jobs/ENG/sh010/plates/bg_main_v003.%04d.exr
+ in_colorspace scene_linear
+ out_colorspace scene_linear
+ name Read1
+ xpos 250
+ ypos 265
+}
+Grade {
+ white {0.85 0.45 0.2 1}
+ multiply {1.1 0.95 0.8 1}
+ name Grade1
+ xpos 250
+ ypos 360
+}
+Blur {
+ size 8
+ name Blur1
+ xpos 250
+ ypos 455
+}
+Write {
+ file /jobs/ENG/sh010/comp/sh010_comp_v012.%04d.exr
+ in_colorspace scene_linear
+ out_colorspace scene_linear
+ ocioColorspace scene_linear
+ display default
+ view sRGB
+ name Write1
+ xpos 250
+ ypos 550
+}
+Blur {
+ inputs 0
+ size 8
+ name Blur2
+ xpos 810
+ ypos 265
+}
+Transform {
+ translate {35 14}
+ rotate 8
+ name Transform1
+ xpos 810
+ ypos 360
+}
+Grade {
+ inputs 0
+ white {0.85 0.4 0.2 1}
+ multiply {1.15 0.95 0.75 1}
+ gamma {1.1 1 0.95 1}
+ name Grade2
+ xpos 1370
+ ypos 265
+}
+Shuffle {
+ inputs 0
+ name Shuffle1
+ xpos 1930
+ ypos 265
+}
+Read {
+ inputs 0
+ file_type exr
+ file /jobs/ENG/sh010/elements/fx_smoke_v002.%04d.exr
+ in_colorspace scene_linear
+ out_colorspace scene_linear
+ name Read2
+ xpos 370
+ ypos 1005
+}
+Read {
+ inputs 0
+ file_type exr
+ file /jobs/ENG/sh010/plates/bg_main_v003.%04d.exr
+ in_colorspace scene_linear
+ out_colorspace scene_linear
+ name Read3
+ xpos 250
+ ypos 1005
+}
+Grade {
+ white 0.8
+ maskChannelInput rgba.red
+ unpremult rgba.alpha
+ mix 0.5
+ name Grade3
+ xpos 250
+ ypos 1195
+}
+Merge2 {
+ inputs 2
+ operation plus
+ name Merge1
+ xpos 250
+ ypos 1385
+}
+Grade {
+ inputs 0
+ white 0.9
+ name Grade4
+ label "key light\nbalance to hero"
+ xpos 810
+ ypos 1005
+}
+Transform {
+ inputs 0
+ translate {35 14}
+ rotate 8
+ name guy
+ xpos 1370
+ ypos 1005
+}
+Read {
+ inputs 0
+ file_type exr
+ file /jobs/ENG/sh010/plates/bg_main_v003.%04d.exr
+ in_colorspace scene_linear
+ out_colorspace scene_linear
+ name Read4
+ xpos 1370
+ ypos 1195
+}
+Write {
+ file /jobs/ENG/sh010/comp/sh010_comp_v012.%04d.exr
+ in_colorspace scene_linear
+ out_colorspace scene_linear
+ ocioColorspace scene_linear
+ display default
+ view sRGB
+ name Write2
+ xpos 1370
+ ypos 1290
+}
+Read {
+ inputs 0
+ file_type exr
+ file /jobs/ENG/sh020/plates/bg_v001.%04d.exr
+ in_colorspace scene_linear
+ out_colorspace scene_linear
+ name Read5
+ xpos 1930
+ ypos 1005
+}
+Grade {
+ white 0.95
+ name Grade5
+ xpos 1930
+ ypos 1100
+}
+Blur {
+ size 4
+ name Blur3
+ xpos 1930
+ ypos 1195
+}
+Write {
+ file /jobs/ENG/sh020/comp/sh020_comp_v001.%04d.exr
+ in_colorspace scene_linear
+ out_colorspace scene_linear
+ ocioColorspace scene_linear
+ display default
+ view sRGB
+ name Write3
+ xpos 1930
+ ypos 1290
+}

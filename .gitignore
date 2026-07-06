@@ -127,3 +127,13 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+.tools/
+
+# Nuke autosave files
+*.nk.autosave
+
+# Throwaway HOME for doc capture sessions
+.capture-home/
+
+# Intermediate Markdown generated from the README for the User Guide PDF
+docs/.build/
