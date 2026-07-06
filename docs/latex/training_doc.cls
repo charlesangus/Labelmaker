@@ -1,7 +1,10 @@
 % training document template
 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesClass{trainingDoc}
+% Class name must match the filename (training_doc.cls) and the pandoc
+% `documentclass: training_doc` in docs/pandoc/pdf.yaml, or LaTeX warns that the
+% requested class does not match the one provided.
+\ProvidesClass{training_doc}
 
 
 % Load the Base Class

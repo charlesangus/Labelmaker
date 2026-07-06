@@ -3,7 +3,8 @@
 #   make screenshots   regenerate all PNGs under docs/images/ (requires Nuke +
 #                      nuke-screenshotter + xvfb-run on headless Linux)
 #   make pdf           build docs/user-guide.pdf from the README (requires
-#                      pandoc + xelatex only — no Nuke, so this runs in CI)
+#                      pandoc + xelatex only — no Nuke). CI does NOT build the
+#                      docs; run this locally and commit the PDF (see CLAUDE.md).
 #   make docs          screenshots + pdf (full local regen)
 #   make clean         remove generated PDFs
 #
