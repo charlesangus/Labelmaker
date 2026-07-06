@@ -23,13 +23,22 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+      # The User Guide PDF and the screenshots are NOT built in CI: neither
+      # pandoc/TeX Live nor Nuke ship on the GitHub-hosted runner, and installing
+      # the TeX Live toolchain on every release is slow and heavy. Both are built
+      # locally and committed instead (`make docs`); CI only bundles the
+      # committed docs/user-guide.pdf and docs/images/*.png into the release zip.
       - name: Build release zip
         run: |
-          mkdir -p staging/Labelmaker
+          mkdir -p staging/Labelmaker/docs/images
           cp __init__.py labelmaker.py labelmaker_config.py labelmaker_prefs.py \
              labelmaker_deoverlap.py labelmaker_prefs_dialog.py \
              labelmaker_config_editor.py menu.py base_config.json README.md \
              staging/Labelmaker/
+          # Bundle the committed User Guide PDF and the screenshots the README
+          # references, so its relative image links resolve.
+          cp docs/user-guide.pdf staging/Labelmaker/docs/
+          cp docs/images/*.png staging/Labelmaker/docs/images/
           touch "staging/Labelmaker/${{ github.ref_name }}"
           cd staging
           zip -r "../Labelmaker-${{ github.ref_name }}.zip" Labelmaker/

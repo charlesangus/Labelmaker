@@ -21,6 +21,7 @@ import labelmaker_prefs
 class LabelmakerPrefsDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.setObjectName("LabelmakerPrefsDialog")
         self.setWindowTitle("Labelmaker Preferences")
         self.setMinimumWidth(500)
         self._build_ui()

@@ -1,0 +1,30 @@
+# pandoc defaults for building the documentation PDFs.
+# Used by `make pdf`:  pandoc --defaults docs/pandoc/pdf.yaml -o out.pdf in.md
+#
+# PDFs are styled with the project's LaTeX class, docs/latex/training_doc.cls
+# (scrartcl-based, fontspec/xelatex, logo title block). The Makefile adds
+# docs/latex to TEXINPUTS so the class and logo are found.
+from: gfm
+pdf-engine: xelatex
+toc: true
+toc-depth: 2
+number-sections: true
+variables:
+  documentclass: training_doc
+  colorlinks: true
+  linkcolor: "RoyalBlue"
+  urlcolor: "RoyalBlue"
+  # Screenshot layout is owned by docs/pandoc/float-images.lua: it anchors each
+  # screenshot beside its paragraph in a two-column minipage row (text left, image
+  # pinned right at half the text width) and centres the hero image. minipages do
+  # not float, so images stay in their section instead of drifting onto the footer
+  # or the next section. That filter emits the size caps *explicitly* per image
+  # (max width / max totalheight, from adjustbox's [export] option); it does not
+  # rely on the \setkeys{Gin}{...} default below, which graphicx silently ignores
+  # for bare \includegraphics on some TeX Live builds — the bug that let wide
+  # captures run off the page. adjustbox ships in texlive-latex-extra. max-* only
+  # shrinks, never upscales, so small captures keep their natural size.
+  header-includes:
+    - |
+      \usepackage[export]{adjustbox}
+      \setkeys{Gin}{max width=0.5\linewidth, max totalheight=0.42\textheight}

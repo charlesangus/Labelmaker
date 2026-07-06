@@ -78,6 +78,7 @@ def _path_is_writable(path):
 class LabelmakerConfigEditor(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.setObjectName("LabelmakerConfigEditor")
         self.setWindowFlags(Qt.Tool)
         self.setWindowTitle("Labelmaker Config Editor")
         self.setMinimumSize(900, 500)
