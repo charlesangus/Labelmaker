@@ -8,6 +8,9 @@ import labelmaker_config
 import labelmaker_deoverlap
 import labelmaker_prefs
 
+# how long a built autolabel is reused before the node is rebuilt (milliseconds)
+AUTOLABEL_DEBOUNCE_MS = 100
+
 
 # from https://gist.github.com/anonymous/a802f51391163a2bf0e3
 def node_has_mask(node):
@@ -88,6 +91,9 @@ class AutolabelReplacement(object):
         self._line_counts = {}       # {node_name: int} last known line count per node
         self._pending_deoverlap = set()  # node names whose height increased since last timer fire
         self._deoverlap_timer = None  # created lazily; PySide6 is not imported at module level
+        self._label_cache = {}       # {node_name: str} last built autolabel per node
+        self._label_fresh = set()    # node names already rebuilt in the current debounce window
+        self._label_timer = None     # created lazily; PySide6 is not imported at module level
 
     def register_autolabel(self):
         nuke.addAutolabel(self.create_autolabel)
@@ -110,6 +116,15 @@ class AutolabelReplacement(object):
             self._deoverlap_timer.timeout.connect(self._run_deoverlap)
         return self._deoverlap_timer
 
+    def _get_label_timer(self):
+        if self._label_timer is None:
+            from PySide6 import QtCore
+            self._label_timer = QtCore.QTimer()
+            self._label_timer.setSingleShot(True)
+            self._label_timer.setInterval(AUTOLABEL_DEBOUNCE_MS)
+            self._label_timer.timeout.connect(self._label_fresh.clear)
+        return self._label_timer
+
     def _run_deoverlap(self):
         pending = self._pending_deoverlap.copy()
         self._pending_deoverlap.clear()
@@ -117,6 +132,14 @@ class AutolabelReplacement(object):
             labelmaker_deoverlap.deoverlap_from_nodes(pending)
 
     def create_autolabel(self):
+        # Nuke calls the autolabel for every visible node on every DAG redraw,
+        # so building the label is throttled: a node is rebuilt at most once
+        # per AUTOLABEL_DEBOUNCE_MS, and redraws in between reuse the cached
+        # string. The single-shot timer is not restarted while it is running,
+        # so it acts as a refresh tick rather than a trailing-edge delay.
+        node_name = nuke.thisNode()["name"].getValue()
+        if node_name in self._label_fresh and node_name in self._label_cache:
+            return self._label_cache[node_name]
         self.update()
         self.set_indicators()
         self.name_line_creator()
@@ -136,6 +159,11 @@ class AutolabelReplacement(object):
         ):
             self._pending_deoverlap.add(self.node_name)
             self._get_deoverlap_timer().start()  # restarts timer if already running
+        self._label_cache[self.node_name] = autolabel
+        self._label_fresh.add(self.node_name)
+        label_timer = self._get_label_timer()
+        if not label_timer.isActive():
+            label_timer.start()
         return autolabel
 
     def update(self):
