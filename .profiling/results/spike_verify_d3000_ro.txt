@@ -1,0 +1,48 @@
+for more information.
+
+##############################################################################
+# Labelmaker draw-path profile — mode=on deoverlap=False script=/home/bosley/git/Labelmaker/.profiling/tmp/lm_d3000.nk
+##############################################################################
+DAG window 1256x405
+[ 0:39.02] Warning: Could not find value "scene_linear" for "colorspace". It will be appended to the menu list.
+[ 0:39.02] Warning: Could not find value "ACES - ACEScg" for "colorspace". It will be appended to the menu list.
+  scriptOpen (lm_d3000.nk)                 calls=3002  builds=0     hits=0     action= 3033.1ms  settled_after=  1.37s  label_py= 1232.2ms  builds=2977 pokes=0 verified=26 (22ms) slices=2 span=0.13s
+3002 nodes loaded; autolabel calls so far = 3003
+
+  script open — per node class (slowest total first)
+  class                                         calls   total ms   mean us
+  Grade                                           265      173.7     655.6
+  Read                                            312      157.3     504.1
+  ColorCorrect                                    124       85.6     690.5
+  Roto                                             91       85.2     936.3
+  Merge2                                          170       84.5     497.3
+  Blur                                            169       65.5     387.4
+  Reformat                                        124       60.2     485.7
+  Dot                                             306       56.6     184.9
+  Transform                                       124       55.9     451.0
+  Constant                                        170       41.4     243.4
+  Premult                                         153       37.0     241.9
+  Write                                            46       28.4     616.7
+  ZDefocus2                                        62       28.0     451.7
+  Unpremult                                       107       25.6     239.0
+  Copy                                             45       23.3     517.9
+  HueCorrect                                       62       20.9     336.7
+  Multiply                                         40       17.5     437.6
+  EdgeBlur                                         46       17.1     371.4
+
+event census (calls = label requests from Nuke; label_py = time in the Python label fn, stock or Labelmaker)
+      >>> label implementation: on
+  S impl on                                calls=0     builds=0     hits=0     action=    0.5ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 verified=0 (0ms)
+  S on warm: frame +1                      calls=305   builds=0     hits=0     action=    0.1ms  settled_after=  0.29s  label_py=  119.3ms  builds=305 pokes=0 verified=0 (0ms)
+  S on edit knob                           calls=2     builds=0     hits=0     action=    0.3ms  settled_after=  0.15s  label_py=    0.9ms  builds=2 pokes=0 verified=0 (0ms)
+[ 0:39.16] ERROR: Grade2.gamma: Unpremult2
+(rgb) / alpha
+  S on pass: frame +1 after edit           calls=3293  builds=0     hits=0     action=    0.1ms  settled_after=  2.51s  label_py=  810.6ms  builds=2965 pokes=293 verified=327 (163ms) slices=11 span=0.68s
+  S on edit knob                           calls=2     builds=0     hits=0     action=    0.2ms  settled_after=  0.76s  label_py=    2.5ms  builds=2 pokes=1 verified=0 (0ms)
+  S on pass: frame +1 after edit (2)       calls=3315  builds=0     hits=0     action=    0.1ms  settled_after=  5.92s  label_py=  162.7ms  builds=681 pokes=314 verified=2608 (1013ms) slices=69 span=5.41s
+  S on pass: viewer connect                calls=1     builds=0     hits=0     action=  116.0ms  settled_after=  0.40s  label_py=    0.6ms  builds=1 pokes=0 verified=0 (0ms)
+  S on pass: viewer connect other          calls=0     builds=0     hits=0     action=    2.0ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 verified=0 (0ms)
+[ 0:39.41] ERROR: Grade2.gamma: Read312: /jobs/SHOW/seq016/sh016_0006/renders/cg/utility/v007/utility.1033.exr: Read error: No such file or directory
+  S on scrub 24 frames, 40ms apart         calls=3330  builds=0     hits=0     action=    2.1ms  settled_after=  5.85s  label_py=  172.0ms  builds=694 pokes=326 verified=2610 (957ms) slices=65 span=5.37s
+Terminated
+EXIT 143

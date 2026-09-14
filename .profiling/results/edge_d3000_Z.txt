@@ -1,0 +1,170 @@
+for more information.
+
+##############################################################################
+# Labelmaker draw-path profile — mode=on deoverlap=False script=/home/bosley/git/Labelmaker/.profiling/tmp/lm_d3000.nk
+##############################################################################
+DAG window 1256x405
+[23:33.32] Warning: Could not find value "scene_linear" for "colorspace". It will be appended to the menu list.
+[23:33.32] Warning: Could not find value "ACES - ACEScg" for "colorspace". It will be appended to the menu list.
+  scriptOpen (lm_d3000.nk)                 calls=3002  builds=0     hits=0     action= 3123.2ms  settled_after=  1.09s  label_py=  985.1ms  builds=2977 pokes=0
+3002 nodes loaded; autolabel calls so far = 3003
+
+  script open — per node class (slowest total first)
+  class                                         calls   total ms   mean us
+  Grade                                           265      138.5     522.5
+  Read                                            312      126.4     405.0
+  Roto                                             91       69.5     763.6
+  Merge2                                          170       67.2     395.4
+  ColorCorrect                                    124       63.8     514.9
+  Blur                                            169       50.2     297.3
+  Reformat                                        124       47.5     382.8
+  Dot                                             306       46.0     150.4
+  Transform                                       124       45.3     365.6
+  Constant                                        170       33.4     196.7
+  Premult                                         153       31.4     205.0
+  ZDefocus2                                        62       23.2     373.6
+  Write                                            46       22.7     493.4
+  Unpremult                                       107       20.4     191.1
+  Copy                                             45       17.5     389.3
+  HueCorrect                                       62       16.7     269.8
+  EdgeBlur                                         46       14.6     318.1
+  Multiply                                         40       14.3     357.0
+
+event census (calls = label requests from Nuke; label_py = time in the Python label fn, stock or Labelmaker)
+  V rename node                            calls=1     builds=0     hits=0     action=    0.3ms  settled_after=  0.09s  label_py=    0.4ms  builds=1 pokes=0
+  V create node                            calls=1     builds=0     hits=0     action=    1.7ms  settled_after=  0.10s  label_py=    0.3ms  builds=1 pokes=0
+      >>> label implementation: stock
+  Z1 impl stock                            calls=0     builds=0     hits=0     action=    0.7ms  settled_after=  0.00s  label_py=    0.0ms
+  Z1 stock copy 1000 + paste               calls=1000  builds=0     hits=0     action=21164.3ms  settled_after=  0.36s  label_py=   89.5ms
+  Z1 stock delete pasted 1000              calls=6     builds=0     hits=0     action=  557.5ms  settled_after=  0.36s  label_py=    0.6ms
+[23:34.14] ERROR: grade.gamma: Nothing is named "Grade159"
+[23:34.14] ERROR: grade.gamma: Nothing is named "Grade162"
+[23:34.14] ERROR: glow2.brightness: Nothing is named "CTRL_10"
+[23:34.14] ERROR: blur.size: Nothing is named "CTRL_11"
+[23:34.14] ERROR: grade.multiply: Nothing is named "CTRL_11"
+[23:34.14] ERROR: grade.multiply: Nothing is named "CTRL_12"
+[23:34.14] ERROR: blur.size: Nothing is named "CTRL_12"
+  Z1 stock undo delete 1000                calls=0     builds=0     hits=0     action=   52.3ms  settled_after=  0.00s  label_py=    0.0ms
+  Z1 stock redo delete 1000                calls=1000  builds=0     hits=0     action=   66.3ms  settled_after=  0.08s  label_py=   67.2ms
+  Z1 stock frame +1                        calls=3099  builds=0     hits=0     action=    0.0ms  settled_after=  0.34s  label_py=  221.1ms
+  Z1 stock frame +1 again                  calls=389   builds=0     hits=0     action=    0.1ms  settled_after=  0.19s  label_py=   66.2ms
+      allNodes=4003 (recurse 4288)  cache entries=0
+  Z1 stock  -> node count                  calls=0     builds=0     hits=0     action=    1.2ms  settled_after=  0.00s  label_py=    0.0ms
+      >>> label implementation: stock
+  Z2 impl stock                            calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  Z2 stock copy 1000 + paste               calls=1001  builds=0     hits=0     action=22597.3ms  settled_after=  0.81s  label_py=  135.8ms
+  Z2 stock delete pasted 1000              calls=6     builds=0     hits=0     action= 1459.0ms  settled_after=  0.52s  label_py=    1.3ms
+  Z2 stock undo delete 1000                calls=6     builds=0     hits=0     action= 1210.7ms  settled_after=  0.22s  label_py=    1.9ms
+  Z2 stock redo delete 1000                calls=2000  builds=0     hits=0     action=  368.8ms  settled_after=  0.68s  label_py=  356.0ms
+  Z2 stock frame +1                        calls=3195  builds=0     hits=0     action=    0.1ms  settled_after=  0.66s  label_py=  441.5ms
+  Z2 stock frame +1 again                  calls=485   builds=0     hits=0     action=    0.0ms  settled_after=  0.24s  label_py=   85.1ms
+      allNodes=5003 (recurse 5288)  cache entries=0
+  Z2 stock  -> node count                  calls=0     builds=0     hits=0     action=    1.8ms  settled_after=  0.00s  label_py=    0.0ms
+      >>> label implementation: stock
+  Z3 impl stock                            calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  Z3 stock copy 1000 + paste               calls=1000  builds=0     hits=0     action=26827.4ms  settled_after=  0.93s  label_py=  174.0ms
+  Z3 stock delete pasted 1000              calls=6     builds=0     hits=0     action= 2688.3ms  settled_after=  0.88s  label_py=    4.5ms
+  Z3 stock undo delete 1000                calls=6     builds=0     hits=0     action= 3181.5ms  settled_after=  0.06s  label_py=    1.4ms
+  Z3 stock redo delete 1000                calls=3000  builds=0     hits=0     action=  736.0ms  settled_after=  1.25s  label_py=  719.6ms
+  Z3 stock frame +1                        calls=3291  builds=0     hits=0     action=    0.1ms  settled_after=  1.41s  label_py=  805.4ms
+  Z3 stock frame +1 again                  calls=581   builds=0     hits=0     action=    0.1ms  settled_after=  0.54s  label_py=  186.1ms
+      allNodes=6003 (recurse 6288)  cache entries=0
+  Z3 stock  -> node count                  calls=0     builds=0     hits=0     action=   10.9ms  settled_after=  0.00s  label_py=    0.0ms
+      >>> label implementation: on
+  Z1 impl on                               calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0
+  Z1 on copy 1000 + paste                  calls=1000  builds=0     hits=0     action=25459.9ms  settled_after=  0.80s  label_py=  233.3ms  builds=991 pokes=0
+  Z1 on delete pasted 1000                 calls=6     builds=0     hits=0     action= 1728.3ms  settled_after=  0.46s  label_py=    2.2ms  builds=6 pokes=0
+  Z1 on undo delete 1000                   calls=6     builds=0     hits=0     action= 1175.0ms  settled_after=  0.36s  label_py=    1.6ms  builds=6 pokes=0
+  Z1 on redo delete 1000                   calls=4000  builds=0     hits=0     action=  278.2ms  settled_after=  0.91s  label_py=  589.9ms  builds=3946 pokes=0
+[23:37.02] ERROR: Grade2.gamma: Unpremult2
+(rgb) / alpha
+  Z1 on frame +1                           calls=4253  builds=0     hits=0     action=    0.1ms  settled_after=  1.26s  label_py=  575.9ms  builds=3405 pokes=413
+[23:37.06] ERROR: Grade2.gamma: Shuffle2 | Shuffle1
+rgba -> rgba
+  Z1 on frame +1 again                     calls=7733  builds=0     hits=0     action=    0.1ms  settled_after=  1.03s  label_py=  219.0ms  builds=1543 pokes=719
+      allNodes=7003 (recurse 7288)  cache entries=6917
+  Z1 on  -> node count                     calls=0     builds=0     hits=0     action=    2.3ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0
+      >>> label implementation: on
+  Z2 impl on                               calls=0     builds=0     hits=0     action=    1.3ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0
+  Z2 on copy 1000 + paste                  calls=1000  builds=0     hits=0     action=25948.9ms  settled_after=  0.68s  label_py=  214.8ms  builds=991 pokes=0
+  Z2 on delete pasted 1000                 calls=6     builds=0     hits=0     action= 2227.3ms  settled_after=  0.48s  label_py=    2.1ms  builds=6 pokes=0
+  Z2 on undo delete 1000                   calls=6     builds=0     hits=0     action= 2934.4ms  settled_after=  0.38s  label_py=    2.1ms  builds=6 pokes=0
+  Z2 on redo delete 1000                   calls=5000  builds=0     hits=0     action=  575.1ms  settled_after=  1.25s  label_py= 1132.4ms  builds=4931 pokes=0
+  Z2 on frame +1                           calls=4565  builds=0     hits=0     action=    0.1ms  settled_after=  1.62s  label_py=  890.4ms  builds=3513 pokes=516
+  Z2 on frame +1 again                     calls=8836  builds=0     hits=0     action=    0.1ms  settled_after=  1.24s  label_py=  335.6ms  builds=1760 pokes=822
+      allNodes=8003 (recurse 8288)  cache entries=7902
+  Z2 on  -> node count                     calls=0     builds=0     hits=0     action=    3.6ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0
+      >>> label implementation: on
+  Z3 impl on                               calls=0     builds=0     hits=0     action=    1.4ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0
+Timeout (0:05:00)!
+Thread 0x00007a9f4affd6c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/process.py", line 68 in _readOutputFromPipe
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x00007a9f50ff96c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/zmq/sugar/socket.py", line 416 in send
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/zmq/__init__.py", line 15 in call
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/zmq/sugar/socket.py", line 463 in send_multipart
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/zmq/__init__.py", line 15 in call
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/message/__init__.py", line 229 in writeToSocket
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/postprocessscript.py", line 272 in sendToApplication
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/postprocessscript.py", line 336 in sendHeartbeats
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/postprocessscript.py", line 234 in messageLoop
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/postprocessscript.py", line 401 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x00007a9f527fc6c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/zmq/sugar/poll.py", line 103 in poll
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/zmq/__init__.py", line 15 in call
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/frameserver.py", line 80 in process
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/frameserver.py", line 51 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x00007a9f52ffd6c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 331 in wait
+  File "/usr/local/Nuke17.0v3/lib/python3.11/queue.py", line 180 in get
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/renderqueue.py", line 76 in processFileSyncs
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x00007a9f6cffb6c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/zmq/sugar/poll.py", line 103 in poll
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/zmq/__init__.py", line 15 in call
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/renderqueue.py", line 665 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x00007a9f749d36c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/frameserver.py", line 341 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x00007aa075502040 (most recent call first):
+  File "/home/bosley/git/Labelmaker/.profiling/drawpath/menu.py", line 808 in <lambda>
+  File "/home/bosley/git/Labelmaker/.profiling/drawpath/menu.py", line 385 in measure
+  File "/home/bosley/git/Labelmaker/.profiling/drawpath/menu.py", line 999 in next_step
+  File "/home/bosley/git/Labelmaker/.profiling/drawpath/menu.py", line 414 in done
+  File "/home/bosley/git/Labelmaker/.profiling/drawpath/menu.py", line 371 in poll
+  Z3 on copy 1000 + paste                  calls=1000  builds=0     hits=0     action=30255.3ms  settled_after=  1.01s  label_py=  185.2ms  builds=991 pokes=0
+  Z3 on delete pasted 1000                 calls=6     builds=0     hits=0     action= 2064.7ms  settled_after=  0.48s  label_py=    1.8ms  builds=6 pokes=0
+  Z3 on undo delete 1000                   calls=6     builds=0     hits=0     action= 3421.3ms  settled_after=  0.42s  label_py=    2.2ms  builds=6 pokes=0
+  Z3 on redo delete 1000                   calls=6000  builds=0     hits=0     action=  798.0ms  settled_after=  1.65s  label_py= 1500.2ms  builds=5916 pokes=0
+  Z3 on frame +1                           calls=4877  builds=0     hits=0     action=    0.1ms  settled_after=  1.53s  label_py=  793.6ms  builds=3621 pokes=619
+  Z3 on frame +1 again                     calls=9939  builds=0     hits=0     action=    0.1ms  settled_after=  1.26s  label_py=  307.9ms  builds=1977 pokes=925
+      allNodes=9003 (recurse 9288)  cache entries=8887
+  Z3 on  -> node count                     calls=0     builds=0     hits=0     action=    3.0ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0
+      >>> label implementation: stock
+  E impl stock                             calls=0     builds=0     hits=0     action=    1.5ms  settled_after=  0.00s  label_py=    0.0ms
+  E stock cut 1 (copy+delete)              calls=0     builds=0     hits=0     action=    6.1ms  settled_after=  0.00s  label_py=    0.0ms
+XIO:  fatal IO error 2 (No such file or directory) on X server ":99"
+      after 14049 requests (14049 known processed) with 0 events remaining.
+Terminated

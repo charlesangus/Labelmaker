@@ -1,0 +1,200 @@
+for more information.
+
+##############################################################################
+# Labelmaker draw-path profile — mode=on deoverlap=False script=/home/bosley/git/Labelmaker/.profiling/tmp/lm_d3000.nk
+##############################################################################
+DAG window 1256x405
+[23:22.09] Warning: Could not find value "scene_linear" for "colorspace". It will be appended to the menu list.
+[23:22.09] Warning: Could not find value "ACES - ACEScg" for "colorspace". It will be appended to the menu list.
+  scriptOpen (lm_d3000.nk)                 calls=3002  builds=0     hits=0     action= 4303.5ms  settled_after=  1.55s  label_py= 1390.2ms  builds=2977 pokes=0
+3002 nodes loaded; autolabel calls so far = 3003
+
+  script open — per node class (slowest total first)
+  class                                         calls   total ms   mean us
+  Grade                                           265      196.1     740.0
+  Read                                            312      180.7     579.0
+  Roto                                             91       96.5    1060.5
+  Merge2                                          170       95.7     562.8
+  ColorCorrect                                    124       89.3     720.3
+  Blur                                            169       71.3     421.8
+  Reformat                                        124       67.1     540.8
+  Dot                                             306       65.6     214.3
+  Transform                                       124       63.0     508.3
+  Constant                                        170       49.7     292.2
+  Premult                                         153       41.6     271.9
+  Write                                            46       33.4     725.5
+  ZDefocus2                                        62       31.5     508.5
+  Unpremult                                       107       28.8     269.3
+  Copy                                             45       25.0     554.7
+  HueCorrect                                       62       23.1     372.6
+  Crop                                             62       20.8     335.3
+  Multiply                                         40       20.8     519.3
+
+event census (calls = label requests from Nuke; label_py = time in the Python label fn, stock or Labelmaker)
+  X hover sweep across DAG (60 moves)      calls=0     builds=0     hits=0     action=    0.5ms  settled_after=  0.00s  label_py=    0.0ms  ticks=60 lat mean=67.8ms p95=75.3ms max=86.1ms  builds=0 pokes=0
+  V rename node                            calls=1     builds=0     hits=0     action=    0.3ms  settled_after=  0.10s  label_py=    0.5ms  builds=1 pokes=0
+  V create node                            calls=1     builds=0     hits=0     action=    3.6ms  settled_after=  0.11s  label_py=    0.5ms  builds=1 pokes=0
+      >>> label implementation: stock
+  M impl stock                             calls=0     builds=0     hits=0     action=    0.9ms  settled_after=  0.00s  label_py=    0.0ms
+  M stock hooks off                        calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  M stock create 100 nodes (nuke.nodes.Blur) calls=100   builds=0     hits=0     action=  108.8ms  settled_after=  0.11s  label_py=    8.4ms
+  M stock frame +1 after create            calls=3003  builds=0     hits=0     action=    0.1ms  settled_after=  0.26s  label_py=  224.5ms
+  M stock delete those 100                 calls=0     builds=0     hits=0     action=   37.8ms  settled_after=  0.00s  label_py=    0.0ms
+  M stock undo delete (100 back)           calls=1     builds=0     hits=0     action=    0.1ms  settled_after=  0.11s  label_py=    0.2ms
+  M stock redo delete                      calls=1     builds=0     hits=0     action=    0.1ms  settled_after=  0.12s  label_py=    0.2ms
+  M stock copy 100 + paste                 calls=100   builds=0     hits=0     action=  297.9ms  settled_after=  0.10s  label_py=   10.0ms
+  M stock frame +1 after paste 100         calls=3012  builds=0     hits=0     action=    0.1ms  settled_after=  0.31s  label_py=  273.7ms
+  M stock delete pasted 100                calls=1     builds=0     hits=0     action=   85.6ms  settled_after=  0.11s  label_py=    0.3ms
+  M stock copy 1000 + paste                calls=1000  builds=0     hits=0     action=28698.9ms  settled_after=  0.49s  label_py=  184.0ms
+  M stock frame +1 after paste 1000        calls=3099  builds=0     hits=0     action=    0.1ms  settled_after=  0.89s  label_py=  609.0ms
+  M stock delete pasted 1000               calls=6     builds=0     hits=0     action= 1350.1ms  settled_after=  0.13s  label_py=    1.0ms
+[23:23.36] ERROR: grade.gamma: Nothing is named "Grade159"
+[23:23.36] ERROR: grade.gamma: Nothing is named "Grade162"
+[23:23.36] ERROR: glow2.brightness: Nothing is named "CTRL_10"
+[23:23.36] ERROR: blur.size: Nothing is named "CTRL_11"
+[23:23.36] ERROR: grade.multiply: Nothing is named "CTRL_11"
+[23:23.36] ERROR: grade.multiply: Nothing is named "CTRL_12"
+[23:23.36] ERROR: blur.size: Nothing is named "CTRL_12"
+  M stock undo delete 1000                 calls=0     builds=0     hits=0     action=  179.6ms  settled_after=  0.00s  label_py=    0.0ms
+  M stock redo delete 1000                 calls=1100  builds=0     hits=0     action=  141.0ms  settled_after=  0.20s  label_py=  167.5ms
+  M stock deselect                         calls=0     builds=0     hits=0     action=    1.9ms  settled_after=  0.00s  label_py=    0.0ms
+      (no active viewer)
+  M stock playback 2s via viewer           calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  M stock hooks on                         calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+      >>> label implementation: on
+  M impl on                                calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0
+  M on hooks off                           calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0
+  M on create 100 nodes (nuke.nodes.Blur)  calls=100   builds=0     hits=0     action=  308.4ms  settled_after=  0.24s  label_py=   23.0ms  builds=100 pokes=0
+[23:23.58] ERROR: Grade2.gamma: Unpremult2
+(rgb) / alpha
+  M on frame +1 after create               calls=4103  builds=0     hits=0     action=    0.1ms  settled_after=  0.91s  label_py=  830.4ms  builds=3972 pokes=0
+  M on delete those 100                    calls=0     builds=0     hits=0     action=   98.5ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0
+  M on undo delete (100 back)              calls=6     builds=0     hits=0     action=  387.7ms  settled_after=  0.10s  label_py=    2.0ms  builds=6 pokes=0
+  M on redo delete                         calls=1100  builds=0     hits=0     action=  110.0ms  settled_after=  0.23s  label_py=  205.5ms  builds=1001 pokes=0
+  M on copy 100 + paste                    calls=104   builds=0     hits=0     action=  644.4ms  settled_after=  0.74s  label_py=   44.4ms  builds=103 pokes=1
+[23:24.15] ERROR: Grade2.gamma: Shuffle2 | Shuffle1
+rgba -> rgba
+  M on frame +1 after paste 100            calls=4632  builds=0     hits=0     action=    0.1ms  settled_after=  1.34s  label_py=  226.0ms  builds=924 pokes=422
+  M on delete pasted 100                   calls=1     builds=0     hits=0     action=   99.6ms  settled_after=  0.14s  label_py=    0.5ms  builds=1 pokes=0
+  M on copy 1000 + paste                   calls=1000  builds=0     hits=0     action=23910.2ms  settled_after=  0.78s  label_py=  166.9ms  builds=991 pokes=0
+  M on frame +1 after paste 1000           calls=5021  builds=0     hits=0     action=    0.1ms  settled_after=  2.17s  label_py=  497.8ms  builds=1257 pokes=692
+  M on delete pasted 1000                  calls=6     builds=0     hits=0     action= 2823.9ms  settled_after=  0.24s  label_py=    3.9ms  builds=6 pokes=0
+  M on undo delete 1000                    calls=6     builds=0     hits=0     action= 1153.6ms  settled_after=  0.29s  label_py=    2.6ms  builds=6 pokes=0
+  M on redo delete 1000                    calls=2200  builds=0     hits=0     action=  290.1ms  settled_after=  0.73s  label_py=  465.1ms  builds=1996 pokes=0
+  M on deselect                            calls=0     builds=0     hits=0     action=    2.3ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0
+      (no active viewer)
+  M on playback 2s via viewer              calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0
+  M on hooks on                            calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0
+  M on prefs-style disable (set_enabled False) calls=4378  builds=0     hits=0     action=  647.0ms  settled_after=  2.19s  label_py= 1772.6ms  builds=4352 pokes=5488
+  M on prefs-style enable (set_enabled True) calls=0     builds=0     hits=0     action=  585.4ms  settled_after=  0.00s  label_py=    0.0ms  builds=4352 pokes=5492
+[23:25.22] ERROR: Grade2.gamma: Merge280 (plus)
+(rgba) plus (rgba) --> (rgba)
+bbox union
+mix 0.990
+  M on re-wrap autolabel                   calls=6     builds=0     hits=0     action=    0.0ms  settled_after=  0.29s  label_py=    4.0ms  builds=6 pokes=0
+      >>> label implementation: on
+  G impl on                                calls=0     builds=0     hits=0     action=    1.5ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0
+  G1 hooks off                             calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0
+  G1 off copy 1000 + paste                 calls=1000  builds=0     hits=0     action=36609.2ms  settled_after=  0.66s  label_py=  194.3ms  builds=991 pokes=0
+  G1 off delete pasted 1000                calls=6     builds=0     hits=0     action= 1491.9ms  settled_after=  0.44s  label_py=    2.0ms  builds=6 pokes=0
+  G1 off undo delete 1000                  calls=6     builds=0     hits=0     action=  725.1ms  settled_after=  0.34s  label_py=    1.6ms  builds=6 pokes=0
+  G1 off redo delete 1000                  calls=3200  builds=0     hits=0     action=  364.9ms  settled_after=  0.98s  label_py=  526.2ms  builds=2104 pokes=0
+  G1 off create 200 (nuke.nodes.Blur)      calls=200   builds=0     hits=0     action= 1171.5ms  settled_after=  0.08s  label_py=   53.0ms  builds=200 pokes=0
+  G1 off delete those 200                  calls=0     builds=0     hits=0     action=  559.0ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0
+  G1 off frame +1                          calls=6522  builds=0     hits=0     action=    0.1ms  settled_after=  1.82s  label_py= 1132.4ms  builds=3653 pokes=316
+  G1 hooks on                              calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0
+Timeout (0:05:00)!
+Thread 0x00007546bfff76c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/process.py", line 68 in _readOutputFromPipe
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x00007546c17fa6c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/zmq/sugar/poll.py", line 103 in poll
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/zmq/__init__.py", line 15 in call
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/postprocessscript.py", line 199 in startApplication
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/postprocessscript.py", line 318 in checkRenderApplicationStatus
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/postprocessscript.py", line 235 in messageLoop
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/postprocessscript.py", line 401 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x00007546c2ffd6c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/zmq/sugar/poll.py", line 103 in poll
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/zmq/__init__.py", line 15 in call
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/frameserver.py", line 80 in process
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/frameserver.py", line 51 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x00007546c37fe6c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 331 in wait
+  File "/usr/local/Nuke17.0v3/lib/python3.11/queue.py", line 180 in get
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/renderqueue.py", line 76 in processFileSyncs
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x00007546e17fb6c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/zmq/sugar/poll.py", line 103 in poll
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/zmq/__init__.py", line 15 in call
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/renderqueue.py", line 665 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x00007546e2ffe6c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/frameserver.py", line 341 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x00007547ea37e040 (most recent call first):
+  <no Python frame>
+  G1 on copy 1000 + paste                  calls=1000  builds=0     hits=0     action=30017.2ms  settled_after=  0.60s  label_py=  176.0ms  builds=991 pokes=0
+  G1 on delete pasted 1000                 calls=6     builds=0     hits=0     action= 1453.7ms  settled_after=  0.42s  label_py=    1.7ms  builds=6 pokes=0
+  G1 on undo delete 1000                   calls=6     builds=0     hits=0     action= 1355.7ms  settled_after=  0.37s  label_py=    1.7ms  builds=6 pokes=0
+  G1 on redo delete 1000                   calls=4200  builds=0     hits=0     action=  396.5ms  settled_after=  1.03s  label_py=  808.1ms  builds=3966 pokes=0
+  G1 on create 200 (nuke.nodes.Blur)       calls=200   builds=0     hits=0     action=  832.4ms  settled_after=  0.05s  label_py=   34.4ms  builds=200 pokes=0
+  G1 on delete those 200                   calls=0     builds=0     hits=0     action=  269.7ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0
+  G1 on frame +1                           calls=7937  builds=0     hits=0     action=    0.0ms  settled_after=  1.17s  label_py=  306.7ms  builds=1567 pokes=723
+  G2 hooks off                             calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0
+  G2 off copy 1000 + paste                 calls=1000  builds=0     hits=0     action=24265.6ms  settled_after=  0.63s  label_py=  167.5ms  builds=985 pokes=0
+  G2 off delete pasted 1000                calls=6     builds=0     hits=0     action= 1783.7ms  settled_after=  0.46s  label_py=    1.8ms  builds=6 pokes=0
+  G2 off undo delete 1000                  calls=6     builds=0     hits=0     action= 2238.5ms  settled_after=  0.61s  label_py=    3.0ms  builds=6 pokes=0
+  G2 off redo delete 1000                  calls=5200  builds=0     hits=0     action=  359.6ms  settled_after=  0.55s  label_py=   56.2ms  builds=597 pokes=0
+  G2 off create 200 (nuke.nodes.Blur)      calls=200   builds=0     hits=0     action=  925.2ms  settled_after=  0.06s  label_py=   37.0ms  builds=200 pokes=0
+  G2 off delete those 200                  calls=0     builds=0     hits=0     action=  384.8ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0
+  G2 off frame +1                          calls=9034  builds=0     hits=0     action=    0.1ms  settled_after=  0.97s  label_py=  237.8ms  builds=1778 pokes=820
+  G2 hooks on                              calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0
+  G2 on copy 1000 + paste                  calls=1000  builds=0     hits=0     action=30437.3ms  settled_after=  1.32s  label_py=  210.4ms  builds=991 pokes=0
+  G2 on delete pasted 1000                 calls=6     builds=0     hits=0     action= 2275.4ms  settled_after=  0.50s  label_py=    2.4ms  builds=6 pokes=0
+  G2 on undo delete 1000                   calls=6     builds=0     hits=0     action= 2798.3ms  settled_after=  0.35s  label_py=    1.5ms  builds=6 pokes=0
+  G2 on redo delete 1000                   calls=6200  builds=0     hits=0     action=  503.2ms  settled_after=  1.15s  label_py=  850.2ms  builds=5936 pokes=0
+  G2 on create 200 (nuke.nodes.Blur)       calls=200   builds=0     hits=0     action=  937.5ms  settled_after=  0.26s  label_py=   28.4ms  builds=200 pokes=0
+  G2 on delete those 200                   calls=0     builds=0     hits=0     action=  583.8ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0
+  G2 on frame +1                           calls=10143 builds=0     hits=0     action=    0.1ms  settled_after=  1.44s  label_py=  368.3ms  builds=2001 pokes=929
+      >>> label implementation: stock
+  E impl stock                             calls=0     builds=0     hits=0     action=    1.8ms  settled_after=  0.00s  label_py=    0.0ms
+  E stock cut 1 (copy+delete)              calls=0     builds=0     hits=0     action=    6.5ms  settled_after=  0.00s  label_py=    0.0ms
+  E stock paste 1 back                     calls=1     builds=0     hits=0     action=    8.6ms  settled_after=  0.22s  label_py=    0.2ms
+  E stock undo paste 1                     calls=6     builds=0     hits=0     action= 4262.1ms  settled_after=  0.06s  label_py=    0.7ms
+  E stock undo cut 1                       calls=1     builds=0     hits=0     action=    0.1ms  settled_after=  0.08s  label_py=    0.2ms
+  E stock cut 100 (copy+delete)            calls=0     builds=0     hits=0     action=   42.4ms  settled_after=  0.00s  label_py=    0.0ms
+  E stock paste 100 back                   calls=100   builds=0     hits=0     action=   69.3ms  settled_after=  0.69s  label_py=    8.3ms
+  E stock undo paste 100                   calls=5     builds=0     hits=0     action=   23.7ms  settled_after=  0.15s  label_py=    0.5ms
+  E stock undo cut 100                     calls=1     builds=0     hits=0     action=    0.3ms  settled_after=  0.12s  label_py=    0.3ms
+      (action failed: A PythonObject is not attached to a node)
+  E stock cut 1000 (copy+delete)           calls=0     builds=0     hits=0     action=    5.4ms  settled_after=  0.00s  label_py=    0.0ms
+  E stock paste 1000 back                  calls=100   builds=0     hits=0     action=  112.1ms  settled_after=  0.14s  label_py=   11.6ms
+  E stock frame +1 after paste 1000        calls=3002  builds=0     hits=0     action=    0.2ms  settled_after=  0.25s  label_py=  219.3ms
+  E stock undo paste 1000                  calls=0     builds=0     hits=0     action=   20.2ms  settled_after=  0.00s  label_py=    0.0ms
+  E stock undo cut 1000                    calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  E stock re-resolve node wrappers         calls=0     builds=0     hits=0     action=   14.9ms  settled_after=  0.00s  label_py=    0.0ms
+  E stock rewire 1 (setInput)              calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  E stock rewire 200 (setInput 0 -> Read)  calls=0     builds=0     hits=0     action=    1.8ms  settled_after=  0.00s  label_py=    0.0ms
+  E stock undo rewire 200                  calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+[23:30.23] ERROR: Grade2.gamma: Nothing is named "Grade118"

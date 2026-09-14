@@ -1,0 +1,84 @@
+for more information.
+
+##############################################################################
+# Labelmaker draw-path profile — mode=on deoverlap=False script=/home/bosley/git/Labelmaker/.profiling/tmp/lm_d3000.nk
+##############################################################################
+DAG window 1256x405
+[23:31.13] Warning: Could not find value "scene_linear" for "colorspace". It will be appended to the menu list.
+[23:31.13] Warning: Could not find value "ACES - ACEScg" for "colorspace". It will be appended to the menu list.
+  scriptOpen (lm_d3000.nk)                 calls=3002  builds=0     hits=0     action= 1285.0ms  settled_after=  0.64s  label_py=  576.7ms  builds=2977 pokes=0
+3002 nodes loaded; autolabel calls so far = 3003
+
+  script open — per node class (slowest total first)
+  class                                         calls   total ms   mean us
+  Grade                                           265       82.3     310.6
+  Read                                            312       71.8     230.3
+  Roto                                             91       41.6     457.1
+  Merge2                                          170       38.6     227.3
+  ColorCorrect                                    124       37.8     305.1
+  Blur                                            169       29.3     173.7
+  Reformat                                        124       28.3     228.0
+  Dot                                             306       27.4      89.6
+  Transform                                       124       26.7     215.4
+  Constant                                        170       19.3     113.4
+  Premult                                         153       17.9     117.2
+  ZDefocus2                                        62       13.7     221.6
+  Write                                            46       12.6     273.9
+  Unpremult                                       107       12.3     115.1
+  Copy                                             45       10.9     242.3
+  HueCorrect                                       62        9.6     155.0
+  EdgeBlur                                         46        8.3     180.5
+  Multiply                                         40        8.2     205.3
+
+event census (calls = label requests from Nuke; label_py = time in the Python label fn, stock or Labelmaker)
+  V rename node                            calls=1     builds=0     hits=0     action=    0.3ms  settled_after=  0.08s  label_py=    0.3ms  builds=1 pokes=0
+  V create node                            calls=1     builds=0     hits=0     action=    1.6ms  settled_after=  0.08s  label_py=    0.3ms  builds=1 pokes=0
+  G3 hooks off, empty cbs on               calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0
+  G3 empty copy 1000 + paste               calls=1000  builds=0     hits=0     action=26450.8ms  settled_after=  0.55s  label_py=  194.6ms  builds=985 pokes=0
+  G3 empty delete pasted 1000              calls=6     builds=0     hits=0     action=  837.3ms  settled_after=  0.19s  label_py=    2.7ms  builds=6 pokes=0
+[23:31.58] ERROR: grade.gamma: Nothing is named "Grade159"
+[23:31.58] ERROR: grade.gamma: Nothing is named "Grade162"
+[23:31.58] ERROR: glow2.brightness: Nothing is named "CTRL_10"
+[23:31.58] ERROR: blur.size: Nothing is named "CTRL_11"
+[23:31.58] ERROR: grade.multiply: Nothing is named "CTRL_11"
+[23:31.58] ERROR: grade.multiply: Nothing is named "CTRL_12"
+[23:31.58] ERROR: blur.size: Nothing is named "CTRL_12"
+  G3 empty undo delete 1000                calls=0     builds=0     hits=0     action=   70.6ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0
+  G3 empty redo delete 1000                calls=1000  builds=0     hits=0     action=   59.3ms  settled_after=  0.10s  label_py=   11.1ms  builds=121 pokes=0
+  G3 empty create 200 (nuke.nodes.Blur)    calls=200   builds=0     hits=0     action=  234.3ms  settled_after=  0.12s  label_py=   23.1ms  builds=200 pokes=0
+  G3 empty delete those 200                calls=0     builds=0     hits=0     action=  110.4ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0
+[23:32.10] ERROR: Grade2.gamma: Shuffle2 | Shuffle1
+rgba -> rgba
+  G3 empty frame +1                        calls=4424  builds=0     hits=0     action=    0.1ms  settled_after=  0.74s  label_py=  123.1ms  builds=892 pokes=410
+  G3 empty cbs off, hooks on               calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0
+      >>> label implementation: stock
+  E impl stock                             calls=0     builds=0     hits=0     action=    0.9ms  settled_after=  0.00s  label_py=    0.0ms
+  E stock cut 1 (copy+delete)              calls=0     builds=0     hits=0     action=    2.5ms  settled_after=  0.00s  label_py=    0.0ms
+  E stock paste 1 back                     calls=1     builds=0     hits=0     action=    3.9ms  settled_after=  0.11s  label_py=    0.2ms
+  E stock undo paste 1                     calls=6     builds=0     hits=0     action=  245.2ms  settled_after=  0.11s  label_py=    0.7ms
+  E stock undo cut 1                       calls=1     builds=0     hits=0     action=    0.3ms  settled_after=  0.10s  label_py=    0.6ms
+      (1 pool nodes not found)
+  E stock re-resolve after undo cut 1      calls=0     builds=0     hits=0     action=   16.2ms  settled_after=  0.00s  label_py=    0.0ms
+  E stock cut 100 (copy+delete)            calls=1     builds=0     hits=0     action=   31.8ms  settled_after=  0.08s  label_py=    0.2ms
+  E stock paste 100 back                   calls=99    builds=0     hits=0     action=   73.6ms  settled_after=  0.09s  label_py=    9.6ms
+  E stock undo paste 100                   calls=6     builds=0     hits=0     action=   24.8ms  settled_after=  0.08s  label_py=    0.5ms
+  E stock undo cut 100                     calls=1     builds=0     hits=0     action=    0.4ms  settled_after=  0.09s  label_py=    0.5ms
+      (98 pool nodes not found)
+  E stock re-resolve after undo cut 100    calls=0     builds=0     hits=0     action=   16.8ms  settled_after=  0.00s  label_py=    0.0ms
+  E stock cut 1000 (copy+delete)           calls=10    builds=0     hits=0     action=  244.8ms  settled_after=  0.06s  label_py=    1.0ms
+  E stock paste 1000 back                  calls=990   builds=0     hits=0     action= 2248.5ms  settled_after=  0.12s  label_py=   88.2ms
+  E stock frame +1 after paste 1000        calls=2903  builds=0     hits=0     action=    0.1ms  settled_after=  0.26s  label_py=  227.7ms
+[23:32.55] ERROR: grade.gamma: Nothing is named "Grade153"
+  E stock undo paste 1000                  calls=8     builds=0     hits=0     action=  201.0ms  settled_after=  0.06s  label_py=    0.9ms
+  E stock undo cut 1000                    calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+      (981 pool nodes not found)
+  E stock re-resolve node wrappers         calls=0     builds=0     hits=0     action=   13.9ms  settled_after=  0.00s  label_py=    0.0ms
+  E stock rewire 1 (setInput)              calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  E stock rewire 200 (setInput 0 -> Read)  calls=0     builds=0     hits=0     action=    1.3ms  settled_after=  0.00s  label_py=    0.0ms
+Terminated
+ERROR 23:33:11.912:frameserver.worker-0(3885) worker.py:249 startApplication(): Nuke 17.0v3, 64 bit, built Jun 25 2026.
+Copyright (c) 2026 The Foundry Visionmongers Ltd.  All Rights Reserved.
+
+
+ERROR 23:33:11.913:frameserver.worker-0(3885) worker.py:250 startApplication(): Render process aborted execution before timeout with code: -15.
+ERROR 23:33:11.913:frameserver.worker-0(3885) worker.py:275 startApplication(): Could not start render application

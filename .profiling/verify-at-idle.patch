@@ -1,0 +1,550 @@
+diff --git a/labelmaker.py b/labelmaker.py
+index 282c315..9562903 100644
+--- a/labelmaker.py
++++ b/labelmaker.py
+@@ -14,16 +14,29 @@ import labelmaker_prefs
+ # followed by a frame step) that requests every node in one burst. Handing
+ # Nuke a *changed* label string costs it a main-loop stall proportional to
+ # the script size (~70 ms at 3k nodes, ~200 ms at 10k), which is what makes
+-# slider drags and scrubbing sluggish. So: answer bursts from a cache, never
+-# return a changed string while the user is interacting, and release changed
+-# strings once label traffic has gone quiet (measured with the harness on
+-# the profiling-harness branch).
++# slider drags and scrubbing sluggish. So: answer bursts from the cache, never
++# return a changed string while the user is interacting, and once label
++# traffic has gone quiet verify every label that was answered from the cache
++# (rebuild it in the background, in slices) and release the ones that
++# differ. Nothing is inferred from a burst's size or cause: a bulk edit by a
++# tool and a whole-script pass are served the same way and both converge
++# (measured with the harness on the profiling-harness branch).
+ LABEL_BURST_GAP_S = 0.005      # requests closer together than this are one pass
+ LABEL_BURST_MIN = 8            # requests before a pass counts as a burst
+-LABEL_BURST_GENUINE_MAX = 200  # a burst this small is a real multi-node edit
+ LABEL_REFRESH_MIN_S = 0.4      # quiet time before stale labels are released
+ LABEL_REFRESH_MAX_S = 1.5
+ LABEL_STALL_FACTOR = 5.0       # wait at least this many measured stalls
++LABEL_VERIFY_SLICE_S = 0.015   # background verification runs in slices this long,
++LABEL_VERIFY_GAP_MS = 0        # returning to the event loop between them
++
++# nuke.runIn() evaluates one expression and returns nothing: the verified
++# label comes back through this slot ([labeller] in, [labeller, text] out)
++_verify_slot = []
++_VERIFY_CODE = "__import__('labelmaker')._verify_run()"
++
++
++def _verify_run():
++    _verify_slot.append(_verify_slot[0]._compose_label())
+ 
+ 
+ # from https://gist.github.com/anonymous/a802f51391163a2bf0e3
+@@ -109,7 +122,11 @@ class AutolabelReplacement(object):
+         self._shown = {}      # {full_name: text} the string Nuke was last given
+         self._forced = set()  # full names whose next request must build and show the result
+         self._stale = set()   # full names shown with a string known to be out of date
++        self._verify = set()  # full names answered from the cache, to be checked when idle
++        self._verify_first = set()  # ... of which the frame-dependent ones, checked first
++        self._frame_dep = set()  # full names whose last build read keys, expressions or [tcl]
+         self._burst = {"t": 0.0, "n": 0, "names": []}
++        self._verify_timer = None   # created lazily; PySide6 is not imported at module level
+         self._stall_t = None      # when a changed string was last handed to Nuke
+         self._stall_ema = 0.05    # running estimate of Nuke's stall after a change
+         self._refresh_timer = None  # created lazily; PySide6 is not imported at module level
+@@ -172,18 +189,17 @@ class AutolabelReplacement(object):
+         full_name = node.fullName()
+         cached = self._content.get(full_name) if self._pokeable(node) else None
+         if in_burst and cached is not None and full_name not in self._forced:
+-            # served from the cache whether this is a whole-script pass or a
+-            # genuine multi-node edit; the two are only told apart when the
+-            # burst closes (_close_burst)
++            # answered from the cache whatever the burst is (a whole-script
++            # pass or a bulk edit): the idle verification finds out whether
++            # the string is still right
+             self._burst["names"].append(full_name)
+-            frame, text = cached
+-            if frame is not None and frame != nuke.frame():
+-                self._mark_stale(full_name)
+-            return self._shown.get(full_name, text)
++            return self._shown.get(full_name, cached)
+         was_forced = full_name in self._forced
+         self._forced.discard(full_name)
++        self._verify.discard(full_name)
+         text = self._build_label()
+-        self._content[full_name] = (nuke.frame() if self._frame_dependent() else None, text)
++        self._content[full_name] = text
++        self._note_frame_dependence(full_name)
+         previous = self._shown.get(full_name)
+         if previous is not None and text != previous and not was_forced and self._pokeable(node):
+             # keep showing the old string; the idle refresh releases the new one
+@@ -195,15 +211,7 @@ class AutolabelReplacement(object):
+         return text
+ 
+     def _build_label(self):
+-        self.update()
+-        self.set_indicators()
+-        self.name_line_creator()
+-        self.file_line_creator()
+-        self.channels_line_creator()
+-        self.knob_readout_creator()
+-        self.mix_line_creator()
+-        self.label_readout_creator()
+-        autolabel = "\n".join(self.lines)
++        autolabel = self._compose_label(write_indicators=True)
+         new_line_count = autolabel.count('\n') + 1
+         old_line_count = self._line_counts.get(self.node_name)
+         self._line_counts[self.node_name] = new_line_count
+@@ -216,10 +224,31 @@ class AutolabelReplacement(object):
+             self._get_deoverlap_timer().start()  # restarts timer if already running
+         return autolabel
+ 
+-    def _frame_dependent(self):
++    def _compose_label(self, write_indicators=False):
++        """The label text for nuke.thisNode(); read-only unless asked to
++        update the indicators knob as Nuke's own autolabel does."""
++        self.update()
++        if write_indicators:
++            self.set_indicators()
++        else:
++            self.compute_indicators()
++        self.name_line_creator()
++        self.file_line_creator()
++        self.channels_line_creator()
++        self.knob_readout_creator()
++        self.mix_line_creator()
++        self.label_readout_creator()
++        return "\n".join(self.lines)
++
++    def _note_frame_dependence(self, full_name):
+         # keys or an expression (indicator bits 1 and 2), or TCL in the label
+-        # knob: Nuke re-requests these on frame changes, so cache them per frame
+-        return bool(self.indicators & 3) or "[" in self.node_label_raw
++        # knob: these are the labels a frame change alters, so they are
++        # verified first after a pass (an ordering hint, not a gate)
++        indicators = getattr(self, "indicators", 0)
++        if bool(indicators & 3) or "[" in getattr(self, "node_label_raw", ""):
++            self._frame_dep.add(full_name)
++        else:
++            self._frame_dep.discard(full_name)
+ 
+     def _pokeable(self, node):
+         # a held-back or cached string is only ever refreshed by a poke, so a
+@@ -252,10 +281,9 @@ class AutolabelReplacement(object):
+ 
+     def _close_burst(self):
+         burst = self._burst
+-        if LABEL_BURST_MIN < burst["n"] <= LABEL_BURST_GENUINE_MAX:
+-            # too small for a whole-script pass: a real multi-node edit that
+-            # was answered from the cache, so refresh those nodes
+-            self._stale.update(burst["names"])
++        if burst["names"]:
++            self._verify.update(burst["names"])
++            self._verify_first.update(self._frame_dep.intersection(burst["names"]))
+             self._arm_refresh()
+         burst["n"] = 0
+         burst["names"] = []
+@@ -276,14 +304,77 @@ class AutolabelReplacement(object):
+         self._get_refresh_timer().start(int(self._refresh_window() * 1000))
+ 
+     def _refresh_stale_labels(self):
+-        if time.perf_counter() - self._burst["t"] < self._refresh_window() * 0.9:
++        if self._busy():
+             self._arm_refresh()  # still busy: wait for the traffic to end
+             return
+         self._close_burst()
++        if self._verify:
++            self._verify_slice()
++            return
++        self._release_stale()
++
++    def _busy(self):
++        return time.perf_counter() - self._burst["t"] < self._refresh_window() * 0.9
++
++    def _release_stale(self):
+         names = list(self._stale)
+         self._stale.clear()
+         self._poke_nodes(names)
+ 
++    def _get_verify_timer(self):
++        if self._verify_timer is None:
++            from PySide6 import QtCore
++            self._verify_timer = QtCore.QTimer()
++            self._verify_timer.setSingleShot(True)
++            self._verify_timer.timeout.connect(self._verify_slice)
++        return self._verify_timer
++
++    def _verify_slice(self):
++        """Rebuild a slice of the cache-answered labels; queue the ones that
++        differ from what Nuke is showing. Yields to the event loop between
++        slices and backs off while label traffic resumes."""
++        if self._busy():
++            self._arm_refresh()
++            return
++        deadline = time.perf_counter() + LABEL_VERIFY_SLICE_S
++        had_first = bool(self._verify_first)
++        while self._verify and time.perf_counter() < deadline:
++            full_name = self._pop_verify()
++            text = self._compose_in_context(full_name)
++            if text is None:
++                continue
++            self._content[full_name] = text
++            self._note_frame_dependence(full_name)
++            if text != self._shown.get(full_name):
++                self._stale.add(full_name)
++        if self._verify:
++            if had_first and not self._verify_first:
++                # the likely-changed labels are done: release them now rather
++                # than after the whole script has been checked
++                self._release_stale()
++            self._get_verify_timer().start(LABEL_VERIFY_GAP_MS)
++        else:
++            self._release_stale()
++
++    def _pop_verify(self):
++        if self._verify_first:
++            full_name = self._verify_first.pop()
++            self._verify.discard(full_name)
++        else:
++            full_name = self._verify.pop()
++            self._verify_first.discard(full_name)
++        return full_name
++
++    def _compose_in_context(self, full_name):
++        """The label the build would produce for `full_name` right now, or
++        None if the node is gone. The label code reads nuke.thisNode() and
++        'this.*' paths, so it has to run with the node as Nuke's context."""
++        if nuke.toNode(full_name) is None:
++            return None
++        _verify_slot[:] = [self]
++        nuke.runIn(full_name, _VERIFY_CODE)
++        return _verify_slot[1] if len(_verify_slot) > 1 else None
++
+     def _poke_nodes(self, full_names, force=True):
+         # Nothing in the API re-requests one node's label; a real knob change
+         # does. Flipping dope_sheet and flipping it back in the same callback
+@@ -316,6 +407,9 @@ class AutolabelReplacement(object):
+         self._shown.pop(full_name, None)
+         self._stale.discard(full_name)
+         self._forced.discard(full_name)
++        self._verify.discard(full_name)
++        self._verify_first.discard(full_name)
++        self._frame_dep.discard(full_name)
+ 
+     def invalidate_labels(self):
+         """Forget every cached label; nodes rebuild when Nuke next asks."""
+@@ -323,6 +417,9 @@ class AutolabelReplacement(object):
+         self._shown.clear()
+         self._stale.clear()
+         self._forced.clear()
++        self._verify.clear()
++        self._verify_first.clear()
++        self._frame_dep.clear()
+         self._burst = {"t": 0.0, "n": 0, "names": []}
+ 
+     def refresh_all_labels(self):
+@@ -342,6 +439,12 @@ class AutolabelReplacement(object):
+         self.node_class = self.class_mappings.get(self.n.Class()) or self.n.Class()
+ 
+     def set_indicators(self):
++        self.compute_indicators()
++        # a knob write: it dirties the node, so only a real label request
++        # does it (background verification must not touch the DAG)
++        nuke.knob("this.indicators", str(self.indicators))
++
++    def compute_indicators(self):
+         # this function is copied from Foundry's autolabel.py and
+         # is copyright Foundry, all rights reserved
+         # seemingly more or less need to use this TCL code, as there doesn't
+@@ -354,7 +457,6 @@ class AutolabelReplacement(object):
+             ind += 4
+         if int(nuke.numvalue("this.mix", 1)) < 1:
+             ind += 16
+-        nuke.knob("this.indicators", str(ind))
+         self.indicators = ind
+ 
+     def name_line_creator(self):
+diff --git a/tests/conftest.py b/tests/conftest.py
+index f31921d..687b2c3 100644
+--- a/tests/conftest.py
++++ b/tests/conftest.py
+@@ -34,6 +34,7 @@ _nuke_stub.allNodes = lambda recurseGroups=False: []
+ _nuke_stub.thisNode = lambda: None
+ _nuke_stub.toNode = lambda name: None
+ _nuke_stub.frame = lambda: 1
++_nuke_stub.activeViewer = lambda: None
+ _nuke_stub.addOnCreate = lambda fn: None
+ _nuke_stub.removeOnCreate = lambda fn: None
+ _nuke_stub.addOnDestroy = lambda fn: None
+diff --git a/tests/test_label_cache.py b/tests/test_label_cache.py
+index 5a5d2b9..1e3f1d4 100644
+--- a/tests/test_label_cache.py
++++ b/tests/test_label_cache.py
+@@ -80,15 +80,29 @@ def labeller(monkeypatch, clock):
+     labeller.builds = []     # names built, in order
+     labeller.nodes = {}
+ 
++    labeller.verified = []   # names verified in the background, in order
++
+     def build():
+         name = nuke.thisNode().name()
+         labeller.builds.append(name)
+-        labeller.indicators = 0
+-        labeller.node_label_raw = ""
+         return labeller.texts[name]
+ 
++    def compose():
++        name = nuke.thisNode().name()
++        labeller.verified.append(name)
++        return labeller.texts[name]
++
++    def run_in(name, code):
++        # nuke.runIn: evaluate `code` with `name` as the current node
++        nuke.thisNode = lambda: labeller.nodes[name]
++        eval(code)
++
+     monkeypatch.setattr(labeller, "_build_label", build)
++    monkeypatch.setattr(labeller, "_compose_label", compose)
+     monkeypatch.setattr(nuke, "toNode", lambda name: labeller.nodes.get(name))
++    monkeypatch.setattr(nuke, "runIn", run_in, raising=False)
++    labeller._verify_timer = _FakeTimer()
++    labeller._verify_timer.connect(labeller._verify_slice)
+     return labeller
+ 
+ 
+@@ -103,10 +117,24 @@ def request(labeller, clock, name, text=None, advance=1.0):
+ 
+ 
+ def whole_script_pass(labeller, clock, names):
+-    """Every node requested back to back, as after a viewer input change."""
++    """Every node requested back to back (a viewer change, a frame step after
++    an edit, or a tool editing many nodes: the cache cannot tell)."""
+     return [request(labeller, clock, name, advance=1.0 if i == 0 else 0.0001) for i, name in enumerate(names)]
+ 
+ 
++def go_idle(labeller, clock):
++    """Label traffic stops: the refresh fires, verification runs to the end
++    (the frozen clock never exhausts a slice) and stale labels are poked."""
++    clock.now += 1.0
++    labeller._refresh_timer.fire()
++    while labeller._verify:
++        labeller._verify_timer.fire()
++
++
++def pokes(labeller):
++    return {name for name, node in labeller.nodes.items() if node["dope_sheet"].sets}
++
++
+ # --- lone requests ---
+ 
+ 
+@@ -186,53 +214,179 @@ def test_uncached_nodes_in_a_pass_are_built(labeller, clock):
+     assert set(names[20:]) <= set(labeller.builds)
+ 
+ 
+-def test_small_burst_is_a_real_edit_and_gets_refreshed(labeller, clock):
+-    names = ["Grade{}".format(i) for i in range(20)]
++def test_cache_answered_labels_are_verified_when_idle(labeller, clock):
++    names = ["Grade{}".format(i) for i in range(30)]
++    for name in names:
++        request(labeller, clock, name, "text " + name)
++    whole_script_pass(labeller, clock, names)
++    request(labeller, clock, "Other", "x")
++    assert labeller._verify == set(names[labelmaker.LABEL_BURST_MIN:])
++    go_idle(labeller, clock)
++    assert set(labeller.verified) == set(names[labelmaker.LABEL_BURST_MIN:])
++    assert labeller._verify == set()
++
++
++def test_unchanged_labels_are_not_poked_after_verification(labeller, clock):
++    names = ["Grade{}".format(i) for i in range(30)]
++    for name in names:
++        request(labeller, clock, name, "same")
++    whole_script_pass(labeller, clock, names)
++    go_idle(labeller, clock)
++    assert labeller._stale == set()
++    assert pokes(labeller) == set()
++
++
++@pytest.mark.parametrize("count", [20, 250, 1000])
++def test_bulk_edit_of_any_size_is_served_old_then_verified_and_released(labeller, clock, count):
++    """A tool setting a knob on every selected node relabels them in one
++    burst that looks exactly like a whole-script pass."""
++    names = ["Grade{}".format(i) for i in range(count)]
+     for name in names:
+         request(labeller, clock, name, "old")
+     for name in names:
+         labeller.texts[name] = "new"
+-    assert set(whole_script_pass(labeller, clock, names)) == {"old"}
+-    request(labeller, clock, "Other", "x")
+-    assert set(names) <= labeller._stale
++    served = whole_script_pass(labeller, clock, names)
++    assert set(served[labelmaker.LABEL_BURST_MIN:]) == {"old"}
++    go_idle(labeller, clock)
++    assert pokes(labeller) >= set(names[labelmaker.LABEL_BURST_MIN:])
++    assert all(request(labeller, clock, name, advance=0.01) == "new" for name in names)
++    assert labeller._stale == set() and labeller._verify == set()
++
++
++def test_only_the_labels_that_changed_are_poked(labeller, clock):
++    names = ["Grade{}".format(i) for i in range(40)]
++    for name in names:
++        request(labeller, clock, name, "old")
++    labeller.texts["Grade20"] = "new"
++    labeller.texts["Grade30"] = "new"
++    whole_script_pass(labeller, clock, names)
++    go_idle(labeller, clock)
++    assert pokes(labeller) == {"Grade20", "Grade30"}
++    assert request(labeller, clock, "Grade20") == "new"
++
++
++def test_verification_runs_in_slices_and_yields_between_them(labeller, clock, monkeypatch):
++    names = ["Grade{}".format(i) for i in range(30)]
++    for name in names:
++        request(labeller, clock, name, "old")
++    whole_script_pass(labeller, clock, names)
++    compose = labeller._compose_label
++
++    def slow_compose():
++        clock.now += labelmaker.LABEL_VERIFY_SLICE_S  # each label exhausts the slice
++        return compose()
++
++    monkeypatch.setattr(labeller, "_compose_label", slow_compose)
+     clock.now += 1.0
+     labeller._refresh_timer.fire()
+-    assert all(request(labeller, clock, name, advance=0.01) == "new" for name in names)
++    assert len(labeller.verified) == 1
++    assert labeller._verify_timer.interval == labelmaker.LABEL_VERIFY_GAP_MS
++    labeller._verify_timer.fire()
++    assert len(labeller.verified) == 2
+ 
+ 
+-def test_large_burst_is_not_marked_stale(labeller, clock):
+-    names = ["Grade{}".format(i) for i in range(labelmaker.LABEL_BURST_GENUINE_MAX + 50)]
++def test_verification_backs_off_while_label_traffic_resumes(labeller, clock):
++    names = ["Grade{}".format(i) for i in range(30)]
+     for name in names:
+         request(labeller, clock, name, "old")
+     whole_script_pass(labeller, clock, names)
+-    request(labeller, clock, "Other", "x")
+-    assert labeller._stale == set()
++    clock.now += 1.0
++    labeller._refresh_timer.fire()  # verification done (frozen clock, one slice)
++    assert labeller._verify == set()
++    whole_script_pass(labeller, clock, names)
++    request(labeller, clock, "Other", "x", advance=0.1)  # traffic 0.1 s ago
++    labeller.verified = []
++    labeller._verify_timer.fire()
++    assert labeller.verified == []           # nothing verified while busy
++    assert labeller._refresh_timer.interval  # waits for the traffic to end
++    go_idle(labeller, clock)
++    assert labeller._verify == set() and len(labeller.verified) == 30 - labelmaker.LABEL_BURST_MIN
+ 
+ 
+-def test_frame_dependent_node_on_new_frame_is_held_then_refreshed(labeller, clock, monkeypatch):
+-    names = ["Grade{}".format(i) for i in range(20)]
++def test_frame_dependent_labels_are_verified_first_and_released_early(labeller, clock, monkeypatch):
++    names = ["Grade{}".format(i) for i in range(40)]
+     for name in names:
+         request(labeller, clock, name, "old")
+-    labeller._content["Grade15"] = (1, "old")
+-    monkeypatch.setattr(nuke, "frame", lambda: 2)
+-    labeller.builds = []
++    labeller._frame_dep.update({"Grade20", "Grade30"})   # keys/expressions/[tcl] last time
++    labeller.texts["Grade20"] = "new"
++    labeller.texts["Grade9"] = "new"
+     whole_script_pass(labeller, clock, names)
+-    assert "Grade15" not in labeller.builds
+-    assert "Grade15" in labeller._stale
++    request(labeller, clock, "Other", "x")   # closes the burst
++    assert labeller._verify_first == {"Grade20", "Grade30"}
++    compose = labeller._compose_label
++
++    def slow_compose():
++        clock.now += labelmaker.LABEL_VERIFY_SLICE_S  # one label per slice
++        return compose()
+ 
++    monkeypatch.setattr(labeller, "_compose_label", slow_compose)
++    clock.now += 1.0
++    labeller._refresh_timer.fire()
++    labeller._verify_timer.fire()
++    assert set(labeller.verified) == {"Grade20", "Grade30"}   # first two slices
++    assert pokes(labeller) == {"Grade20"}                      # released before the rest
++    while labeller._verify:
++        labeller._verify_timer.fire()
++    assert pokes(labeller) == {"Grade20", "Grade9"}
+ 
+-def test_tcl_in_the_label_knob_is_cached_per_frame(clock, monkeypatch):
++
++def test_frame_dependence_is_noted_from_the_build(clock, monkeypatch):
++    labeller = AutolabelReplacement(_EmptyConfig())
++    monkeypatch.setattr(nuke, "expression", lambda expr: 1.0)   # "keys" bit
++    nuke.thisNode = lambda: _node("Grade1")
++    labeller.create_autolabel()
++    assert "Grade1" in labeller._frame_dep
++    monkeypatch.setattr(nuke, "expression", lambda expr: 0.0)
++    clock.now += 1.0
++    labeller.create_autolabel()
++    assert "Grade1" not in labeller._frame_dep
++
++
++def test_node_deleted_before_verification_is_skipped(labeller, clock):
++    names = ["Grade{}".format(i) for i in range(30)]
++    for name in names:
++        request(labeller, clock, name, "old")
++    whole_script_pass(labeller, clock, names)
++    del labeller.nodes["Grade20"]
++    go_idle(labeller, clock)
++    assert "Grade20" not in labeller.verified
++    assert "Grade20" not in labeller._stale
++
++
++def test_real_request_during_verification_drops_the_node_from_the_queue(labeller, clock):
++    names = ["Grade{}".format(i) for i in range(30)]
++    for name in names:
++        request(labeller, clock, name, "old")
++    whole_script_pass(labeller, clock, names)
++    request(labeller, clock, "Grade20", "new")   # lone edit: built and held back
++    assert "Grade20" not in labeller._verify
++    assert "Grade20" in labeller._stale
++
++
++def test_tcl_in_the_label_knob_is_composed_in_node_context(clock, monkeypatch):
+     labeller = AutolabelReplacement(_EmptyConfig())
+     monkeypatch.setattr(nuke, "value", lambda path, default="": "[frame]" if path == "this.label" else default)
+     monkeypatch.setattr(nuke, "tcl", lambda *args: "1001")
+-    monkeypatch.setattr(nuke, "frame", lambda: 1001)
+     nuke.thisNode = lambda: _node("Grade1")
+     assert labeller.create_autolabel() == "Grade1\n1001"
+-    assert labeller._content["Grade1"] == (1001, "Grade1\n1001")
+-    assert labeller.node_label_raw == "[frame]"
++    assert labeller._content["Grade1"] == "Grade1\n1001"
++
++
++def test_compose_in_context_runs_the_label_code_with_the_node_as_context(clock, monkeypatch):
++    labeller = AutolabelReplacement(_EmptyConfig())
++    node = _node("Grade1")
++    seen = []
+ 
++    def run_in(name, code):
++        seen.append(name)
++        nuke.thisNode = lambda: node
++        eval(code)
+ 
+-# --- nodes that cannot be poked ---
++    monkeypatch.setattr(nuke, "runIn", run_in, raising=False)
++    monkeypatch.setattr(nuke, "toNode", lambda name: node if name == "Grade1" else None)
++    assert labeller._compose_in_context("Grade1") == "Grade1"
++    assert seen == ["Grade1"]
++    assert labeller._compose_in_context("Gone") is None
+ 
+ 
+ def test_node_without_dope_sheet_shows_changed_text_immediately(labeller, clock):
+@@ -251,8 +405,8 @@ def test_node_without_dope_sheet_is_rebuilt_and_shown_in_a_burst(labeller, clock
+         labeller.texts[name] = "new"
+     assert whole_script_pass(labeller, clock, names)[-1] == "new"
+     request(labeller, clock, "Other", "x")
+-    assert "Viewer1" not in labeller._stale
+-    assert set(names[:-1]) <= labeller._stale
++    assert "Viewer1" not in labeller._verify
++    assert set(names[labelmaker.LABEL_BURST_MIN:-1]) <= labeller._verify
+ 
+ 
+ # --- invalidation ---

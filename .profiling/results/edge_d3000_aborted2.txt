@@ -1,0 +1,47 @@
+for more information.
+
+##############################################################################
+# Labelmaker draw-path profile — mode=on deoverlap=False script=/home/bosley/git/Labelmaker/.profiling/tmp/lm_d3000.nk
+##############################################################################
+DAG window 1256x405
+[23:20.48] Warning: Could not find value "scene_linear" for "colorspace". It will be appended to the menu list.
+[23:20.48] Warning: Could not find value "ACES - ACEScg" for "colorspace". It will be appended to the menu list.
+  scriptOpen (lm_d3000.nk)                 calls=3002  builds=0     hits=0     action= 1814.4ms  settled_after=  0.79s  label_py=  716.7ms  builds=2977 pokes=0
+3002 nodes loaded; autolabel calls so far = 3003
+
+  script open — per node class (slowest total first)
+  class                                         calls   total ms   mean us
+  Grade                                           265      101.3     382.1
+  Read                                            312       89.4     286.6
+  Roto                                             91       50.6     556.3
+  Merge2                                          170       48.8     287.2
+  ColorCorrect                                    124       47.5     382.7
+  Blur                                            169       36.2     214.4
+  Reformat                                        124       35.4     285.4
+  Dot                                             306       33.7     110.0
+  Transform                                       124       33.5     270.1
+  Constant                                        170       25.4     149.6
+  Premult                                         153       22.1     144.5
+  ZDefocus2                                        62       16.9     272.4
+  Write                                            46       16.2     351.5
+  Unpremult                                       107       16.1     150.4
+  Copy                                             45       13.0     288.6
+  HueCorrect                                       62       12.1     195.6
+  EdgeBlur                                         46       10.5     228.7
+  Multiply                                         40       10.1     252.2
+
+event census (calls = label requests from Nuke; label_py = time in the Python label fn, stock or Labelmaker)
+  X hover sweep across DAG (60 moves)      calls=0     builds=0     hits=0     action=    0.5ms  settled_after=  0.00s  label_py=    0.0ms  ticks=60 lat mean=87.0ms p95=101.3ms max=134.9ms  builds=0 pokes=0
+  V rename node                            calls=1     builds=0     hits=0     action=    0.2ms  settled_after=  0.09s  label_py=    0.3ms  builds=1 pokes=0
+  V create node                            calls=1     builds=0     hits=0     action=    1.8ms  settled_after=  0.09s  label_py=    0.3ms  builds=1 pokes=0
+      >>> label implementation: stock
+  M impl stock                             calls=0     builds=0     hits=0     action=    0.5ms  settled_after=  0.00s  label_py=    0.0ms
+  M stock hooks off                        calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  M stock create 100 nodes (nuke.nodes.Blur) calls=100   builds=0     hits=0     action=  106.0ms  settled_after=  0.09s  label_py=    6.6ms
+  M stock frame +1 after create            calls=3003  builds=0     hits=0     action=    0.2ms  settled_after=  0.26s  label_py=  231.5ms
+  M stock delete those 100                 calls=0     builds=0     hits=0     action=   33.8ms  settled_after=  0.00s  label_py=    0.0ms
+  M stock undo delete (100 back)           calls=1     builds=0     hits=0     action=    0.1ms  settled_after=  0.08s  label_py=    0.2ms
+  M stock redo delete                      calls=1     builds=0     hits=0     action=    0.3ms  settled_after=  0.09s  label_py=    0.5ms
+  M stock copy 100 + paste                 calls=100   builds=0     hits=0     action=  226.6ms  settled_after=  0.08s  label_py=    7.2ms
+  M stock frame +1 after paste 100         calls=3012  builds=0     hits=0     action=    0.1ms  settled_after=  0.27s  label_py=  239.2ms
+  M stock delete pasted 100                calls=1     builds=0     hits=0     action=   55.1ms  settled_after=  0.08s  label_py=    0.2ms

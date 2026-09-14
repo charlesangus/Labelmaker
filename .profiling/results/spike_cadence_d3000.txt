@@ -1,0 +1,61 @@
+for more information.
+
+##############################################################################
+# Labelmaker draw-path profile — mode=on deoverlap=False script=/home/bosley/git/Labelmaker/.profiling/tmp/lm_d3000.nk
+##############################################################################
+DAG window 1256x405
+[ 0:37.32] Warning: Could not find value "scene_linear" for "colorspace". It will be appended to the menu list.
+[ 0:37.32] Warning: Could not find value "ACES - ACEScg" for "colorspace". It will be appended to the menu list.
+  scriptOpen (lm_d3000.nk)                 calls=3002  builds=0     hits=0     action= 2565.0ms  settled_after=  0.99s  label_py=  896.5ms  builds=2977 pokes=0 verified=26 (13ms) slices=1 span=0.00s
+3002 nodes loaded; autolabel calls so far = 3003
+
+  script open — per node class (slowest total first)
+  class                                         calls   total ms   mean us
+  Grade                                           265      127.4     480.6
+  Read                                            312      114.7     367.7
+  Roto                                             91       63.5     697.5
+  Merge2                                          170       60.8     357.7
+  ColorCorrect                                    124       60.3     486.2
+  Blur                                            169       46.4     274.4
+  Reformat                                        124       44.3     357.6
+  Dot                                             306       41.5     135.7
+  Transform                                       124       41.1     331.2
+  Constant                                        170       30.2     177.9
+  Premult                                         153       27.3     178.2
+  ZDefocus2                                        62       21.3     343.2
+  Write                                            46       20.3     441.4
+  Unpremult                                       107       18.5     172.5
+  Copy                                             45       16.5     366.8
+  HueCorrect                                       62       15.4     249.1
+  EdgeBlur                                         46       12.7     276.2
+  Multiply                                         40       12.7     317.5
+
+event census (calls = label requests from Nuke; label_py = time in the Python label fn, stock or Labelmaker)
+      0 ms timer x100: mean 1.9 ms  median 0.1  p95 1.1  max 85.3
+  S timer cadence 0 ms x100                calls=0     builds=0     hits=0     action=    0.2ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 verified=0 (0ms)
+      1 ms timer x100: mean 20.7 ms  median 1.7  p95 89.6  max 91.0
+  S timer cadence 1 ms x100                calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 verified=0 (0ms)
+      4 ms timer x100: mean 4.3 ms  median 4.3  p95 4.5  max 5.4
+  S timer cadence 4 ms x100                calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 verified=0 (0ms)
+      15 ms timer x50: mean 15.6 ms  median 15.5  p95 16.0  max 16.8
+  S timer cadence 15 ms x50                calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 verified=0 (0ms)
+      >>> label implementation: on
+  S impl on                                calls=0     builds=0     hits=0     action=    0.3ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 verified=0 (0ms)
+  S on warm: frame +1                      calls=305   builds=0     hits=0     action=    0.1ms  settled_after=  0.12s  label_py=  111.7ms  builds=305 pokes=0 verified=0 (0ms)
+  S on edit knob                           calls=1     builds=0     hits=0     action=    0.3ms  settled_after=  0.13s  label_py=    0.7ms  builds=1 pokes=0 verified=0 (0ms)
+[ 0:37.59] ERROR: Grade2.gamma: Unpremult2
+(rgb) / alpha
+  S on pass: frame +1 after edit           calls=3294  builds=0     hits=0     action=    0.1ms  settled_after=  1.77s  label_py=  636.9ms  builds=2963 pokes=293 verified=330 (118ms) slices=8 span=0.39s
+  S on edit knob                           calls=2     builds=0     hits=0     action=    0.1ms  settled_after=  0.68s  label_py=    5.4ms  builds=2 pokes=1 verified=0 (0ms)
+  S on pass: frame +1 after edit (2)       calls=3315  builds=0     hits=0     action=    0.1ms  settled_after=  6.37s  label_py=  161.5ms  builds=681 pokes=314 verified=2608 (1130ms) slices=75 span=5.41s
+  S on pass: viewer connect                calls=1     builds=0     hits=0     action=   85.1ms  settled_after=  0.32s  label_py=    0.6ms  builds=1 pokes=0 verified=0 (0ms)
+  S on pass: viewer connect other          calls=0     builds=0     hits=0     action=    1.8ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 verified=0 (0ms)
+[ 0:38.26] ERROR: Grade2.gamma: Read312: /jobs/SHOW/seq016/sh016_0006/renders/cg/utility/v007/utility.1033.exr: Read error: No such file or directory
+  S on scrub 24 frames, 40ms apart         calls=3330  builds=0     hits=0     action=    1.3ms  settled_after=  4.86s  label_py=  146.1ms  builds=694 pokes=326 verified=2610 (856ms) slices=59 span=4.34s
+[ 0:38.31] ERROR: Grade2.gamma: Read312: /jobs/SHOW/seq016/sh016_0006/renders/cg/utility/v007/utility.1001.exr: Read error: No such file or directory
+  S on X timeslider scrub (40 moves)       calls=3329  builds=0     hits=0     action=    7.8ms  settled_after=  5.43s  label_py=  142.6ms  ticks=51 lat mean=95.9ms p95=124.0ms max=362.8ms  builds=694 pokes=326 verified=2610 (803ms) slices=55 span=4.36s
+  S on open Grade panel + zoom             calls=0     builds=0     hits=0     action=   27.0ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 verified=0 (0ms)
+  S on pass then immediate slider drag     calls=42    builds=0     hits=0     action=   14.2ms  settled_after=  2.21s  label_py=   25.3ms  ticks=51 lat mean=18.9ms p95=30.9ms max=195.5ms  builds=42 pokes=1 verified=0 (0ms)
+  S on slider drag (quiet)                 calls=40    builds=0     hits=0     action=   15.7ms  settled_after=  1.99s  label_py=   34.3ms  ticks=51 lat mean=18.1ms p95=35.6ms max=54.3ms  builds=40 pokes=1 verified=0 (0ms)
+Terminated
+EXIT 143

@@ -364,7 +364,7 @@ def wait_settled(then, label):
             seen["calls"] = counter["calls"]
             seen["since"] = now
             seen["last_change"] = now
-        if state.get("busy"):
+        if state.get("busy") or getattr(autolabeller, "_verify", None):
             seen["since"] = now
         if (now - seen["since"]) * 1000 >= QUIET_MS or now - start > SETTLE_CAP_S:
             settle = (seen["last_change"] - start) if seen["last_change"] else 0.0
@@ -379,9 +379,13 @@ def measure(label, action, then):
     """Run action(), wait for the label pass to settle, record calls + time."""
     before = counter["calls"]
     before_s = counter["seconds"]
+    impl_stats["step_t0"] = time.perf_counter()
     getattr(autolabeller, "reset_stats", lambda: None)()
     t0 = time.perf_counter()
-    action()
+    try:
+        action()
+    except Exception as error:
+        log("      (action failed: {})".format(str(error)[:120]))
     action_s = time.perf_counter() - t0
 
     def done(settle_s):
@@ -399,6 +403,24 @@ def measure(label, action, then):
                 len(lat), sum(lat) / len(lat), lat[int(len(lat) * 0.95) - 1], lat[-1])
         if deov:
             extra += "  deoverlap={:.1f}ms".format(deov * 1000)
+        if state.get("impl", MODE) == "on":
+            extra += "  builds={} pokes={} verified={} ({:.0f}ms)".format(
+                impl_stats["builds"], impl_stats["pokes"], impl_stats["verified"], impl_stats["verify_s"] * 1000)
+            if impl_stats.get("first_release"):
+                extra += " first_release={:.2f}s releases={}".format(
+                    impl_stats["first_release"] - impl_stats["step_t0"], impl_stats["releases"])
+            if impl_stats.get("slices"):
+                extra += " slices={} span={:.2f}s".format(
+                    impl_stats["slices"], impl_stats["slice_t1"] - impl_stats["slice_t0"])
+                rec = impl_stats.get("slice_log", [])
+                if len(rec) > 3:
+                    gaps = sorted(r[4] for r in rec[1:])
+                    extra += " gap median={:.0f}ms p95={:.0f}ms busy_exits={}".format(
+                        gaps[len(gaps) // 2], gaps[int(len(gaps) * 0.95) - 1], sum(1 for r in rec if r[5]))
+                    log("      first slices (work ms, n, gap ms, busy): " + " ".join(
+                        "({:.0f},{},{:.0f},{})".format(r[2], r[3], r[4], int(r[5])) for r in rec[:12]))
+        impl_stats.clear()
+        impl_stats.update(builds=0, pokes=0, verified=0, verify_s=0.0)
         if False:
             extra += "  proto: {} hits {} builds {} held {} pokes  stall~{:.0f}ms window={:.0f}ms".format(
                 cache_stats["hits"], cache_stats["builds"], cache_stats["held"], cache_stats["pokes"], stall["ema"] * 1000, _window() * 1000)
@@ -467,6 +489,25 @@ def run_events():
     cx = sum(x for x, _ in all_xy) / len(all_xy)
     cy = sum(y for _, y in all_xy) / len(all_xy)
     state["mid_x0"] = mid.xpos()
+    # E deletes/undoes whole ranges; undo of a delete yields NEW C++ nodes, so
+    # the wrappers must be re-resolved by name. Keep the named fixtures out of
+    # the pool so `grade`, `mid` … stay valid for the groups that follow.
+    specials = {id(n) for n in (grade, read, merge, blur, mid, cc, grade2, ctrl, group, clone) if n is not None}
+    pool = [n for n in nodes if id(n) not in specials]
+    pool_names = [n.fullName() for n in pool]
+
+    def _reresolve():
+        pool[:] = [nuke.toNode(nm) for nm in pool_names]
+        missing = sum(n is None for n in pool)
+        if missing:
+            log("      ({} pool nodes not found)".format(missing))
+            pool[:] = [n for n in pool if n is not None]
+            pool_names[:] = [n.fullName() for n in pool]
+
+    def _rename_pool(lo, hi, tag):
+        for i in range(lo, hi):
+            pool[i].setName("Ren_{}_{}".format(tag, i))
+            pool_names[i] = pool[i].fullName()
 
     steps = [
         ("zoom to fit all (nuke.zoom 0.15)", lambda: nuke.zoom(0.15, (cx, cy))),
@@ -703,6 +744,226 @@ def run_events():
         ("R proto select all", nuke.selectAll),
         ("R proto drag ALL nodes", lambda: gesture(x_drag(1, node_global(mid), node_global(mid) + QtCore.QPoint(-120, 0), n=40))),
         ("R proto deselect", lambda: [n.setSelected(False) for n in nodes]),
+        ("M impl stock", lambda: use_impl("stock")),
+        ("M stock hooks off", lambda: [nuke.removeOnCreate(autolabeller._on_node_created), nuke.removeOnDestroy(autolabeller._on_node_destroyed)] if "stock" == "stock" else None),
+        ("M stock create 100 nodes (nuke.nodes.Blur)", lambda: state.__setitem__("made", [nuke.nodes.Blur(xpos=int(cx) + 20 * i, ypos=int(cy)) for i in range(100)])),
+        ("M stock frame +1 after create", lambda: nuke.frame(nuke.frame() + 1)),
+        ("M stock delete those 100", lambda: [nuke.delete(n) for n in state["made"]]),
+        ("M stock undo delete (100 back)", lambda: nuke.undo()),
+        ("M stock redo delete", lambda: nuke.redo()),
+        ("M stock copy 100 + paste", lambda: [_select(nodes[:100]), nuke.nodeCopy("%clipboard%"), nuke.nodePaste("%clipboard%")]),
+        ("M stock frame +1 after paste 100", lambda: nuke.frame(nuke.frame() + 1)),
+        ("M stock delete pasted 100", lambda: [nuke.delete(n) for n in nuke.selectedNodes()]),
+        ("M stock copy 1000 + paste", lambda: [_select(nodes[:1000]), nuke.nodeCopy("%clipboard%"), nuke.nodePaste("%clipboard%")]),
+        ("M stock frame +1 after paste 1000", lambda: nuke.frame(nuke.frame() + 1)),
+        ("M stock delete pasted 1000", lambda: [nuke.delete(n) for n in nuke.selectedNodes()]),
+        ("M stock undo delete 1000", lambda: nuke.undo()),
+        ("M stock redo delete 1000", lambda: nuke.redo()),
+        ("M stock deselect", lambda: [n.setSelected(False) for n in nuke.allNodes()]),
+        ("M stock playback 2s via viewer", lambda: _play(2.0)),
+        ("M stock hooks on", lambda: [nuke.addOnCreate(autolabeller._on_node_created), nuke.addOnDestroy(autolabeller._on_node_destroyed)] if "stock" == "stock" else None),
+        ("M impl on", lambda: use_impl("on")),
+        ("M on hooks off", lambda: [nuke.removeOnCreate(autolabeller._on_node_created), nuke.removeOnDestroy(autolabeller._on_node_destroyed)] if "on" == "stock" else None),
+        ("M on create 100 nodes (nuke.nodes.Blur)", lambda: state.__setitem__("made", [nuke.nodes.Blur(xpos=int(cx) + 20 * i, ypos=int(cy)) for i in range(100)])),
+        ("M on frame +1 after create", lambda: nuke.frame(nuke.frame() + 1)),
+        ("M on delete those 100", lambda: [nuke.delete(n) for n in state["made"]]),
+        ("M on undo delete (100 back)", lambda: nuke.undo()),
+        ("M on redo delete", lambda: nuke.redo()),
+        ("M on copy 100 + paste", lambda: [_select(nodes[:100]), nuke.nodeCopy("%clipboard%"), nuke.nodePaste("%clipboard%")]),
+        ("M on frame +1 after paste 100", lambda: nuke.frame(nuke.frame() + 1)),
+        ("M on delete pasted 100", lambda: [nuke.delete(n) for n in nuke.selectedNodes()]),
+        ("M on copy 1000 + paste", lambda: [_select(nodes[:1000]), nuke.nodeCopy("%clipboard%"), nuke.nodePaste("%clipboard%")]),
+        ("M on frame +1 after paste 1000", lambda: nuke.frame(nuke.frame() + 1)),
+        ("M on delete pasted 1000", lambda: [nuke.delete(n) for n in nuke.selectedNodes()]),
+        ("M on undo delete 1000", lambda: nuke.undo()),
+        ("M on redo delete 1000", lambda: nuke.redo()),
+        ("M on deselect", lambda: [n.setSelected(False) for n in nuke.allNodes()]),
+        ("M on playback 2s via viewer", lambda: _play(2.0)),
+        ("M on hooks on", lambda: [nuke.addOnCreate(autolabeller._on_node_created), nuke.addOnDestroy(autolabeller._on_node_destroyed)] if "on" == "stock" else None),
+        ("M on prefs-style disable (set_enabled False)", lambda: autolabeller.set_enabled(False)),
+        ("M on prefs-style enable (set_enabled True)", lambda: autolabeller.set_enabled(True)),
+        # set_enabled(True) put Labelmaker's own function in front of the timing wrapper
+        ("M on re-wrap autolabel", lambda: [nuke.removeAutolabel(autolabeller.create_autolabel), nuke.removeAutolabel(_timed_autolabel), nuke.addAutolabel(_timed_autolabel)]),
+        ("G impl on", lambda: use_impl("on")),
+        ("G1 hooks off", lambda: [nuke.removeOnCreate(autolabeller._on_node_created), nuke.removeOnDestroy(autolabeller._on_node_destroyed)]),
+        ("G1 off copy 1000 + paste", lambda: [_select(nodes[:1000]), nuke.nodeCopy("%clipboard%"), nuke.nodePaste("%clipboard%")]),
+        ("G1 off delete pasted 1000", lambda: [nuke.delete(n) for n in nuke.selectedNodes()]),
+        ("G1 off undo delete 1000", lambda: nuke.undo()),
+        ("G1 off redo delete 1000", lambda: nuke.redo()),
+        ("G1 off create 200 (nuke.nodes.Blur)", lambda: state.__setitem__("made", [nuke.nodes.Blur(xpos=int(cx) + 20 * i, ypos=int(cy)) for i in range(200)])),
+        ("G1 off delete those 200", lambda: [nuke.delete(n) for n in state["made"]]),
+        ("G1 off frame +1", lambda: nuke.frame(nuke.frame() + 1)),
+        ("G1 hooks on", lambda: [nuke.addOnCreate(autolabeller._on_node_created), nuke.addOnDestroy(autolabeller._on_node_destroyed)]),
+        ("G1 on copy 1000 + paste", lambda: [_select(nodes[:1000]), nuke.nodeCopy("%clipboard%"), nuke.nodePaste("%clipboard%")]),
+        ("G1 on delete pasted 1000", lambda: [nuke.delete(n) for n in nuke.selectedNodes()]),
+        ("G1 on undo delete 1000", lambda: nuke.undo()),
+        ("G1 on redo delete 1000", lambda: nuke.redo()),
+        ("G1 on create 200 (nuke.nodes.Blur)", lambda: state.__setitem__("made", [nuke.nodes.Blur(xpos=int(cx) + 20 * i, ypos=int(cy)) for i in range(200)])),
+        ("G1 on delete those 200", lambda: [nuke.delete(n) for n in state["made"]]),
+        ("G1 on frame +1", lambda: nuke.frame(nuke.frame() + 1)),
+        ("G2 hooks off", lambda: [nuke.removeOnCreate(autolabeller._on_node_created), nuke.removeOnDestroy(autolabeller._on_node_destroyed)]),
+        ("G2 off copy 1000 + paste", lambda: [_select(nodes[:1000]), nuke.nodeCopy("%clipboard%"), nuke.nodePaste("%clipboard%")]),
+        ("G2 off delete pasted 1000", lambda: [nuke.delete(n) for n in nuke.selectedNodes()]),
+        ("G2 off undo delete 1000", lambda: nuke.undo()),
+        ("G2 off redo delete 1000", lambda: nuke.redo()),
+        ("G2 off create 200 (nuke.nodes.Blur)", lambda: state.__setitem__("made", [nuke.nodes.Blur(xpos=int(cx) + 20 * i, ypos=int(cy)) for i in range(200)])),
+        ("G2 off delete those 200", lambda: [nuke.delete(n) for n in state["made"]]),
+        ("G2 off frame +1", lambda: nuke.frame(nuke.frame() + 1)),
+        ("G2 hooks on", lambda: [nuke.addOnCreate(autolabeller._on_node_created), nuke.addOnDestroy(autolabeller._on_node_destroyed)]),
+        ("G2 on copy 1000 + paste", lambda: [_select(nodes[:1000]), nuke.nodeCopy("%clipboard%"), nuke.nodePaste("%clipboard%")]),
+        ("G2 on delete pasted 1000", lambda: [nuke.delete(n) for n in nuke.selectedNodes()]),
+        ("G2 on undo delete 1000", lambda: nuke.undo()),
+        ("G2 on redo delete 1000", lambda: nuke.redo()),
+        ("G2 on create 200 (nuke.nodes.Blur)", lambda: state.__setitem__("made", [nuke.nodes.Blur(xpos=int(cx) + 20 * i, ypos=int(cy)) for i in range(200)])),
+        ("G2 on delete those 200", lambda: [nuke.delete(n) for n in state["made"]]),
+        ("G2 on frame +1", lambda: nuke.frame(nuke.frame() + 1)),
+        ("S probe 0ms timer, no work", lambda: _probe_cadence(lambda: None, 60)),
+        ("S probe runIn noop", lambda: _probe_cadence(lambda: nuke.runIn(pool[5].fullName(), "None"), 60)),
+        ("S probe runIn thisNode().Class()", lambda: _probe_cadence(lambda: nuke.runIn(pool[5].fullName(), "nuke.thisNode().Class()"), 60)),
+        ("S probe runIn nuke.expression(keys)", lambda: _probe_cadence(lambda: nuke.runIn(pool[5].fullName(), "nuke.expression('(keys?1:0)+(has_expression?2:0)')"), 60)),
+        ("S probe runIn nuke.value(this.label)", lambda: _probe_cadence(lambda: nuke.runIn(pool[5].fullName(), "nuke.value('this.label', '')"), 60)),
+        ("S probe runIn nuke.knob(this.indicators) write", lambda: _probe_cadence(lambda: nuke.runIn(pool[5].fullName(), "nuke.knob('this.indicators', nuke.value('this.indicators'))"), 60)),
+        ("S probe compose_in_context x1/slice", lambda: _probe_cadence(lambda: autolabeller._compose_in_context(pool[5].fullName()), 60)),
+        ("S probe compose_in_context x30/slice", lambda: _probe_cadence(lambda: [autolabeller._compose_in_context(n.fullName()) for n in pool[:30]], 30)),
+        ("S probe compose_in_context x30/slice DISTINCT", lambda: _probe_cadence(_walk(lambda n: autolabeller._compose_in_context(n.fullName()), 30, pool), 40)),
+        ("S probe runIn noop x30/slice DISTINCT", lambda: _probe_cadence(_walk(lambda n: nuke.runIn(n.fullName(), "None"), 30, pool), 40)),
+        ("S probe runIn expression(keys) x30/slice DISTINCT", lambda: _probe_cadence(_walk(lambda n: nuke.runIn(n.fullName(), "nuke.expression('(keys?1:0)+(has_expression?2:0)')"), 30, pool), 40)),
+        ("S probe runIn value(this.label) x30/slice DISTINCT", lambda: _probe_cadence(_walk(lambda n: nuke.runIn(n.fullName(), "nuke.value('this.label', '')"), 30, pool), 40)),
+        ("S probe node['label'].value() x30/slice DISTINCT", lambda: _probe_cadence(_walk(lambda n: n["label"].value(), 30, pool), 40)),
+        ("S probe compose_in_context x30/slice DISTINCT again", lambda: _probe_cadence(_walk(lambda n: autolabeller._compose_in_context(n.fullName()), 30, pool), 40)),
+        ("S probe node.knob('label').value() x30", lambda: _probe_cadence(lambda: [n.knob("label").value() for n in pool[:30]], 30)),
+        ("S probe nuke.toNode x30", lambda: _probe_cadence(lambda: [nuke.toNode(nm) for nm in pool_names[:30]], 30)),
+        ("S timer cadence 0 ms x100", lambda: _timer_cadence(0, 100)),
+        ("S timer cadence 1 ms x100", lambda: _timer_cadence(1, 100)),
+        ("S timer cadence 4 ms x100", lambda: _timer_cadence(4, 100)),
+        ("S timer cadence 15 ms x50", lambda: _timer_cadence(15, 50)),
+        # S: verify-at-idle spike. Cost of the background verification after
+        # the passes that now trigger it, interaction while it runs, and the
+        # bulk-edit cases the burst heuristics got wrong — plus attempts to
+        # break it (edits, deletes, renames, undo, group nodes, disable,
+        # scriptClear while the verification queue is non-empty).
+        *[st for impl in ("stock", "on") for st in (
+        ("S impl " + impl, lambda impl=impl: use_impl(impl)),
+        ("S {} stamps: {}".format(impl, os.environ.get("LM_STAMPS", "on")), lambda: [n["postage_stamp"].setValue(False) for n in nuke.allNodes(recurseGroups=True) if n.knob("postage_stamp")] if os.environ.get("LM_STAMPS") == "off" else None),
+        ("S {} warm: frame +1".format(impl), lambda: nuke.frame(nuke.frame() + 1)),
+        ("S {} probe after frame change".format(impl), lambda: _probe_cadence(_walk(lambda n: autolabeller._compose_in_context(n.fullName()), 30, pool), 40)),
+        ("S {} probe again, quiet".format(impl), lambda: _probe_cadence(_walk(lambda n: autolabeller._compose_in_context(n.fullName()), 30, pool), 40)),
+        ("S {} edit knob".format(impl), lambda: grade["white"].setValue(grade["white"].value() + 0.01)),
+        ("S {} pass: frame +1 after edit".format(impl), lambda: nuke.frame(nuke.frame() + 1)),
+        ("S {} edit knob ".format(impl), lambda: grade["white"].setValue(grade["white"].value() + 0.01)),
+        ("S {} pass: frame +1 after edit (2)".format(impl), lambda: nuke.frame(nuke.frame() + 1)),
+        ("S {} pass: viewer connect".format(impl), lambda: nuke.connectViewer(0, merge)),
+        ("S {} pass: viewer connect other".format(impl), lambda: nuke.connectViewer(0, grade)),
+        ("S {} scrub 24 frames, 40ms apart".format(impl), lambda: [QtCore.QTimer.singleShot(40 * i, lambda f=1010 + i: nuke.frame(f)) for i in range(24)]),
+        ("S {} X timeslider scrub (40 moves)".format(impl), lambda: gesture(timeslider_drag())),
+        ("S {} open Grade panel + zoom".format(impl), lambda: [grade.showControlPanel(), nuke.zoom(1.0, (grade.xpos(), grade.ypos()))]),
+        ("S {} pass then immediate slider drag".format(impl), lambda: [nuke.connectViewer(0, blur), gesture(slider_drag(grade, "white"))]),
+        ("S {} slider drag (quiet)".format(impl), lambda: gesture(slider_drag(grade, "white", 0.7, 0.3))),
+        ("S {}  -> white shown".format(impl), lambda: _check_label(grade, "white")),
+        ("S {} close panel".format(impl), lambda: grade.hideControlPanel()),
+        ("S {} bulk label on 100".format(impl), lambda: [n["label"].setValue("s100") for n in pool[:100]]),
+        ("S {}  -> shown".format(impl), lambda: _check_bulk(pool[:100], "s100")),
+        ("S {} bulk label on 1000".format(impl), lambda: [n["label"].setValue("s1k") for n in pool[:1000]]),
+        ("S {}  -> shown ".format(impl), lambda: _check_bulk(pool[:1000], "s1k")),
+        ("S {} bulk label on ALL".format(impl), lambda: [n["label"].setValue("sall") for n in pool]),
+        ("S {}  -> shown  ".format(impl), lambda: _check_bulk(pool, "sall")),
+        ("S {} bulk label 1000 + frame +1 same callback".format(impl), lambda: [[n["label"].setValue("sfr") for n in pool[:1000]], nuke.frame(nuke.frame() + 1)]),
+        ("S {}  -> shown   ".format(impl), lambda: _check_bulk(pool[:1000], "sfr")),
+        ("S {} bulk label 1000 + viewer connect same callback".format(impl), lambda: [[n["label"].setValue("svw") for n in pool[:1000]], nuke.connectViewer(0, merge)]),
+        ("S {}  -> shown    ".format(impl), lambda: _check_bulk(pool[:1000], "svw")),
+        ("S {} bulk label 1000 then delete 100 of them at once".format(impl), lambda: [[n["label"].setValue("sdel") for n in pool[:1000]], _undoable("del", lambda: [_select(pool[900:1000]), nuke.nodeDelete()])]),
+        ("S {}  -> shown     ".format(impl), lambda: _check_bulk(pool[:900], "sdel")),
+        ("S {} undo that delete".format(impl), lambda: nuke.undo()),
+        ("S {} re-resolve".format(impl), _reresolve),
+        ("S {} bulk label 1000 then rename 100 of them at once".format(impl), lambda: [[n["label"].setValue("sren") for n in pool[:1000]], _rename_pool(800, 900, "S" + impl)]),
+        ("S {}  -> shown      ".format(impl), lambda: _check_bulk(pool[:1000], "sren")),
+        ("S {} bulk label 1000 in undo group".format(impl), lambda: _undoable("bulk", lambda: [n["label"].setValue("sundo") for n in pool[:1000]])),
+        ("S {}  -> shown       ".format(impl), lambda: _check_bulk(pool[:1000], "sundo")),
+        ("S {} undo the bulk edit".format(impl), lambda: nuke.undo()),
+        ("S {}  -> shown        ".format(impl), lambda: _check_bulk(pool[:1000], "sundo", expect=0)),
+        ("S {} bulk label inside Group (all its nodes)".format(impl), lambda: [n["label"].setValue("sgrp") for n in group.nodes() if n.knob("label")] if group else None),
+        ("S {}  -> shown         ".format(impl), lambda: _check_bulk([n for n in group.nodes() if n.knob("label")], "sgrp") if group else None),
+        ("S {} open the Group in the DAG".format(impl), lambda: nuke.showDag(group) if group else None),
+        ("S {}  -> shown          ".format(impl), lambda: _check_bulk([n for n in group.nodes() if n.knob("label")], "sgrp") if group else None),
+        ("S {} back to root".format(impl), lambda: nuke.showDag(nuke.root()) if group else None),
+        ("S {} bulk label 1000 then set_enabled(False) at once".format(impl), lambda: [[n["label"].setValue("sdis") for n in pool[:1000]], autolabeller.set_enabled(False)]),
+        ("S {} set_enabled(True) + re-wrap".format(impl), lambda: [autolabeller.set_enabled(True), nuke.removeAutolabel(autolabeller.create_autolabel), nuke.removeAutolabel(_timed_autolabel), nuke.addAutolabel(_timed_autolabel)]),
+        ("S {} frame +1 (cold after enable)".format(impl), lambda: nuke.frame(nuke.frame() + 1)),
+        ("S {}  -> shown           ".format(impl), lambda: _check_bulk(pool[:1000], "sdis")),
+        ("S {} bulk label cleared on ALL".format(impl), lambda: [n["label"].setValue("") for n in pool]),
+        ("S {}  -> shown            ".format(impl), lambda: _check_bulk(pool, "sdis", expect=0)),
+        )],
+        ("S on bulk label 1000 then scriptClear at once", lambda: [[n["label"].setValue("sclr") for n in pool[:1000]], nuke.scriptClear()]),
+        ("S on  -> queue after scriptClear", lambda: log("      verify={} stale={} content={}".format(len(autolabeller._verify), len(autolabeller._stale), len(autolabeller._content)))),
+        ("S on scriptOpen again", lambda: [_rm_autosave(), nuke.scriptOpen(SCRIPT)]),
+        ("S on  -> queue after scriptOpen", lambda: log("      verify={} stale={} content={}".format(len(autolabeller._verify), len(autolabeller._stale), len(autolabeller._content)))),
+        # Z: do label requests grow with the undo history? 3 identical
+        # paste/delete/undo/redo cycles per implementation, node count logged
+        *[st for impl in ("stock", "on") for cyc in (1, 2, 3) for st in (
+        ("Z{} impl {}".format(cyc, impl), lambda impl=impl: use_impl(impl)),
+        ("Z{} {} copy 1000 + paste".format(cyc, impl), lambda: [_select(nodes[:1000]), nuke.nodeCopy("%clipboard%"), nuke.nodePaste("%clipboard%")]),
+        ("Z{} {} delete pasted 1000".format(cyc, impl), lambda: [nuke.delete(n) for n in nuke.selectedNodes()]),
+        ("Z{} {} undo delete 1000".format(cyc, impl), lambda: nuke.undo()),
+        ("Z{} {} redo delete 1000".format(cyc, impl), lambda: nuke.redo()),
+        ("Z{} {} frame +1".format(cyc, impl), lambda: nuke.frame(nuke.frame() + 1)),
+        ("Z{} {} frame +1 again".format(cyc, impl), lambda: nuke.frame(nuke.frame() + 1)),
+        ("Z{} {}  -> node count".format(cyc, impl), lambda: log("      allNodes={} (recurse {})  cache entries={}".format(len(nuke.allNodes()), len(nuke.allNodes(recurseGroups=True)), len(autolabeller._content)))),
+        )],
+        # G3: same ops with EMPTY callbacks registered instead of Labelmaker's —
+        # is the per-node cost Nuke's callback dispatch or _forget()?
+        ("G3 hooks off, empty cbs on", lambda: [nuke.removeOnCreate(autolabeller._on_node_created), nuke.removeOnDestroy(autolabeller._on_node_destroyed), nuke.addOnCreate(_noop_cb), nuke.addOnDestroy(_noop_cb)]),
+        ("G3 empty copy 1000 + paste", lambda: [_select(nodes[:1000]), nuke.nodeCopy("%clipboard%"), nuke.nodePaste("%clipboard%")]),
+        ("G3 empty delete pasted 1000", lambda: [nuke.delete(n) for n in nuke.selectedNodes()]),
+        ("G3 empty undo delete 1000", lambda: nuke.undo()),
+        ("G3 empty redo delete 1000", lambda: nuke.redo()),
+        ("G3 empty create 200 (nuke.nodes.Blur)", lambda: state.__setitem__("made", [nuke.nodes.Blur(xpos=int(cx) + 20 * i, ypos=int(cy)) for i in range(200)])),
+        ("G3 empty delete those 200", lambda: [nuke.delete(n) for n in state["made"]]),
+        ("G3 empty frame +1", lambda: nuke.frame(nuke.frame() + 1)),
+        ("G3 empty cbs off, hooks on", lambda: [nuke.removeOnCreate(_noop_cb), nuke.removeOnDestroy(_noop_cb), nuke.addOnCreate(autolabeller._on_node_created), nuke.addOnDestroy(autolabeller._on_node_destroyed)]),
+        # E: the remaining one-vs-many edit paths (cut, bulk wiring, bulk
+        # text-changing edits, grouping, autoplace, save, nameless nodes)
+        *[st for impl in ("stock", "on") for st in (
+        ("E impl " + impl, lambda impl=impl: use_impl(impl)),
+        ("E {} cut 1 (copy+delete)".format(impl), lambda: [_select([pool[len(pool) // 2]]), nuke.nodeCopy("%clipboard%"), nuke.nodeDelete()]),
+        ("E {} paste 1 back".format(impl), lambda: nuke.nodePaste("%clipboard%")),
+        ("E {} re-resolve after paste 1".format(impl), _reresolve),
+        ("E {} cut 100 (copy+delete)".format(impl), lambda: [_select(pool[100:200]), nuke.nodeCopy("%clipboard%"), nuke.nodeDelete()]),
+        ("E {} paste 100 back".format(impl), lambda: nuke.nodePaste("%clipboard%")),
+        ("E {} re-resolve after paste 100".format(impl), _reresolve),
+        ("E {} cut 1000 (copy+delete)".format(impl), lambda: [_select(pool[:1000]), nuke.nodeCopy("%clipboard%"), nuke.nodeDelete()]),
+        ("E {} paste 1000 back".format(impl), lambda: nuke.nodePaste("%clipboard%")),
+        ("E {} re-resolve after paste 1000".format(impl), _reresolve),
+        ("E {} frame +1 after paste 1000".format(impl), lambda: nuke.frame(nuke.frame() + 1)),
+        ("E {} rewire 1 (setInput)".format(impl), lambda: blur.setInput(0, read)),
+        ("E {} rewire 200 (setInput 0 -> Read)".format(impl), lambda: _undoable("rewire", lambda: [n.setInput(0, read) for n in pool[200:400] if n.inputs() and n.Class() not in ("Read", "Constant")])),
+        ("E {} undo rewire 200".format(impl), lambda: nuke.undo()),
+        ("E {} delete 200 mid-chain (auto-rewire)".format(impl), lambda: _undoable("delete", lambda: [_select([n for n in pool[400:600] if n.inputs() and n.dependent()]), nuke.nodeDelete()])),
+        ("E {} undo delete 200".format(impl), lambda: nuke.undo()),
+        ("E {} re-resolve node wrappers ".format(impl), _reresolve),
+        ("E {} disable 1 (text unchanged)".format(impl), lambda: grade["disable"].setValue(True)),
+        ("E {} enable 1".format(impl), lambda: grade["disable"].setValue(False)),
+        ("E {} disable 1000 selected".format(impl), lambda: [n["disable"].setValue(True) for n in pool[:1000] if n.knob("disable")]),
+        ("E {} enable 1000".format(impl), lambda: [n["disable"].setValue(False) for n in pool[:1000] if n.knob("disable")]),
+        ("E {} label knob on 1 (text changes)".format(impl), lambda: grade["label"].setValue("bulk")),
+        ("E {}  -> shown".format(impl), lambda: _check_bulk([grade], "bulk")),
+        ("E {} label knob on 100".format(impl), lambda: [n["label"].setValue("bulk") for n in pool[:100]]),
+        ("E {}  -> shown ".format(impl), lambda: _check_bulk(pool[:100], "bulk")),
+        ("E {} label knob on 1000".format(impl), lambda: [n["label"].setValue("bulk") for n in pool[:1000]]),
+        ("E {}  -> shown  ".format(impl), lambda: _check_bulk(pool[:1000], "bulk")),
+        ("E {} label knob cleared on 1000".format(impl), lambda: [n["label"].setValue("") for n in pool[:1000]]),
+        ("E {}  -> shown   ".format(impl), lambda: _check_bulk(pool[:1000], "bulk", expect=0)),
+        ("E {} rename 200".format(impl), lambda impl=impl: _rename_pool(600, 800, impl)),
+        ("E {} tile_color on 1000".format(impl), lambda: [n["tile_color"].setValue(0x55555500) for n in pool[:1000]]),
+        ("E {} autoplace 1000 selected".format(impl), lambda: _undoable("autoplace", lambda: [_select(pool[:1000]), [nuke.autoplace(n) for n in pool[:1000]]])),
+        ("E {} undo autoplace".format(impl), lambda: nuke.undo()),
+        ("E {} deselect".format(impl), lambda: [n.setSelected(False) for n in nuke.allNodes()]),
+        ("E {} create 100 Dots (nameless)".format(impl), lambda: state.__setitem__("made", [nuke.nodes.Dot(xpos=int(cx) + 20 * i, ypos=int(cy) + 60) for i in range(100)])),
+        ("E {} delete those Dots".format(impl), lambda: [nuke.delete(n) for n in state["made"]]),
+        ("E {} create 20 Backdrops".format(impl), lambda: state.__setitem__("made", [nuke.nodes.BackdropNode(xpos=int(cx) + 40 * i, ypos=int(cy) + 120, bdwidth=200, bdheight=100) for i in range(20)])),
+        ("E {} delete those Backdrops".format(impl), lambda: [nuke.delete(n) for n in state["made"]]),
+        ("E {} scriptSave (tmp copy)".format(impl), lambda: nuke.scriptSaveAs(SCRIPT + ".saved.nk", overwrite=1)),
+        ("E {} frame +1 after save".format(impl), lambda: nuke.frame(nuke.frame() + 1)),
+        )],
         ("K open Grade panel + zoom", lambda: [grade.showControlPanel(), nuke.zoom(1.0, (grade.xpos(), grade.ypos()))]),
         ("K slider drag white (no knobChanged cb)", lambda: gesture(slider_drag(grade, "white"))),
         ("K register empty knobChanged", lambda: nuke.addKnobChanged(_noop_kc)),
@@ -810,6 +1071,10 @@ def run_events():
         ("  -> label shown vs knob value", lambda: _check_label(grade, "mix")),
         ("slider drag: white 2.1..2.5, 200ms apart", lambda: [QtCore.QTimer.singleShot(200 * i, lambda v=2.1 + 0.1 * i: grade["white"].setValue(v)) for i in range(5)]),
         ("  -> label shown vs knob value", lambda: _check_label(grade, "white")),
+        ("M hooks off + scriptClear", lambda: [nuke.removeOnCreate(autolabeller._on_node_created), nuke.removeOnDestroy(autolabeller._on_node_destroyed), nuke.scriptClear()]),
+        ("M hooks off + scriptOpen", lambda: [_rm_autosave(), nuke.scriptOpen(SCRIPT)]),
+        ("M hooks on + scriptClear", lambda: [nuke.addOnCreate(autolabeller._on_node_created), nuke.addOnDestroy(autolabeller._on_node_destroyed), nuke.scriptClear()]),
+        ("M hooks on + scriptOpen", lambda: [_rm_autosave(), nuke.scriptOpen(SCRIPT)]),
         ("scriptClear", nuke.scriptClear),
     ]
     only = os.environ.get("LM_PROFILE_ONLY", "")
@@ -827,6 +1092,59 @@ def run_events():
 
     log("\nevent census (calls = label requests from Nuke; label_py = time in the Python label fn, stock or Labelmaker)")
     next_step()
+
+
+def _walk(fn, per_tick, nodes_list):
+    """fn() over a fresh window of `per_tick` nodes on every tick."""
+    pos = [0]
+
+    def step():
+        window = nodes_list[pos[0]:pos[0] + per_tick]
+        pos[0] = (pos[0] + per_tick) % max(1, len(nodes_list) - per_tick)
+        for node in window:
+            fn(node)
+
+    return step
+
+
+def _probe_cadence(fn, n):
+    """Wall time per event-loop round trip when each 0 ms tick does fn()."""
+    state["busy"] = True
+    stamps = [time.perf_counter()]
+    work = [0.0]
+
+    def tick():
+        t0 = time.perf_counter()
+        fn()
+        work[0] += time.perf_counter() - t0
+        stamps.append(time.perf_counter())
+        if len(stamps) <= n:
+            QtCore.QTimer.singleShot(0, tick)
+            return
+        gaps = sorted((b - a) * 1000 for a, b in zip(stamps, stamps[1:]))
+        log("      x{}: work {:.2f} ms/tick, round trip mean {:.1f} ms  median {:.1f}  p95 {:.1f}  max {:.1f}".format(
+            n, work[0] / n * 1000, sum(gaps) / len(gaps), gaps[len(gaps) // 2], gaps[int(len(gaps) * 0.95) - 1], gaps[-1]))
+        state["busy"] = False
+
+    QtCore.QTimer.singleShot(0, tick)
+
+
+def _timer_cadence(ms, n):
+    """How fast Nuke's event loop services a chain of single-shot timers."""
+    state["busy"] = True
+    stamps = [time.perf_counter()]
+
+    def tick():
+        stamps.append(time.perf_counter())
+        if len(stamps) <= n:
+            QtCore.QTimer.singleShot(ms, tick)
+            return
+        gaps = sorted((b - a) * 1000 for a, b in zip(stamps, stamps[1:]))
+        log("      {} ms timer x{}: mean {:.1f} ms  median {:.1f}  p95 {:.1f}  max {:.1f}".format(
+            ms, n, sum(gaps) / len(gaps), gaps[len(gaps) // 2], gaps[int(len(gaps) * 0.95) - 1], gaps[-1]))
+        state["busy"] = False
+
+    QtCore.QTimer.singleShot(ms, tick)
 
 
 def _poke(node, knob, alter, quiet=False):
@@ -868,8 +1186,113 @@ def _time_hashes(nodes):
     return (time.perf_counter() - t0) / len(nodes) * 1e6
 
 
+def _play(seconds):
+    """Viewer playback (not a scrub): start, stop after `seconds` from the event loop."""
+    viewer = nuke.activeViewer()
+    if viewer is None:
+        log("      (no active viewer)")
+        return
+    try:
+        viewer.play(1)
+    except Exception as error:
+        log("      (play failed: {})".format(error))
+        return
+    state["busy"] = True
+    state["ticks"] = []
+    last = {"t": time.perf_counter(), "n": 0}
+
+    def tick():
+        now = time.perf_counter()
+        state["ticks"].append(now - last["t"] - TICK_MS / 1000.0)
+        last["t"] = now
+        last["n"] += 1
+        if last["n"] * TICK_MS / 1000.0 >= seconds:
+            viewer.stop()
+            state["busy"] = False
+            return
+        QtCore.QTimer.singleShot(TICK_MS, tick)
+
+    QtCore.QTimer.singleShot(TICK_MS, tick)
+
+
+def _rm_autosave():
+    for suffix in (".autosave",):
+        path = SCRIPT + suffix
+        if os.path.exists(path):
+            os.remove(path)
+
+
+impl_stats = {"builds": 0, "pokes": 0, "verified": 0, "verify_s": 0.0}
+_orig_compose_in_context = autolabeller._compose_in_context
+
+
+def _counting_compose_in_context(full_name):
+    t0 = time.perf_counter()
+    try:
+        return _orig_compose_in_context(full_name)
+    finally:
+        impl_stats["verified"] += 1
+        impl_stats["verify_s"] += time.perf_counter() - t0
+
+
+autolabeller._compose_in_context = _counting_compose_in_context
+_orig_verify_slice = autolabeller._verify_slice
+
+
+def _counting_verify_slice():
+    now = time.perf_counter()
+    impl_stats["slices"] = impl_stats.get("slices", 0) + 1
+    impl_stats.setdefault("slice_t0", now)
+    impl_stats["slice_t1"] = now
+    before = len(autolabeller._verify)
+    busy = autolabeller._busy()
+    try:
+        return _orig_verify_slice()
+    finally:
+        end = time.perf_counter()
+        rec = impl_stats.setdefault("slice_log", [])
+        gap = (now - rec[-1][1]) * 1000 if rec else 0.0
+        rec.append((now, end, (end - now) * 1000, before - len(autolabeller._verify), gap, busy))
+
+
+autolabeller._verify_slice = _counting_verify_slice
+_orig_build_label = autolabeller._build_label
+_orig_poke_nodes = autolabeller._poke_nodes
+
+
+def _counting_build_label():
+    impl_stats["builds"] += 1
+    return _orig_build_label()
+
+
+def _counting_poke_nodes(full_names, force=True):
+    impl_stats["pokes"] += len(full_names)
+    if full_names:
+        impl_stats.setdefault("first_release", time.perf_counter())
+        impl_stats["releases"] = impl_stats.get("releases", 0) + 1
+    return _orig_poke_nodes(full_names, force=force)
+
+
+autolabeller._build_label = _counting_build_label
+autolabeller._poke_nodes = _counting_poke_nodes
+
+
 def _noop_kc():
     return None
+
+
+def _noop_cb():
+    return None
+
+
+def _undoable(name, fn):
+    """Python-driven edits only get an undo entry inside an explicit group."""
+    undo = nuke.Undo()
+    undo.begin(name)
+    try:
+        return fn()
+    finally:
+        undo.end()
 
 
 def _set_debounce(ms):
@@ -882,6 +1305,21 @@ def _check_label(node, knob):
     value = node[knob].value()
     ok = str(round(value, 2)) in shown or "{:.1f}".format(value) in shown
     log("      knob {}={!r}  label text={!r}  ->  {}".format(knob, value, shown.replace("\n", " / "), "OK" if ok else "STALE"))
+
+
+def _check_bulk(sel, needle, expect=None):
+    """After a bulk edit: how many of `sel` show `needle` (Labelmaker's cache
+    == the last string Nuke was given), plus what is still marked stale."""
+    if state.get("impl", MODE) != "on":
+        log("      (stock: no cache to inspect)")
+        return
+    shown = [autolabeller._shown.get(n.fullName(), "") for n in sel]
+    n_has = sum(needle in s for s in shown)
+    n_none = sum(1 for n in sel if n.fullName() not in autolabeller._shown)
+    want = len(sel) if expect is None else expect
+    log("      {}/{} show {!r} (want {}), {} not in cache, stale={} forced={} verify={}  ->  {}".format(
+        n_has, len(sel), needle, want, n_none, len(autolabeller._stale), len(autolabeller._forced),
+        len(autolabeller._verify), "OK" if n_has == want and not autolabeller._stale else "MISMATCH"))
 
 
 def _select(sel):
