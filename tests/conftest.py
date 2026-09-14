@@ -30,9 +30,16 @@ _nuke_stub = types.ModuleType("nuke")
 _nuke_stub.warning = lambda msg: None
 _nuke_stub.addAutolabel = lambda fn: None
 _nuke_stub.removeAutolabel = lambda fn: None
-_nuke_stub.allNodes = lambda: []
+_nuke_stub.allNodes = lambda recurseGroups=False: []
 _nuke_stub.thisNode = lambda: None
-_nuke_stub.expression = lambda expr: 0
+_nuke_stub.toNode = lambda name: None
+_nuke_stub.frame = lambda: 1
+_nuke_stub.activeViewer = lambda: None
+_nuke_stub.addOnCreate = lambda fn: None
+_nuke_stub.removeOnCreate = lambda fn: None
+_nuke_stub.addOnDestroy = lambda fn: None
+_nuke_stub.removeOnDestroy = lambda fn: None
+_nuke_stub.expression = lambda expr: 0.0
 _nuke_stub.numvalue = lambda knob, default=0: default
 _nuke_stub.knob = lambda path, value=None: None
 _nuke_stub.value = lambda path, default="": default
@@ -99,7 +106,7 @@ class _StubQTimer:
     def setInterval(self, value):
         pass
 
-    def start(self):
+    def start(self, interval=None):
         pass
 
 

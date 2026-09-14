@@ -16,6 +16,9 @@ class StubKnob:
     def Class(self):
         return self._class
 
+    def setValue(self, value):
+        self._value = value
+
 
 class StubNode:
     def __init__(self, class_name, knobs=None, xpos=0, ypos=0, width=80, height=28):
@@ -61,6 +64,12 @@ class StubNode:
         if name_knob is not None:
             return name_knob.value()
         return self._class
+
+    def fullName(self):
+        return self.name()
+
+    def knob(self, knob_name):
+        return self._knobs.get(knob_name)
 
     def setYpos(self, value):
         self._ypos = value
