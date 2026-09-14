@@ -138,5 +138,5 @@ dmypy.json
 # Intermediate Markdown generated from the README for the User Guide PDF
 docs/.build/
 
-# Local profiling harness (see .profiling/README.md)
+# Local profiling harness (lives on the profiling-harness branch)
 .profiling/

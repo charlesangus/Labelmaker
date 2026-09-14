@@ -143,8 +143,6 @@ class LabelmakerPrefsDialog(QDialog):
         labelmaker_config.reload_composed_config()
         labelmaker.autolabeller_singleton.config = labelmaker_config.composed_config_singleton
         labelmaker.autolabeller_singleton.set_enabled(self.labelmaker_enabled_checkbox.isChecked())
-        if self.labelmaker_enabled_checkbox.isChecked():
-            labelmaker.autolabeller_singleton.refresh_all_labels()
 
         self.accept()
 

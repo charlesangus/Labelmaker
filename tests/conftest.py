@@ -34,6 +34,8 @@ _nuke_stub.allNodes = lambda recurseGroups=False: []
 _nuke_stub.thisNode = lambda: None
 _nuke_stub.toNode = lambda name: None
 _nuke_stub.frame = lambda: 1
+_nuke_stub.addOnCreate = lambda fn: None
+_nuke_stub.removeOnCreate = lambda fn: None
 _nuke_stub.addOnDestroy = lambda fn: None
 _nuke_stub.removeOnDestroy = lambda fn: None
 _nuke_stub.expression = lambda expr: 0.0

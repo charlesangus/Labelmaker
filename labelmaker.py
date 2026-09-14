@@ -16,7 +16,8 @@ import labelmaker_prefs
 # the script size (~70 ms at 3k nodes, ~200 ms at 10k), which is what makes
 # slider drags and scrubbing sluggish. So: answer bursts from a cache, never
 # return a changed string while the user is interacting, and release changed
-# strings once label traffic has gone quiet (see .profiling results).
+# strings once label traffic has gone quiet (measured with the harness on
+# the profiling-harness branch).
 LABEL_BURST_GAP_S = 0.005      # requests closer together than this are one pass
 LABEL_BURST_MIN = 8            # requests before a pass counts as a burst
 LABEL_BURST_GENUINE_MAX = 200  # a burst this small is a real multi-node edit
@@ -124,20 +125,29 @@ class AutolabelReplacement(object):
 
     def register_autolabel(self):
         nuke.addAutolabel(self.create_autolabel)
-        # fires once per deleted node, so a new node reusing the name never
-        # inherits the old one's cached label
+        # the cache is keyed by name, and a delete or a rename frees a name
+        # for a new node; both callbacks fire once per node (knobChanged
+        # would fire per pointer move while dragging a selection)
+        nuke.addOnCreate(self._on_node_created)
         nuke.addOnDestroy(self._on_node_destroyed)
 
     def unregister_autolabel(self):
         nuke.removeAutolabel(self.create_autolabel)
+        nuke.removeOnCreate(self._on_node_created)
         nuke.removeOnDestroy(self._on_node_destroyed)
         self.invalidate_labels()
 
     def set_enabled(self, enabled):
         if enabled:
             self.register_autolabel()
+            self.refresh_all_labels()
         else:
             self.unregister_autolabel()
+            # Nuke never re-requests a label on redraw, so without a poke
+            # every node keeps showing Labelmaker's string
+            self._poke_nodes(
+                [node.fullName() for node in nuke.allNodes(recurseGroups=True)], force=False
+            )
 
     def _get_deoverlap_timer(self):
         if self._deoverlap_timer is None:
@@ -158,10 +168,13 @@ class AutolabelReplacement(object):
         now = time.perf_counter()
         self._note_stall(now)
         in_burst = self._track_burst(now)
-        full_name = nuke.thisNode().fullName()
-        cached = self._content.get(full_name)
+        node = nuke.thisNode()
+        full_name = node.fullName()
+        cached = self._content.get(full_name) if self._pokeable(node) else None
         if in_burst and cached is not None and full_name not in self._forced:
-            # a whole-script pass: nothing about this node changed
+            # served from the cache whether this is a whole-script pass or a
+            # genuine multi-node edit; the two are only told apart when the
+            # burst closes (_close_burst)
             self._burst["names"].append(full_name)
             frame, text = cached
             if frame is not None and frame != nuke.frame():
@@ -172,7 +185,7 @@ class AutolabelReplacement(object):
         text = self._build_label()
         self._content[full_name] = (nuke.frame() if self._frame_dependent() else None, text)
         previous = self._shown.get(full_name)
-        if previous is not None and text != previous and not was_forced:
+        if previous is not None and text != previous and not was_forced and self._pokeable(node):
             # keep showing the old string; the idle refresh releases the new one
             self._mark_stale(full_name)
             return previous
@@ -206,7 +219,12 @@ class AutolabelReplacement(object):
     def _frame_dependent(self):
         # keys or an expression (indicator bits 1 and 2), or TCL in the label
         # knob: Nuke re-requests these on frame changes, so cache them per frame
-        return bool(self.indicators & 3) or "[" in self.node_label_value
+        return bool(self.indicators & 3) or "[" in self.node_label_raw
+
+    def _pokeable(self, node):
+        # a held-back or cached string is only ever refreshed by a poke, so a
+        # node that cannot be poked must be rebuilt and shown on every request
+        return node.knob("dope_sheet") is not None
 
     def _note_stall(self, now):
         # the gap from handing Nuke a changed string to its next request is,
@@ -266,7 +284,7 @@ class AutolabelReplacement(object):
         self._stale.clear()
         self._poke_nodes(names)
 
-    def _poke_nodes(self, full_names):
+    def _poke_nodes(self, full_names, force=True):
         # Nothing in the API re-requests one node's label; a real knob change
         # does. Flipping dope_sheet and flipping it back in the same callback
         # yields exactly one relabel, no undo entry and no visible change.
@@ -279,15 +297,21 @@ class AutolabelReplacement(object):
                 knob = node.knob("dope_sheet")
                 if knob is None:
                     continue
-                self._forced.add(full_name)
+                if force:
+                    self._forced.add(full_name)
                 value = knob.value()
                 knob.setValue(not value)
                 knob.setValue(value)
         finally:
             nuke.Undo.enable()
 
+    def _on_node_created(self):
+        self._forget(nuke.thisNode().fullName())
+
     def _on_node_destroyed(self):
-        full_name = nuke.thisNode().fullName()
+        self._forget(nuke.thisNode().fullName())
+
+    def _forget(self, full_name):
         self._content.pop(full_name, None)
         self._shown.pop(full_name, None)
         self._stale.discard(full_name)
@@ -515,10 +539,12 @@ class AutolabelReplacement(object):
             self.lines.append(mix_line)
 
     def label_readout_creator(self):
-        node_label_value = nuke.value("this.label", "")
+        # the raw knob is what tells TCL apart; once substituted, "[frame]"
+        # is just a number
+        self.node_label_raw = nuke.value("this.label", "") or ""
+        node_label_value = self.node_label_raw
         with contextlib.suppress(RuntimeError):
             node_label_value = nuke.tcl("subst", node_label_value)
-        self.node_label_value = node_label_value or ""
         if node_label_value != "" and node_label_value is not None:
             self.lines.append(node_label_value)
 
