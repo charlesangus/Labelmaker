@@ -735,6 +735,7 @@ class LabelmakerConfigEditor(QWidget):
         labelmaker.autolabeller_singleton.config = (
             labelmaker_config.composed_config_singleton
         )
+        labelmaker.autolabeller_singleton.refresh_all_labels()
 
         saved_layer_name = self._layer_name
         saved_class = self._current_class

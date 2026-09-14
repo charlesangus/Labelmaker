@@ -1,6 +1,7 @@
 import contextlib
 import os
 import re
+import time
 
 import nuke
 
@@ -8,8 +9,20 @@ import labelmaker_config
 import labelmaker_deoverlap
 import labelmaker_prefs
 
-# how long a built autolabel is reused before the node is rebuilt (milliseconds)
-AUTOLABEL_DEBOUNCE_MS = 100
+# Nuke only asks for a node's label again when a real knob on it changes, or
+# in a whole-script pass (after a viewer input change, or any knob change
+# followed by a frame step) that requests every node in one burst. Handing
+# Nuke a *changed* label string costs it a main-loop stall proportional to
+# the script size (~70 ms at 3k nodes, ~200 ms at 10k), which is what makes
+# slider drags and scrubbing sluggish. So: answer bursts from a cache, never
+# return a changed string while the user is interacting, and release changed
+# strings once label traffic has gone quiet (see .profiling results).
+LABEL_BURST_GAP_S = 0.005      # requests closer together than this are one pass
+LABEL_BURST_MIN = 8            # requests before a pass counts as a burst
+LABEL_BURST_GENUINE_MAX = 200  # a burst this small is a real multi-node edit
+LABEL_REFRESH_MIN_S = 0.4      # quiet time before stale labels are released
+LABEL_REFRESH_MAX_S = 1.5
+LABEL_STALL_FACTOR = 5.0       # wait at least this many measured stalls
 
 
 # from https://gist.github.com/anonymous/a802f51391163a2bf0e3
@@ -77,7 +90,7 @@ def node_mask_input_plugged(n):
 class AutolabelReplacement(object):
     def __init__(self, config):
         super(AutolabelReplacement, self).__init__()
-        self.config = config
+        self._config = config
         self.class_mappings = {
             "Merge2": "Merge",
             "Camera2": "Camera",
@@ -91,15 +104,34 @@ class AutolabelReplacement(object):
         self._line_counts = {}       # {node_name: int} last known line count per node
         self._pending_deoverlap = set()  # node names whose height increased since last timer fire
         self._deoverlap_timer = None  # created lazily; PySide6 is not imported at module level
-        self._label_cache = {}       # {node_name: str} last built autolabel per node
-        self._label_fresh = set()    # node names already rebuilt in the current debounce window
-        self._label_timer = None     # created lazily; PySide6 is not imported at module level
+        self._content = {}    # {full_name: (frame or None, text)} from the last real build
+        self._shown = {}      # {full_name: text} the string Nuke was last given
+        self._forced = set()  # full names whose next request must build and show the result
+        self._stale = set()   # full names shown with a string known to be out of date
+        self._burst = {"t": 0.0, "n": 0, "names": []}
+        self._stall_t = None      # when a changed string was last handed to Nuke
+        self._stall_ema = 0.05    # running estimate of Nuke's stall after a change
+        self._refresh_timer = None  # created lazily; PySide6 is not imported at module level
+
+    @property
+    def config(self):
+        return self._config
+
+    @config.setter
+    def config(self, config):
+        self._config = config
+        self.invalidate_labels()
 
     def register_autolabel(self):
         nuke.addAutolabel(self.create_autolabel)
+        # fires once per deleted node, so a new node reusing the name never
+        # inherits the old one's cached label
+        nuke.addOnDestroy(self._on_node_destroyed)
 
     def unregister_autolabel(self):
         nuke.removeAutolabel(self.create_autolabel)
+        nuke.removeOnDestroy(self._on_node_destroyed)
+        self.invalidate_labels()
 
     def set_enabled(self, enabled):
         if enabled:
@@ -116,15 +148,6 @@ class AutolabelReplacement(object):
             self._deoverlap_timer.timeout.connect(self._run_deoverlap)
         return self._deoverlap_timer
 
-    def _get_label_timer(self):
-        if self._label_timer is None:
-            from PySide6 import QtCore
-            self._label_timer = QtCore.QTimer()
-            self._label_timer.setSingleShot(True)
-            self._label_timer.setInterval(AUTOLABEL_DEBOUNCE_MS)
-            self._label_timer.timeout.connect(self._label_fresh.clear)
-        return self._label_timer
-
     def _run_deoverlap(self):
         pending = self._pending_deoverlap.copy()
         self._pending_deoverlap.clear()
@@ -132,14 +155,33 @@ class AutolabelReplacement(object):
             labelmaker_deoverlap.deoverlap_from_nodes(pending)
 
     def create_autolabel(self):
-        # Nuke calls the autolabel for every visible node on every DAG redraw,
-        # so building the label is throttled: a node is rebuilt at most once
-        # per AUTOLABEL_DEBOUNCE_MS, and redraws in between reuse the cached
-        # string. The single-shot timer is not restarted while it is running,
-        # so it acts as a refresh tick rather than a trailing-edge delay.
-        node_name = nuke.thisNode()["name"].getValue()
-        if node_name in self._label_fresh and node_name in self._label_cache:
-            return self._label_cache[node_name]
+        now = time.perf_counter()
+        self._note_stall(now)
+        in_burst = self._track_burst(now)
+        full_name = nuke.thisNode().fullName()
+        cached = self._content.get(full_name)
+        if in_burst and cached is not None and full_name not in self._forced:
+            # a whole-script pass: nothing about this node changed
+            self._burst["names"].append(full_name)
+            frame, text = cached
+            if frame is not None and frame != nuke.frame():
+                self._mark_stale(full_name)
+            return self._shown.get(full_name, text)
+        was_forced = full_name in self._forced
+        self._forced.discard(full_name)
+        text = self._build_label()
+        self._content[full_name] = (nuke.frame() if self._frame_dependent() else None, text)
+        previous = self._shown.get(full_name)
+        if previous is not None and text != previous and not was_forced:
+            # keep showing the old string; the idle refresh releases the new one
+            self._mark_stale(full_name)
+            return previous
+        if text != previous:
+            self._stall_t = now
+        self._shown[full_name] = text
+        return text
+
+    def _build_label(self):
         self.update()
         self.set_indicators()
         self.name_line_creator()
@@ -159,12 +201,110 @@ class AutolabelReplacement(object):
         ):
             self._pending_deoverlap.add(self.node_name)
             self._get_deoverlap_timer().start()  # restarts timer if already running
-        self._label_cache[self.node_name] = autolabel
-        self._label_fresh.add(self.node_name)
-        label_timer = self._get_label_timer()
-        if not label_timer.isActive():
-            label_timer.start()
         return autolabel
+
+    def _frame_dependent(self):
+        # keys or an expression (indicator bits 1 and 2), or TCL in the label
+        # knob: Nuke re-requests these on frame changes, so cache them per frame
+        return bool(self.indicators & 3) or "[" in self.node_label_value
+
+    def _note_stall(self, now):
+        # the gap from handing Nuke a changed string to its next request is,
+        # during a drag, one pointer interval plus Nuke's stall
+        if self._stall_t is None:
+            return
+        gap = now - self._stall_t
+        self._stall_t = None
+        if gap < 1.0:
+            self._stall_ema = 0.7 * self._stall_ema + 0.3 * gap
+
+    def _refresh_window(self):
+        window = LABEL_STALL_FACTOR * self._stall_ema
+        return min(LABEL_REFRESH_MAX_S, max(LABEL_REFRESH_MIN_S, window))
+
+    def _track_burst(self, now):
+        burst = self._burst
+        if now - burst["t"] > LABEL_BURST_GAP_S:
+            self._close_burst()
+        burst["t"] = now
+        burst["n"] += 1
+        if burst["n"] == LABEL_BURST_MIN + 1:
+            self._arm_refresh()
+        return burst["n"] > LABEL_BURST_MIN
+
+    def _close_burst(self):
+        burst = self._burst
+        if LABEL_BURST_MIN < burst["n"] <= LABEL_BURST_GENUINE_MAX:
+            # too small for a whole-script pass: a real multi-node edit that
+            # was answered from the cache, so refresh those nodes
+            self._stale.update(burst["names"])
+            self._arm_refresh()
+        burst["n"] = 0
+        burst["names"] = []
+
+    def _mark_stale(self, full_name):
+        self._stale.add(full_name)
+        self._arm_refresh()
+
+    def _get_refresh_timer(self):
+        if self._refresh_timer is None:
+            from PySide6 import QtCore
+            self._refresh_timer = QtCore.QTimer()
+            self._refresh_timer.setSingleShot(True)
+            self._refresh_timer.timeout.connect(self._refresh_stale_labels)
+        return self._refresh_timer
+
+    def _arm_refresh(self):
+        self._get_refresh_timer().start(int(self._refresh_window() * 1000))
+
+    def _refresh_stale_labels(self):
+        if time.perf_counter() - self._burst["t"] < self._refresh_window() * 0.9:
+            self._arm_refresh()  # still busy: wait for the traffic to end
+            return
+        self._close_burst()
+        names = list(self._stale)
+        self._stale.clear()
+        self._poke_nodes(names)
+
+    def _poke_nodes(self, full_names):
+        # Nothing in the API re-requests one node's label; a real knob change
+        # does. Flipping dope_sheet and flipping it back in the same callback
+        # yields exactly one relabel, no undo entry and no visible change.
+        nuke.Undo.disable()
+        try:
+            for full_name in full_names:
+                node = nuke.toNode(full_name)
+                if node is None:
+                    continue
+                knob = node.knob("dope_sheet")
+                if knob is None:
+                    continue
+                self._forced.add(full_name)
+                value = knob.value()
+                knob.setValue(not value)
+                knob.setValue(value)
+        finally:
+            nuke.Undo.enable()
+
+    def _on_node_destroyed(self):
+        full_name = nuke.thisNode().fullName()
+        self._content.pop(full_name, None)
+        self._shown.pop(full_name, None)
+        self._stale.discard(full_name)
+        self._forced.discard(full_name)
+
+    def invalidate_labels(self):
+        """Forget every cached label; nodes rebuild when Nuke next asks."""
+        self._content.clear()
+        self._shown.clear()
+        self._stale.clear()
+        self._forced.clear()
+        self._burst = {"t": 0.0, "n": 0, "names": []}
+
+    def refresh_all_labels(self):
+        """Rebuild and redraw every label now (after a config change)."""
+        self.invalidate_labels()
+        self._poke_nodes([node.fullName() for node in nuke.allNodes(recurseGroups=True)])
 
     def update(self):
         self.lines = []
@@ -182,14 +322,16 @@ class AutolabelReplacement(object):
         # is copyright Foundry, all rights reserved
         # seemingly more or less need to use this TCL code, as there doesn't
         # seem to be python equivalents for these functions
-        ind = nuke.expression(
+        # nuke.expression returns a float
+        ind = int(nuke.expression(
             "(keys?1:0)+(has_expression?2:0)+(clones?8:0)+(viewsplit?32:0)"
-        )
+        ))
         if int(nuke.numvalue("maskChannelInput", 0)):
             ind += 4
         if int(nuke.numvalue("this.mix", 1)) < 1:
             ind += 16
         nuke.knob("this.indicators", str(ind))
+        self.indicators = ind
 
     def name_line_creator(self):
         # specialcase a few nodes which should not have names
@@ -376,6 +518,7 @@ class AutolabelReplacement(object):
         node_label_value = nuke.value("this.label", "")
         with contextlib.suppress(RuntimeError):
             node_label_value = nuke.tcl("subst", node_label_value)
+        self.node_label_value = node_label_value or ""
         if node_label_value != "" and node_label_value is not None:
             self.lines.append(node_label_value)
 
