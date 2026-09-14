@@ -1,0 +1,318 @@
+for more information.
+Labelmaker: OFX toolbar walk took 1.4ms (477 items)
+
+##############################################################################
+# Labelmaker draw-path profile — mode=off deoverlap=False script=/home/bosley/git/Labelmaker/.profiling/tmp/lm_d10000.nk
+##############################################################################
+DAG window 1256x405
+[16:03.55] Warning: Could not find value "scene_linear" for "colorspace". It will be appended to the menu list.
+[16:03.56] Warning: Could not find value "ACES - ACEScg" for "colorspace". It will be appended to the menu list.
+  scriptOpen (lm_d10000.nk)                calls=10002 builds=0     hits=0     action=16297.4ms  settled_after=  1.93s  label_py= 1680.1ms
+10002 nodes loaded; autolabel calls so far = 10003
+
+  script open — per node class (slowest total first)
+  class                                         calls   total ms   mean us
+  Read                                           1044      307.7     294.7
+  Grade                                           914      173.4     189.7
+  Roto                                            302      140.2     464.1
+  Merge2                                          496       86.1     173.6
+  ColorCorrect                                    354       76.0     214.6
+  Dot                                            1050       72.9      69.4
+  Blur                                            514       72.0     140.2
+  Premult                                         532       57.9     108.8
+  Constant                                        496       53.2     107.2
+  Reformat                                        354       53.0     149.7
+  Unpremult                                       390       47.1     120.7
+  Write                                           142       46.6     328.0
+  ZDefocus2                                       230       45.7     198.5
+  Transform                                       354       44.1     124.5
+  Shuffle2                                        230       37.7     164.0
+  HueCorrect                                      230       32.8     142.6
+  Noise                                           148       31.2     210.9
+  Copy                                            160       30.1     188.0
+
+event census (calls = label requests from Nuke; label_py = time in the Python label fn, stock or Labelmaker)
+  zoom to fit all (nuke.zoom 0.15)         calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  zoom 1.0 at centre                       calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  zoom 2.5 at centre                       calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  pan x3 via nuke.zoom                     calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  zoom 1.0 again                           calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  wheel zoom in x5 (GL events)             calls=0     builds=0     hits=0     action=    4.7ms  settled_after=  0.00s  label_py=    0.0ms
+  wheel zoom out x5 (GL events)            calls=0     builds=0     hits=0     action=    0.8ms  settled_after=  0.00s  label_py=    0.0ms
+  middle-drag pan (GL events)              calls=0     builds=0     hits=0     action=   10.0ms  settled_after=  0.00s  label_py=    0.0ms
+  hover sweep (GL events)                  calls=0     builds=0     hits=0     action=   31.0ms  settled_after=  0.00s  label_py=    0.0ms
+  select one node (setSelected)            calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  select all (nuke.selectAll)              calls=0     builds=0     hits=0     action=   69.0ms  settled_after=  0.00s  label_py=    0.0ms
+  deselect all                             calls=0     builds=0     hits=0     action=   77.1ms  settled_after=  0.00s  label_py=    0.0ms
+  left-click on a node (GL events)         calls=0     builds=0     hits=0     action=   27.0ms  settled_after=  0.00s  label_py=    0.0ms
+  left-drag node 60px (GL events)          calls=0     builds=0     hits=0     action=  280.8ms  settled_after=  0.00s  label_py=    0.0ms
+  move node (setXYpos)                     calls=0     builds=0     hits=0     action=    0.2ms  settled_after=  0.00s  label_py=    0.0ms
+  Grade.white knob change                  calls=1     builds=0     hits=0     action=    6.1ms  settled_after=  0.05s  label_py=    0.4ms
+  Grade.mix knob change                    calls=1     builds=0     hits=0     action=    0.2ms  settled_after=  0.05s  label_py=    0.4ms
+  Read.file knob change                    calls=1     builds=0     hits=0     action=    3.0ms  settled_after=  0.22s  label_py=    0.5ms
+  Merge.operation change                   calls=1     builds=0     hits=0     action=    0.3ms  settled_after=  0.30s  label_py=    0.4ms
+  node label knob change                   calls=1     builds=0     hits=0     action=    0.1ms  settled_after=  0.28s  label_py=    0.3ms
+  node label knob cleared                  calls=1     builds=0     hits=0     action=    0.2ms  settled_after=  0.29s  label_py=    0.3ms
+  rename node                              calls=1     builds=0     hits=0     action=    0.4ms  settled_after=  0.28s  label_py=    0.3ms
+  disable toggle on                        calls=1     builds=0     hits=0     action=    0.2ms  settled_after=  0.29s  label_py=    0.2ms
+  disable toggle off                       calls=1     builds=0     hits=0     action=    0.2ms  settled_after=  0.29s  label_py=    0.3ms
+  frame change (nuke.frame 1050)           calls=10001 builds=0     hits=0     action=    0.1ms  settled_after=  0.79s  label_py=  695.5ms
+  frame change (nuke.frame 1001)           calls=996   builds=0     hits=0     action=    0.0ms  settled_after=  0.36s  label_py=  115.1ms
+  frame change (nuke.frame 1002)           calls=996   builds=0     hits=0     action=    0.0ms  settled_after=  0.36s  label_py=  121.4ms
+  frame change (nuke.frame 1003)           calls=996   builds=0     hits=0     action=    0.1ms  settled_after=  0.36s  label_py=  116.3ms
+  scrub 24 frames, 40ms apart              calls=4980  builds=0     hits=0     action=    0.8ms  settled_after=  1.40s  label_py=  618.8ms
+  connect viewer to node                   calls=10003 builds=0     hits=0     action=  240.0ms  settled_after=  1.06s  label_py=  702.0ms
+  connect viewer to another node           calls=0     builds=0     hits=0     action=    6.4ms  settled_after=  0.00s  label_py=    0.0ms
+  connect viewer input 1                   calls=1     builds=0     hits=0     action=   21.9ms  settled_after=  0.23s  label_py=    0.3ms
+  disconnect input on Merge                calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  reconnect input on Merge                 calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  rewire Blur input 0 to a Read            calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  connect Grade mask input                 calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  disconnect Grade mask input              calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  wire-drag: connect Merge B via GL drag   calls=0     builds=0     hits=0     action=   14.2ms  settled_after=  0.00s  label_py=    0.0ms
+  insert node into chain (createNode)      calls=1     builds=0     hits=0     action=   12.5ms  settled_after=  0.30s  label_py=    0.2ms
+  delete mid-chain node (auto-rewire)      calls=0     builds=0     hits=0     action=    3.5ms  settled_after=  0.00s  label_py=    0.0ms
+  insert node via nodes.X + setInput       calls=1     builds=0     hits=0     action=    2.7ms  settled_after=  0.31s  label_py=    0.2ms
+  delete that node (setInput orphan)       calls=0     builds=0     hits=0     action=    9.6ms  settled_after=  0.00s  label_py=    0.0ms
+  control knob edit (expression fan-out)   calls=1     builds=0     hits=0     action=    0.2ms  settled_after=  0.29s  label_py=    0.3ms
+  control knob edit again                  calls=1     builds=0     hits=0     action=    0.3ms  settled_after=  0.30s  label_py=    0.4ms
+  edit a cloned Grade                      calls=2     builds=0     hits=0     action=    0.2ms  settled_after=  0.29s  label_py=    0.9ms
+  open a Group in the DAG                  calls=8     builds=0     hits=0     action=    4.5ms  settled_after=  0.10s  label_py=    1.3ms
+  edit knob inside the open Group          calls=1     builds=0     hits=0     action=    0.3ms  settled_after=  0.05s  label_py=    0.3ms
+  back to root DAG                         calls=1     builds=0     hits=0     action=   88.0ms  settled_after=  0.44s  label_py=    0.1ms
+  edit inside Group while root shown       calls=1     builds=0     hits=0     action=    0.3ms  settled_after=  0.30s  label_py=    0.1ms
+  create node (nuke.nodes.Blur)            calls=1     builds=0     hits=0     action=   12.0ms  settled_after=  0.27s  label_py=    0.2ms
+  delete that node                         calls=0     builds=0     hits=0     action=    5.3ms  settled_after=  0.00s  label_py=    0.0ms
+  open properties panel                    calls=0     builds=0     hits=0     action=   27.8ms  settled_after=  0.00s  label_py=    0.0ms
+  edit knob with panel open                calls=1     builds=0     hits=0     action=    0.4ms  settled_after=  0.22s  label_py=    0.2ms
+  close properties panel                   calls=0     builds=0     hits=0     action=    5.0ms  settled_after=  0.00s  label_py=    0.0ms
+  undo x2 (nuke.undo)                      calls=1     builds=0     hits=0     action=    1.5ms  settled_after=  0.23s  label_py=    0.2ms
+  copy/paste 5 nodes                       calls=5     builds=0     hits=0     action=   31.4ms  settled_after=  0.28s  label_py=    0.4ms
+  select all + move (drag 5 nodes)         calls=0     builds=0     hits=0     action=  282.3ms  settled_after=  0.00s  label_py=    0.0ms
+  slider drag: white 1.1..1.5, 20ms apart  calls=4     builds=0     hits=0     action=    0.3ms  settled_after=  0.59s  label_py=    0.8ms
+      knob white=1.5  label text='<no cache>'  ->  STALE
+    -> label shown vs knob value           calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  two edits 50ms apart: white 3.1 then 3.2 calls=2     builds=0     hits=0     action=    0.5ms  settled_after=  0.54s  label_py=    0.3ms
+      knob white=3.2  label text='<no cache>'  ->  STALE
+    -> label shown vs knob value           calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  two edits 50ms apart: mix 0.31 then 0.32 calls=2     builds=0     hits=0     action=    0.4ms  settled_after=  0.53s  label_py=    0.4ms
+      knob mix=0.32  label text='<no cache>'  ->  STALE
+    -> label shown vs knob value           calls=0     builds=0     hits=0     action=    0.2ms  settled_after=  0.00s  label_py=    0.0ms
+  slider drag: white 2.1..2.5, 200ms apart calls=4     builds=0     hits=0     action=    0.3ms  settled_after=  1.13s  label_py=    0.8ms
+      knob white=2.5  label text='<no cache>'  ->  STALE
+    -> label shown vs knob value           calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  scriptClear                              calls=0     builds=0     hits=0     action=13176.6ms  settled_after=  0.00s  label_py=    0.0ms
+
+DONE
+for more information.
+Labelmaker: OFX toolbar walk took 0.8ms (477 items)
+
+##############################################################################
+# Labelmaker draw-path profile — mode=on deoverlap=False script=/home/bosley/git/Labelmaker/.profiling/tmp/lm_d10000.nk
+##############################################################################
+DAG window 1256x405
+[16:07.47] Warning: Could not find value "scene_linear" for "colorspace". It will be appended to the menu list.
+[16:07.47] Warning: Could not find value "ACES - ACEScg" for "colorspace". It will be appended to the menu list.
+  scriptOpen (lm_d10000.nk)                calls=10002 builds=9905  hits=97    action= 6060.5ms  settled_after=  2.31s  label_py= 2117.0ms
+10002 nodes loaded; autolabel calls so far = 10003
+
+  script open — per node class (slowest total first)
+  class                                         calls   total ms   mean us
+  Grade                                           914      302.9     331.4
+  Read                                           1044      264.2     253.0
+  Roto                                            302      146.3     484.4
+  Merge2                                          496      129.3     260.7
+  ColorCorrect                                    354      119.5     337.6
+  Dot                                            1050      111.7     106.4
+  Blur                                            514       99.2     193.1
+  Reformat                                        354       93.3     263.6
+  Transform                                       354       87.3     246.5
+  Premult                                         532       71.6     134.5
+  Constant                                        496       65.5     132.1
+  ZDefocus2                                       230       56.3     244.8
+  Unpremult                                       390       52.2     133.8
+  Copy                                            160       43.7     273.3
+  Write                                           142       42.7     300.8
+  HueCorrect                                      230       41.1     178.6
+  Multiply                                        148       33.4     225.4
+  Shuffle2                                        230       32.8     142.7
+
+====================================================================
+Labelmaker autolabel profile — 11.0s wall clock
+  10002 calls from nuke (910.3/s) — 9905 builds, 97 cache hits
+  2092.7ms total in create_autolabel (19.0% of wall clock)
+--------------------------------------------------------------------
+phase                      calls     total ms      mean us
+create_autolabel            9905      2092.70        211.3
+set_indicators              9905       577.87         58.3
+channels_line_creator       9905       486.82         49.1
+knob_readout_creator        9905       396.81         40.1
+label_readout_creator       9905       133.43         13.5
+  nuke.tcl subst (config)    5198       103.48         19.9
+file_line_creator           9905        82.11          8.3
+  nuke.tcl subst (label)    9905        70.50          7.1
+update                      9905        62.08          6.3
+  knob lookup (found)      14128        57.73          4.1
+name_line_creator           9905        54.34          5.5
+mix_line_creator            9905        50.71          5.1
+create_autolabel (cache hit)      97         0.62          6.4
+--------------------------------------------------------------------
+busiest nodes (builds / hits):
+  BackdropNode1                         1 / 0     
+  BackdropNode10                        1 / 0     
+  BackdropNode100                       1 / 0     
+  BackdropNode101                       1 / 0     
+  BackdropNode102                       1 / 0     
+  BackdropNode103                       1 / 0     
+  BackdropNode104                       1 / 0     
+  BackdropNode105                       1 / 0     
+  BackdropNode106                       1 / 0     
+  BackdropNode107                       1 / 0     
+====================================================================
+
+event census (calls = label requests from Nuke; label_py = time in the Python label fn, stock or Labelmaker)
+  zoom to fit all (nuke.zoom 0.15)         calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  zoom 1.0 at centre                       calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  zoom 2.5 at centre                       calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  pan x3 via nuke.zoom                     calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  zoom 1.0 again                           calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  wheel zoom in x5 (GL events)             calls=0     builds=0     hits=0     action=    1.2ms  settled_after=  0.00s  label_py=    0.0ms
+  wheel zoom out x5 (GL events)            calls=0     builds=0     hits=0     action=    1.0ms  settled_after=  0.00s  label_py=    0.0ms
+  middle-drag pan (GL events)              calls=0     builds=0     hits=0     action=    4.9ms  settled_after=  0.00s  label_py=    0.0ms
+  hover sweep (GL events)                  calls=0     builds=0     hits=0     action=   57.1ms  settled_after=  0.00s  label_py=    0.0ms
+  select one node (setSelected)            calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  select all (nuke.selectAll)              calls=0     builds=0     hits=0     action=   70.4ms  settled_after=  0.00s  label_py=    0.0ms
+  deselect all                             calls=0     builds=0     hits=0     action=   92.8ms  settled_after=  0.00s  label_py=    0.0ms
+  left-click on a node (GL events)         calls=0     builds=0     hits=0     action=   23.2ms  settled_after=  0.00s  label_py=    0.0ms
+  left-drag node 60px (GL events)          calls=0     builds=0     hits=0     action=  283.6ms  settled_after=  0.00s  label_py=    0.0ms
+  move node (setXYpos)                     calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  Grade.white knob change                  calls=1     builds=1     hits=0     action=    0.5ms  settled_after=  0.28s  label_py=    0.9ms
+  Grade.mix knob change                    calls=1     builds=1     hits=0     action=    0.2ms  settled_after=  0.28s  label_py=    0.9ms
+  Read.file knob change                    calls=1     builds=1     hits=0     action=    2.4ms  settled_after=  0.25s  label_py=    0.7ms
+  Merge.operation change                   calls=1     builds=1     hits=0     action=    0.2ms  settled_after=  0.29s  label_py=    0.7ms
+  node label knob change                   calls=1     builds=1     hits=0     action=    0.2ms  settled_after=  0.29s  label_py=    0.6ms
+  node label knob cleared                  calls=1     builds=1     hits=0     action=    0.1ms  settled_after=  0.27s  label_py=    0.6ms
+  rename node                              calls=1     builds=1     hits=0     action=    0.5ms  settled_after=  0.28s  label_py=    0.6ms
+  disable toggle on                        calls=1     builds=1     hits=0     action=    0.1ms  settled_after=  0.27s  label_py=    0.3ms
+  disable toggle off                       calls=1     builds=1     hits=0     action=    0.2ms  settled_after=  0.29s  label_py=    0.6ms
+[16:09.02] ERROR: Grade2.gamma: Unpremult2
+(rgb) / alpha
+  frame change (nuke.frame 1050)           calls=10001 builds=9904  hits=97    action=    0.2ms  settled_after=  1.49s  label_py= 1371.8ms
+  frame change (nuke.frame 1001)           calls=1102  builds=1102  hits=0     action=    0.0ms  settled_after=  0.45s  label_py=  182.6ms
+  frame change (nuke.frame 1002)           calls=1102  builds=1102  hits=0     action=    0.0ms  settled_after=  0.45s  label_py=  188.9ms
+  frame change (nuke.frame 1003)           calls=1102  builds=1102  hits=0     action=    0.0ms  settled_after=  0.44s  label_py=  179.4ms
+  scrub 24 frames, 40ms apart              calls=5510  builds=5510  hits=0     action=    0.9ms  settled_after=  1.75s  label_py=  921.3ms
+  connect viewer to node                   calls=10003 builds=9906  hits=97    action=  134.7ms  settled_after=  1.73s  label_py= 1357.0ms
+  connect viewer to another node           calls=0     builds=0     hits=0     action=    3.0ms  settled_after=  0.00s  label_py=    0.0ms
+  connect viewer input 1                   calls=1     builds=1     hits=0     action=   40.2ms  settled_after=  0.24s  label_py=    0.4ms
+  disconnect input on Merge                calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  reconnect input on Merge                 calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  rewire Blur input 0 to a Read            calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  connect Grade mask input                 calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  disconnect Grade mask input              calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  wire-drag: connect Merge B via GL drag   calls=0     builds=0     hits=0     action=  240.4ms  settled_after=  0.00s  label_py=    0.0ms
+  insert node into chain (createNode)      calls=1     builds=1     hits=0     action=   11.5ms  settled_after=  0.29s  label_py=    0.3ms
+  delete mid-chain node (auto-rewire)      calls=0     builds=0     hits=0     action=    6.5ms  settled_after=  0.00s  label_py=    0.0ms
+  insert node via nodes.X + setInput       calls=1     builds=1     hits=0     action=    5.9ms  settled_after=  0.28s  label_py=    0.3ms
+  delete that node (setInput orphan)       calls=0     builds=0     hits=0     action=    6.3ms  settled_after=  0.00s  label_py=    0.0ms
+  control knob edit (expression fan-out)   calls=1     builds=1     hits=0     action=    0.3ms  settled_after=  0.30s  label_py=    0.4ms
+  control knob edit again                  calls=1     builds=1     hits=0     action=    0.3ms  settled_after=  0.29s  label_py=    0.4ms
+  edit a cloned Grade                      calls=2     builds=1     hits=1     action=    0.3ms  settled_after=  0.29s  label_py=    0.8ms
+  open a Group in the DAG                  calls=8     builds=8     hits=0     action=    2.9ms  settled_after=  0.10s  label_py=    2.5ms
+  edit knob inside the open Group          calls=1     builds=1     hits=0     action=    0.1ms  settled_after=  0.06s  label_py=    0.5ms
+  back to root DAG                         calls=1     builds=1     hits=0     action=  101.5ms  settled_after=  0.62s  label_py=    0.3ms
+  edit inside Group while root shown       calls=1     builds=1     hits=0     action=    0.1ms  settled_after=  0.08s  label_py=    0.3ms
+  create node (nuke.nodes.Blur)            calls=1     builds=1     hits=0     action=   18.4ms  settled_after=  0.14s  label_py=    0.7ms
+  delete that node                         calls=0     builds=0     hits=0     action=    5.6ms  settled_after=  0.00s  label_py=    0.0ms
+  open properties panel                    calls=0     builds=0     hits=0     action=   72.4ms  settled_after=  0.00s  label_py=    0.0ms
+  edit knob with panel open                calls=1     builds=1     hits=0     action=    0.8ms  settled_after=  0.12s  label_py=    0.8ms
+  close properties panel                   calls=0     builds=0     hits=0     action=    0.9ms  settled_after=  0.00s  label_py=    0.0ms
+  undo x2 (nuke.undo)                      calls=1     builds=1     hits=0     action=    1.5ms  settled_after=  0.11s  label_py=    0.8ms
+  copy/paste 5 nodes                       calls=5     builds=5     hits=0     action=   83.9ms  settled_after=  0.10s  label_py=    2.2ms
+  select all + move (drag 5 nodes)         calls=0     builds=0     hits=0     action=  615.9ms  settled_after=  0.00s  label_py=    0.0ms
+  slider drag: white 1.1..1.5, 20ms apart  calls=2     builds=1     hits=1     action=    0.6ms  settled_after=  1.16s  label_py=    0.9ms
+      knob white=1.5  label text='<div style="text-align: center"><font face="Bitstream Vera Sans">Grade817 / (rgb M alpha) / <span style="background-color: #C2C2C2; color: black;">gain: </span> 1.100</span> / mix 0.550'  ->  STALE
+    -> label shown vs knob value           calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  two edits 50ms apart: white 3.1 then 3.2 calls=2     builds=1     hits=1     action=    0.3ms  settled_after=  0.91s  label_py=    0.8ms
+      knob white=3.2  label text='<div style="text-align: center"><font face="Bitstream Vera Sans">Grade817 / (rgb M alpha) / <span style="background-color: #E2E2E2; color: black;">gain: </span> 3.100</span> / mix 0.550'  ->  STALE
+    -> label shown vs knob value           calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  two edits 50ms apart: mix 0.31 then 0.32 calls=2     builds=1     hits=1     action=    0.3ms  settled_after=  1.03s  label_py=    1.0ms
+      knob mix=0.32  label text='<div style="text-align: center"><font face="Bitstream Vera Sans">Grade817 / (rgb M alpha) / <span style="background-color: #E3E3E3; color: black;">gain: </span> 3.200</span> / mix 0.310'  ->  OK
+    -> label shown vs knob value           calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  slider drag: white 2.1..2.5, 200ms apart calls=2     builds=2     hits=0     action=    0.5ms  settled_after=  1.05s  label_py=    1.4ms
+      knob white=2.5  label text='<div style="text-align: center"><font face="Bitstream Vera Sans">Grade817 / (rgb M alpha) / <span style="background-color: #DDDDDD; color: black;">gain: </span> 2.500</span> / mix 0.320'  ->  OK
+    -> label shown vs knob value           calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  scriptClear                              calls=0     builds=0     hits=0     action=38445.0ms  settled_after=  0.00s  label_py=    0.0ms
+
+cProfile — script-open label pass, top 25 by internal time
+         1514303 function calls (1514288 primitive calls) in 8.290 seconds
+
+   Ordered by: internal time
+   List reduced from 244 to 25 due to restriction <25>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    5.906    5.906    6.060    6.060 {built-in method _nuke.scriptOpen}
+     9905    0.424    0.000    0.424    0.000 {built-in method _nuke.expression}
+    13542    0.300    0.000    0.300    0.000 {method 'knobs' of 'Node' objects}
+    10002    0.241    0.000    2.109    0.000 /home/bosley/git/Labelmaker/labelmaker.py:200(create_autolabel)
+    90085    0.187    0.000    0.208    0.000 {built-in method _nuke.value}
+    21691    0.142    0.000    0.142    0.000 {built-in method _nuke.tcl}
+     9905    0.128    0.000    0.382    0.000 /home/bosley/git/Labelmaker/labelmaker.py:345(knob_readout_creator)
+   118473    0.072    0.000    0.072    0.000 /home/bosley/git/Labelmaker/labelmaker.py:152(_record)
+     6588    0.066    0.000    0.137    0.000 /usr/local/Nuke17.0v3/plugins/nuke_internal/callbacks.py:370(filenameFilter)
+     9905    0.051    0.000    0.058    0.000 {built-in method _nuke.knob}
+     9905    0.050    0.000    0.121    0.000 /home/bosley/git/Labelmaker/labelmaker.py:450(label_readout_creator)
+     9905    0.042    0.000    0.561    0.000 /home/bosley/git/Labelmaker/labelmaker.py:248(set_indicators)
+     9905    0.040    0.000    0.471    0.000 /home/bosley/git/Labelmaker/labelmaker.py:290(channels_line_creator)
+   256967    0.038    0.000    0.038    0.000 {built-in method time.perf_counter}
+    19810    0.037    0.000    0.037    0.000 {built-in method _nuke.numvalue}
+    30623    0.036    0.000    0.036    0.000 {method 'format' of 'str' objects}
+    22789    0.033    0.000    0.057    0.000 /usr/local/Nuke17.0v3/plugins/nuke_internal/callbacks.py:40(_doCallbacks)
+    10002    0.032    0.000    2.152    0.000 /home/bosley/git/Labelmaker/.profiling/drawpath/menu.py:59(_timed_autolabel)
+    10002    0.032    0.000    2.188    0.000 /usr/local/Nuke17.0v3/plugins/nuke_internal/callbacks.py:154(autolabel)
+     9905    0.031    0.000    0.048    0.000 /home/bosley/git/Labelmaker/labelmaker.py:237(update)
+   196736    0.031    0.000    0.031    0.000 {method 'get' of 'dict' objects}
+    79252    0.023    0.000    0.023    0.000 {built-in method builtins.getattr}
+     6596    0.020    0.000    0.027    0.000 shibokensupport/feature.py:83(feature_import)
+    19907    0.020    0.000    0.020    0.000 {method 'getValue' of 'String_Knob' objects}
+     9905    0.019    0.000    0.040    0.000 /home/bosley/git/Labelmaker/labelmaker.py:262(name_line_creator)
+
+
+
+cProfile — top 25 by cumulative time
+         1514303 function calls (1514288 primitive calls) in 8.290 seconds
+
+   Ordered by: cumulative time
+   List reduced from 244 to 25 due to restriction <25>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    6.061    6.061 /home/bosley/git/Labelmaker/.profiling/drawpath/menu.py:112(measure)
+        1    0.000    0.000    6.060    6.060 /home/bosley/git/Labelmaker/.profiling/drawpath/menu.py:195(<lambda>)
+        1    5.906    5.906    6.060    6.060 {built-in method _nuke.scriptOpen}
+    10002    0.032    0.000    2.188    0.000 /usr/local/Nuke17.0v3/plugins/nuke_internal/callbacks.py:154(autolabel)
+    10002    0.032    0.000    2.152    0.000 /home/bosley/git/Labelmaker/.profiling/drawpath/menu.py:59(_timed_autolabel)
+    10002    0.241    0.000    2.109    0.000 /home/bosley/git/Labelmaker/labelmaker.py:200(create_autolabel)
+     9905    0.042    0.000    0.561    0.000 /home/bosley/git/Labelmaker/labelmaker.py:248(set_indicators)
+     9905    0.040    0.000    0.471    0.000 /home/bosley/git/Labelmaker/labelmaker.py:290(channels_line_creator)
+     9905    0.424    0.000    0.424    0.000 {built-in method _nuke.expression}
+     9905    0.128    0.000    0.382    0.000 /home/bosley/git/Labelmaker/labelmaker.py:345(knob_readout_creator)
+     9905    0.010    0.000    0.337    0.000 /home/bosley/git/Labelmaker/labelmaker.py:71(node_mask_input_plugged)
+    13542    0.015    0.000    0.315    0.000 /home/bosley/git/Labelmaker/labelmaker.py:18(node_has_mask)
+    13542    0.300    0.000    0.300    0.000 {method 'knobs' of 'Node' objects}
+    90085    0.187    0.000    0.208    0.000 {built-in method _nuke.value}
+    21691    0.142    0.000    0.142    0.000 {built-in method _nuke.tcl}
+     6588    0.066    0.000    0.137    0.000 /usr/local/Nuke17.0v3/plugins/nuke_internal/callbacks.py:370(filenameFilter)
+     9905    0.050    0.000    0.121    0.000 /home/bosley/git/Labelmaker/labelmaker.py:450(label_readout_creator)
+   118473    0.072    0.000    0.072    0.000 /home/bosley/git/Labelmaker/labelmaker.py:152(_record)
+     9905    0.008    0.000    0.069    0.000 /home/bosley/git/Labelmaker/labelmaker.py:284(file_line_creator)
+     4133    0.007    0.000    0.063    0.000 /home/bosley/git/Labelmaker/labelmaker.py:55(get_mask_input_index)
+     9905    0.051    0.000    0.058    0.000 {built-in method _nuke.knob}
+    22789    0.033    0.000    0.057    0.000 /usr/local/Nuke17.0v3/plugins/nuke_internal/callbacks.py:40(_doCallbacks)
+     9905    0.031    0.000    0.048    0.000 /home/bosley/git/Labelmaker/labelmaker.py:237(update)
+     6596    0.015    0.000    0.042    0.000 shibokensupport/signature/loader.py:50(feature_import)
+     9905    0.019    0.000    0.040    0.000 /home/bosley/git/Labelmaker/labelmaker.py:262(name_line_creator)
+
+
+wrote /home/bosley/git/Labelmaker/.profiling/drawpath-on.prof
+
+DONE

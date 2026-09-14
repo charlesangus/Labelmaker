@@ -1,0 +1,41 @@
+for more information.
+Labelmaker: OFX toolbar walk took 0.8ms (477 items)
+
+##############################################################################
+# Labelmaker draw-path profile — mode=off deoverlap=False script=/home/bosley/git/Labelmaker/.profiling/tmp/lm_d5000.nk
+##############################################################################
+DAG window 1256x405
+[16:19.33] Warning: Could not find value "scene_linear" for "colorspace". It will be appended to the menu list.
+[16:19.33] Warning: Could not find value "ACES - ACEScg" for "colorspace". It will be appended to the menu list.
+  scriptOpen (lm_d5000.nk)                 calls=5007  builds=0     hits=0     action= 2413.6ms  settled_after=  0.49s  label_py=  420.4ms
+5007 nodes loaded; autolabel calls so far = 5008
+
+  script open — per node class (slowest total first)
+  class                                         calls   total ms   mean us
+  Read                                            527       75.5     143.2
+  Grade                                           469       44.3      94.5
+  Roto                                            139       33.0     237.2
+  Merge2                                          261       22.5      86.1
+  ColorCorrect                                    198       20.9     105.8
+  Blur                                            274       20.1      73.3
+  Dot                                             532       17.9      33.6
+  Constant                                        261       14.9      57.1
+  Reformat                                        198       14.8      74.9
+  Premult                                         252       14.5      57.5
+  Transform                                       198       12.9      65.2
+  ZDefocus2                                       113       11.5     101.8
+  Unpremult                                       189       11.0      57.9
+  Write                                            63       10.2     161.7
+  Shuffle2                                        113        8.6      76.0
+  HueCorrect                                      113        8.4      74.1
+  Copy                                             76        7.5      98.1
+  Noise                                            68        6.6      96.5
+
+event census (calls = label requests from Nuke; label_py = time in the Python label fn, stock or Labelmaker)
+  frame change (nuke.frame 1050)           calls=491   builds=0     hits=0     action=    0.2ms  settled_after=  0.08s  label_py=   72.0ms
+  frame change (nuke.frame 1001)           calls=491   builds=0     hits=0     action=    0.1ms  settled_after=  0.09s  label_py=   75.4ms
+  frame change (nuke.frame 1002)           calls=491   builds=0     hits=0     action=    0.1ms  settled_after=  0.20s  label_py=   67.2ms
+  frame change (nuke.frame 1003)           calls=491   builds=0     hits=0     action=    0.1ms  settled_after=  0.29s  label_py=  105.9ms
+  connect viewer to node                   calls=5008  builds=0     hits=0     action=  143.9ms  settled_after=  0.94s  label_py=  522.1ms
+
+DONE

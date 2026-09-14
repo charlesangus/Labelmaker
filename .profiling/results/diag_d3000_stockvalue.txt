@@ -1,0 +1,56 @@
+for more information.
+Labelmaker: OFX toolbar walk took 0.7ms (477 items)
+
+##############################################################################
+# Labelmaker draw-path profile — mode=off deoverlap=False script=/home/bosley/git/Labelmaker/.profiling/tmp/lm_d3000.nk
+##############################################################################
+DAG window 1256x405
+[17:47.02] Warning: Could not find value "scene_linear" for "colorspace". It will be appended to the menu list.
+[17:47.02] Warning: Could not find value "ACES - ACEScg" for "colorspace". It will be appended to the menu list.
+  scriptOpen (lm_d3000.nk)                 calls=3002  builds=0     hits=0     action= 1216.4ms  settled_after=  0.26s  label_py=  218.0ms
+3002 nodes loaded; autolabel calls so far = 3003
+
+  script open — per node class (slowest total first)
+  class                                         calls   total ms   mean us
+  Read                                            312       37.2     119.2
+  Grade                                           265       21.6      81.4
+  Roto                                             91       18.5     203.3
+  Merge2                                          170       12.6      74.2
+  ColorCorrect                                    124       11.4      91.7
+  Blur                                            169       10.8      63.8
+  Dot                                             306        9.3      30.3
+  Constant                                        170        8.5      50.2
+  Reformat                                        124        8.0      64.6
+  Premult                                         153        7.7      50.3
+  Transform                                       124        7.0      56.3
+  Write                                            46        6.2     134.2
+  ZDefocus2                                        62        5.4      87.1
+  Unpremult                                       107        5.4      50.1
+  Shuffle2                                         62        4.0      64.2
+  HueCorrect                                       62        4.0      64.0
+  Copy                                             45        3.8      83.4
+  Noise                                            40        3.2      81.2
+
+event census (calls = label requests from Nuke; label_py = time in the Python label fn, stock or Labelmaker)
+  D open CC panel + zoom on it             calls=0     builds=0     hits=0     action=   27.2ms  settled_after=  0.00s  label_py=    0.0ms
+  D slider CC.saturation (text unchanged)  calls=41    builds=0     hits=0     action=   17.2ms  settled_after=  1.42s  label_py=    9.1ms  ticks=51 lat mean=13.9ms p95=27.8ms max=32.4ms
+  D slider CC.saturation again             calls=40    builds=0     hits=0     action=   11.2ms  settled_after=  0.88s  label_py=    7.9ms  ticks=51 lat mean=2.7ms p95=5.6ms max=19.0ms
+  D close CC panel                         calls=0     builds=0     hits=0     action=    1.7ms  settled_after=  0.00s  label_py=    0.0ms
+  D open Grade panel + zoom on it          calls=0     builds=0     hits=0     action=   23.7ms  settled_after=  0.00s  label_py=    0.0ms
+  D slider Grade.white debounce 100        calls=41    builds=0     hits=0     action=    4.8ms  settled_after=  3.68s  label_py=    6.0ms  ticks=51 lat mean=58.2ms p95=77.6ms max=96.6ms
+      debounce = 0 ms
+  D set debounce 0                         calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  D slider Grade.white debounce 0          calls=40    builds=0     hits=0     action=   10.4ms  settled_after=  5.08s  label_py=    9.3ms  ticks=51 lat mean=85.8ms p95=185.1ms max=209.5ms
+      debounce = 300 ms
+  D set debounce 300                       calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  D slider Grade.white debounce 300        calls=40    builds=0     hits=0     action=   11.2ms  settled_after=  3.58s  label_py=    6.0ms  ticks=51 lat mean=56.2ms p95=76.3ms max=90.4ms
+      debounce = 0 ms
+  D set debounce 0 + zoom to fit all       calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  D slider Grade.white all visible         calls=40    builds=0     hits=0     action=   11.8ms  settled_after=  3.89s  label_py=    5.8ms  ticks=51 lat mean=62.2ms p95=83.3ms max=95.5ms
+  D zoom 4.0 on Grade                      calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  D slider Grade.white few visible         calls=40    builds=0     hits=0     action=   13.5ms  settled_after=  3.51s  label_py=    6.0ms  ticks=51 lat mean=54.7ms p95=74.1ms max=91.1ms
+      debounce = 100 ms
+  D set debounce 100 + zoom 1.0            calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  D close Grade panel                      calls=0     builds=0     hits=0     action=    3.8ms  settled_after=  0.00s  label_py=    0.0ms
+
+DONE

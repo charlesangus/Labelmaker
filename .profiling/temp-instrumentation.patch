@@ -1,0 +1,215 @@
+diff --git a/labelmaker.py b/labelmaker.py
+index c7648a2..52cfe2a 100644
+--- a/labelmaker.py
++++ b/labelmaker.py
+@@ -1,6 +1,8 @@
++import collections
+ import contextlib
+ import os
+ import re
++import time
+ 
+ import nuke
+ 
+@@ -94,6 +96,7 @@ class AutolabelReplacement(object):
+         self._label_cache = {}       # {node_name: str} last built autolabel per node
+         self._label_fresh = set()    # node names already rebuilt in the current debounce window
+         self._label_timer = None     # created lazily; PySide6 is not imported at module level
++        self.reset_stats()  # TEMP INSTRUMENTATION
+ 
+     def register_autolabel(self):
+         nuke.addAutolabel(self.create_autolabel)
+@@ -125,11 +128,74 @@ class AutolabelReplacement(object):
+             self._label_timer.timeout.connect(self._label_fresh.clear)
+         return self._label_timer
+ 
++    # ------------------------------------------------------------------
++    # TEMP INSTRUMENTATION — profiling scaffolding, delete when done.
++    # ------------------------------------------------------------------
++    PHASES = (
++        "update",
++        "set_indicators",
++        "name_line_creator",
++        "file_line_creator",
++        "channels_line_creator",
++        "knob_readout_creator",
++        "mix_line_creator",
++        "label_readout_creator",
++    )
++
++    def reset_stats(self):
++        self._stats_time = collections.defaultdict(float)   # {phase: seconds}
++        self._stats_count = collections.defaultdict(int)    # {phase: calls}
++        self._stats_calls_by_node = collections.Counter()   # {node_name: builds}
++        self._stats_hits_by_node = collections.Counter()    # {node_name: cache hits}
++        self._stats_started = time.perf_counter()
++
++    def _record(self, phase, elapsed):
++        self._stats_time[phase] += elapsed
++        self._stats_count[phase] += 1
++
++    def dump_stats(self, reset=False):
++        """Print accumulated autolabel timings. Call from the Edit menu."""
++        wall = time.perf_counter() - self._stats_started
++        builds = sum(self._stats_calls_by_node.values())
++        hits = sum(self._stats_hits_by_node.values())
++        calls = builds + hits
++        print("")
++        print("=" * 68)
++        print("Labelmaker autolabel profile — {:.1f}s wall clock".format(wall))
++        print(
++            "  {} calls from nuke ({:.1f}/s) — {} builds, {} cache hits".format(
++                calls, calls / wall if wall else 0, builds, hits
++            )
++        )
++        total = self._stats_time.get("create_autolabel", 0.0)
++        print("  {:.1f}ms total in create_autolabel ({:.1f}% of wall clock)".format(
++            total * 1000, (total / wall * 100) if wall else 0
++        ))
++        print("-" * 68)
++        print("{:<24} {:>7} {:>12} {:>12}".format("phase", "calls", "total ms", "mean us"))
++        rows = sorted(self._stats_time.items(), key=lambda kv: kv[1], reverse=True)
++        for phase, seconds in rows:
++            count = self._stats_count[phase]
++            print("{:<24} {:>7} {:>12.2f} {:>12.1f}".format(
++                phase, count, seconds * 1000, (seconds / count * 1e6) if count else 0
++            ))
++        print("-" * 68)
++        print("busiest nodes (builds / hits):")
++        for node_name, node_builds in self._stats_calls_by_node.most_common(10):
++            print("  {:<32} {:>6} / {:<6}".format(
++                node_name, node_builds, self._stats_hits_by_node[node_name]
++            ))
++        print("=" * 68)
++        if reset:
++            self.reset_stats()
++
+     def _run_deoverlap(self):
++        start = time.perf_counter()
+         pending = self._pending_deoverlap.copy()
+         self._pending_deoverlap.clear()
+         if pending:
+             labelmaker_deoverlap.deoverlap_from_nodes(pending)
++        self._record("deoverlap (timer)", time.perf_counter() - start)
+ 
+     def create_autolabel(self):
+         # Nuke calls the autolabel for every visible node on every DAG redraw,
+@@ -137,17 +203,18 @@ class AutolabelReplacement(object):
+         # per AUTOLABEL_DEBOUNCE_MS, and redraws in between reuse the cached
+         # string. The single-shot timer is not restarted while it is running,
+         # so it acts as a refresh tick rather than a trailing-edge delay.
++        start = time.perf_counter()  # TEMP INSTRUMENTATION
+         node_name = nuke.thisNode()["name"].getValue()
+         if node_name in self._label_fresh and node_name in self._label_cache:
++            self._stats_hits_by_node[node_name] += 1  # TEMP INSTRUMENTATION
++            self._record("create_autolabel (cache hit)", time.perf_counter() - start)
+             return self._label_cache[node_name]
+-        self.update()
+-        self.set_indicators()
+-        self.name_line_creator()
+-        self.file_line_creator()
+-        self.channels_line_creator()
+-        self.knob_readout_creator()
+-        self.mix_line_creator()
+-        self.label_readout_creator()
++        self._stats_calls_by_node[node_name] += 1  # TEMP INSTRUMENTATION
++        # TEMP INSTRUMENTATION: was a straight run of the eight calls below
++        for phase in self.PHASES:
++            phase_start = time.perf_counter()
++            getattr(self, phase)()
++            self._record(phase, time.perf_counter() - phase_start)
+         autolabel = "\n".join(self.lines)
+         new_line_count = autolabel.count('\n') + 1
+         old_line_count = self._line_counts.get(self.node_name)
+@@ -164,6 +231,7 @@ class AutolabelReplacement(object):
+         label_timer = self._get_label_timer()
+         if not label_timer.isActive():
+             label_timer.start()
++        self._record("create_autolabel", time.perf_counter() - start)  # TEMP
+         return autolabel
+ 
+     def update(self):
+@@ -286,10 +354,12 @@ class AutolabelReplacement(object):
+ 
+             if "tcl_string" in item:
+                 tcl_string = str(item["tcl_string"])
++                tcl_start = time.perf_counter()  # TEMP INSTRUMENTATION
+                 try:
+                     label_string = nuke.tcl("subst", tcl_string)
+                 except RuntimeError:
+                     label_string = tcl_string
++                self._record("  nuke.tcl subst (config)", time.perf_counter() - tcl_start)
+                 if label_string is not None and label_string != "":
+                     knob_readouts.append(label_string)
+             else:
+@@ -300,12 +370,17 @@ class AutolabelReplacement(object):
+                     "always_show_all"
+                 ) or item.get("always_show", False)
+                 default = item.get("default", False)
++                lookup_start = time.perf_counter()  # TEMP INSTRUMENTATION
+                 try:
+                     knob_value = self.n[item["name"]].value()
+                     knob_class = self.n[item["name"]].Class()
+                 except NameError:
+                     # the knob does not exist on the node, just continue
++                    self._record(
++                        "  knob lookup (missing)", time.perf_counter() - lookup_start
++                    )
+                     continue
++                self._record("  knob lookup (found)", time.perf_counter() - lookup_start)
+                 show = False
+                 # handle knobs which should be colorized, if colorization isn't disabled
+                 colorize = False
+@@ -374,8 +449,10 @@ class AutolabelReplacement(object):
+ 
+     def label_readout_creator(self):
+         node_label_value = nuke.value("this.label", "")
++        tcl_start = time.perf_counter()  # TEMP INSTRUMENTATION
+         with contextlib.suppress(RuntimeError):
+             node_label_value = nuke.tcl("subst", node_label_value)
++        self._record("  nuke.tcl subst (label)", time.perf_counter() - tcl_start)
+         if node_label_value != "" and node_label_value is not None:
+             self.lines.append(node_label_value)
+ 
+@@ -415,11 +492,16 @@ class AutolabelReplacement(object):
+             return None
+ 
+     def update_class_mappings_with_ofx_nodes(self):
++        start = time.perf_counter()  # TEMP INSTRUMENTATION
+         m = nuke.toolbar("Nodes")
+         all_toolbar_items = self.recurse_into_menu(m)
+         ofx_items = [item for item in all_toolbar_items if "OFX" in item[1]]
+         ofx_mappings = {self.find_ofx_class(item[1]): item[0] for item in ofx_items}
+         self.class_mappings.update(ofx_mappings)
++        # TEMP INSTRUMENTATION: one-off startup cost, printed at import time
++        print("Labelmaker: OFX toolbar walk took {:.1f}ms ({} items)".format(
++            (time.perf_counter() - start) * 1000, len(all_toolbar_items)
++        ))
+ 
+     def centre_wrapper(self):
+         # work around nuke HTML wonkiness - need to explicitly set the alignment and font
+diff --git a/menu.py b/menu.py
+index 24ae31f..91d4dcf 100644
+--- a/menu.py
++++ b/menu.py
+@@ -25,6 +25,20 @@ edit_menu.addCommand(
+     index=project_settings_index + 2,
+ )
+ 
++# TEMP INSTRUMENTATION — profiling scaffolding, delete when done.
++edit_menu.addCommand(
++    "Labelmaker Profile/Dump Stats",
++    labelmaker.autolabeller_singleton.dump_stats,
++)
++edit_menu.addCommand(
++    "Labelmaker Profile/Dump Stats and Reset",
++    lambda: labelmaker.autolabeller_singleton.dump_stats(reset=True),
++)
++edit_menu.addCommand(
++    "Labelmaker Profile/Reset Stats",
++    labelmaker.autolabeller_singleton.reset_stats,
++)
++
+ node_layout_menu = edit_menu.addMenu("Node Layout")
+ node_layout_menu.addCommand(
+     "De-overlap All Nodes",

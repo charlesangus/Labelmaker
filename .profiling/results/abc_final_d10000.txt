@@ -1,0 +1,286 @@
+for more information.
+Labelmaker: OFX toolbar walk took 0.8ms (477 items)
+
+##############################################################################
+# Labelmaker draw-path profile — mode=on deoverlap=False script=/home/bosley/git/Labelmaker/.profiling/tmp/lm_d10000.nk
+##############################################################################
+DAG window 1256x405
+[19:04.03] Warning: Could not find value "scene_linear" for "colorspace". It will be appended to the menu list.
+[19:04.03] Warning: Could not find value "ACES - ACEScg" for "colorspace". It will be appended to the menu list.
+  scriptOpen (lm_d10000.nk)                calls=10002 builds=9905  hits=97    action=15766.4ms  settled_after=  6.20s  label_py= 5621.7ms
+10002 nodes loaded; autolabel calls so far = 10003
+
+  script open — per node class (slowest total first)
+  class                                         calls   total ms   mean us
+  Grade                                           914      790.8     865.2
+  Read                                           1044      732.9     702.0
+  Roto                                            302      365.8    1211.4
+  Merge2                                          496      349.1     703.9
+  ColorCorrect                                    354      315.9     892.5
+  Dot                                            1050      299.2     285.0
+  Blur                                            514      271.0     527.3
+  Reformat                                        354      232.7     657.3
+  Transform                                       354      222.5     628.5
+  Premult                                         532      193.3     363.3
+  Constant                                        496      176.8     356.4
+  ZDefocus2                                       230      142.8     621.0
+  Unpremult                                       390      133.3     341.9
+  HueCorrect                                      230      123.1     535.4
+  Copy                                            160      120.1     750.4
+  Write                                           142      115.6     813.9
+  Multiply                                        148       88.4     597.0
+  Shuffle2                                        230       86.7     377.0
+
+====================================================================
+Labelmaker autolabel profile — 24.5s wall clock
+  10002 calls from nuke (407.5/s) — 9905 builds, 97 cache hits
+  5553.9ms total in create_autolabel (22.6% of wall clock)
+--------------------------------------------------------------------
+phase                      calls     total ms      mean us
+create_autolabel            9905      5553.95        560.7
+set_indicators              9905      1505.30        152.0
+channels_line_creator       9905      1281.15        129.3
+knob_readout_creator        9905      1031.87        104.2
+label_readout_creator       9905       387.00         39.1
+  nuke.tcl subst (config)    5198       291.80         56.1
+file_line_creator           9905       238.19         24.0
+  nuke.tcl subst (label)    9905       223.10         22.5
+update                      9905       147.77         14.9
+name_line_creator           9905       144.59         14.6
+  knob lookup (found)      14128       142.97         10.1
+mix_line_creator            9905       139.52         14.1
+create_autolabel (cache hit)      97         1.52         15.7
+--------------------------------------------------------------------
+busiest nodes (builds / hits):
+  BackdropNode1                         1 / 0     
+  BackdropNode10                        1 / 0     
+  BackdropNode100                       1 / 0     
+  BackdropNode101                       1 / 0     
+  BackdropNode102                       1 / 0     
+  BackdropNode103                       1 / 0     
+  BackdropNode104                       1 / 0     
+  BackdropNode105                       1 / 0     
+  BackdropNode106                       1 / 0     
+  BackdropNode107                       1 / 0     
+====================================================================
+
+event census (calls = label requests from Nuke; label_py = time in the Python label fn, stock or Labelmaker)
+  X wire-drag: Merge B input to Read       calls=0     builds=0     hits=0     action=    0.7ms  settled_after=  0.00s  label_py=    0.0ms  ticks=41 lat mean=428.4ms p95=535.6ms max=599.1ms
+  A open Grade panel + zoom                calls=0     builds=0     hits=0     action=   33.5ms  settled_after=  0.00s  label_py=    0.0ms
+      >>> label implementation: stock
+  A round 1 impl stock                     calls=0     builds=0     hits=0     action=    0.8ms  settled_after=  0.00s  label_py=    0.0ms
+  A stock slider white                     calls=39    builds=0     hits=0     action=   10.5ms  settled_after=  2.99s  label_py=   22.6ms  ticks=51 lat mean=49.6ms p95=73.6ms max=557.3ms
+  A stock slider gamma                     calls=41    builds=0     hits=0     action=   11.1ms  settled_after=  2.65s  label_py=   14.7ms  ticks=51 lat mean=40.8ms p95=64.4ms max=87.1ms
+      >>> label implementation: on
+  A round 1 impl on                        calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  A on slider white                        calls=30    builds=20    hits=10    action=    7.4ms  settled_after= 12.63s  label_py=   16.7ms  ticks=51 lat mean=236.5ms p95=560.5ms max=607.2ms
+  A on slider gamma                        calls=33    builds=20    hits=13    action=    9.9ms  settled_after= 14.19s  label_py=   25.2ms  ticks=51 lat mean=265.8ms p95=585.9ms max=629.4ms
+      >>> label implementation: proto
+  A round 1 impl proto                     calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms  proto: 0 hits 0 builds 0 held 0 pokes  stall~50ms window=400ms
+  A proto slider white                     calls=39    builds=6     hits=0     action=   11.1ms  settled_after=  5.84s  label_py=   11.8ms  ticks=51 lat mean=62.3ms p95=423.3ms max=615.3ms  proto: 0 hits 6 builds 33 held 2 pokes  stall~268ms window=1341ms
+  A proto slider gamma                     calls=38    builds=9     hits=0     action=   14.1ms  settled_after=  8.64s  label_py=   12.6ms  ticks=51 lat mean=114.6ms p95=565.0ms max=903.0ms  proto: 0 hits 9 builds 29 held 3 pokes  stall~359ms window=1500ms
+      knob white=1.98  label text='<div style="text-align: center"><font face="Bitstream Vera Sans"><div style="text-align: center"><font face="Bitstream Vera Sans">Grade817 / (rgb M alpha) / <span style="background-color: #D6D6D6; color: black;">gain: </span> 1.980</span> / <span style="background-color: #9E9E9E; color: black;">gamma: </span> 0.520</span>'  ->  OK
+  A  -> white value vs label               calls=0     builds=0     hits=0     action=    0.2ms  settled_after=  0.00s  label_py=    0.0ms  proto: 0 hits 0 builds 0 held 0 pokes  stall~359ms window=1500ms
+      >>> label implementation: stock
+  A round 2 impl stock                     calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  A stock slider white 2                   calls=39    builds=0     hits=0     action=    9.4ms  settled_after=  2.38s  label_py=   16.8ms  ticks=51 lat mean=32.4ms p95=57.3ms max=574.8ms
+      >>> label implementation: on
+  A round 2 impl on                        calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  A on slider white 2                      calls=36    builds=18    hits=18    action=    7.5ms  settled_after= 12.05s  label_py=   18.7ms  ticks=51 lat mean=234.8ms p95=609.8ms max=853.6ms
+      >>> label implementation: proto
+  A round 2 impl proto                     calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms  proto: 0 hits 0 builds 0 held 0 pokes  stall~359ms window=1500ms
+  A proto slider white 2                   calls=40    builds=7     hits=0     action=    9.5ms  settled_after=  6.15s  label_py=   11.3ms  ticks=51 lat mean=101.7ms p95=521.7ms max=749.2ms  proto: 0 hits 7 builds 33 held 1 pokes  stall~196ms window=982ms
+      knob white=0.35  label text='<div style="text-align: center"><font face="Bitstream Vera Sans"><div style="text-align: center"><font face="Bitstream Vera Sans">Grade817 / (rgb M alpha) / <span style="background-color: #898989; color: black;">gain: </span> 0.350</span> / <span style="background-color: #9E9E9E; color: black;">gamma: </span> 0.520</span>'  ->  OK
+  A  -> white value vs label 2             calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms  proto: 0 hits 0 builds 0 held 0 pokes  stall~196ms window=982ms
+  A close panel                            calls=0     builds=0     hits=0     action=    3.9ms  settled_after=  0.00s  label_py=    0.0ms  proto: 0 hits 0 builds 0 held 0 pokes  stall~196ms window=982ms
+      >>> label implementation: stock
+  B impl stock                             calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  B stock warm: viewer connect + frame     calls=10003 builds=0     hits=0     action=  349.6ms  settled_after=  3.32s  label_py= 2159.7ms
+  B stock frame +1 (frame-dependent only)  calls=996   builds=0     hits=0     action=    0.1ms  settled_after=  1.33s  label_py=  337.7ms
+  B stock viewer connect other node        calls=0     builds=0     hits=0     action=    3.9ms  settled_after=  0.00s  label_py=    0.0ms
+  B stock frame +1 after connect (ALL)     calls=10003 builds=0     hits=0     action=    0.3ms  settled_after=  2.84s  label_py= 1966.6ms
+  B stock viewer connect back              calls=0     builds=0     hits=0     action=    8.3ms  settled_after=  0.00s  label_py=    0.0ms
+  B stock frame -1 after connect (ALL)     calls=10003 builds=0     hits=0     action=    0.1ms  settled_after=  2.72s  label_py= 1920.5ms
+  B stock scrub                            calls=30876 builds=0     hits=0     action=    9.0ms  settled_after= 25.92s  label_py=10239.4ms  ticks=51 lat mean=497.5ms p95=939.4ms max=967.7ms
+  B stock scrub back                       calls=0     builds=0     hits=0     action=    3.9ms  settled_after=  0.00s  label_py=    0.0ms  ticks=51 lat mean=138.4ms p95=244.1ms max=271.4ms
+      >>> label implementation: on
+  B impl on                                calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  B on warm: viewer connect + frame        calls=0     builds=0     hits=0     action=    1.7ms  settled_after=  0.00s  label_py=    0.0ms
+  B on frame +1 (frame-dependent only)     calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  B on viewer connect other node           calls=0     builds=0     hits=0     action=    1.7ms  settled_after=  0.00s  label_py=    0.0ms
+[19:08.04] ERROR: Grade2.gamma: Unpremult2
+(rgb) / alpha
+  B on frame +1 after connect (ALL)        calls=10003 builds=9906  hits=97    action=    0.0ms  settled_after=  2.14s  label_py= 1480.9ms
+  B on viewer connect back                 calls=0     builds=0     hits=0     action=    3.0ms  settled_after=  0.00s  label_py=    0.0ms
+  B on frame -1 after connect (ALL)        calls=10003 builds=9906  hits=97    action=    0.0ms  settled_after=  2.09s  label_py= 1611.8ms
+  B on scrub                               calls=33060 builds=33060 hits=0     action=    6.3ms  settled_after= 23.21s  label_py=11441.3ms  ticks=51 lat mean=446.3ms p95=1136.5ms max=1263.9ms
+  B on scrub back                          calls=0     builds=0     hits=0     action=   30.4ms  settled_after=  0.00s  label_py=    0.0ms  ticks=51 lat mean=154.1ms p95=267.0ms max=284.1ms
+      >>> label implementation: proto
+  B impl proto                             calls=0     builds=0     hits=0     action=    1.1ms  settled_after=  0.00s  label_py=    0.0ms  proto: 0 hits 0 builds 0 held 0 pokes  stall~196ms window=982ms
+  B proto warm: viewer connect + frame     calls=0     builds=0     hits=0     action=    1.5ms  settled_after=  0.00s  label_py=    0.0ms  proto: 0 hits 0 builds 0 held 0 pokes  stall~196ms window=982ms
+  B proto frame +1 (frame-dependent only)  calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms  proto: 0 hits 0 builds 0 held 0 pokes  stall~196ms window=982ms
+Timeout (0:05:00)!
+Thread 0x00007b695effd6c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/process.py", line 68 in _readOutputFromPipe
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x00007b6964ff96c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/zmq/sugar/poll.py", line 103 in poll
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/zmq/__init__.py", line 15 in call
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/postprocessscript.py", line 226 in messageLoop
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/postprocessscript.py", line 401 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x00007b69667fc6c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/zmq/sugar/poll.py", line 103 in poll
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/zmq/__init__.py", line 15 in call
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/frameserver.py", line 80 in process
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/frameserver.py", line 51 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x00007b6966ffd6c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 331 in wait
+  File "/usr/local/Nuke17.0v3/lib/python3.11/queue.py", line 180 in get
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/renderqueue.py", line 76 in processFileSyncs
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x00007b6980ffb6c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/zmq/sugar/poll.py", line 103 in poll
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/zmq/__init__.py", line 15 in call
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/renderqueue.py", line 665 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x00007b69889d36c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/frameserver.py", line 341 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x00007b6a8960e040 (most recent call first):
+  <no Python frame>
+  B proto viewer connect other node        calls=0     builds=0     hits=0     action=    1.9ms  settled_after=  0.00s  label_py=    0.0ms  proto: 0 hits 0 builds 0 held 0 pokes  stall~196ms window=982ms
+  B proto frame +1 after connect (ALL)     calls=10003 builds=9906  hits=0     action=    0.0ms  settled_after=  2.05s  label_py= 1615.3ms  proto: 97 hits 9906 builds 0 held 0 pokes  stall~0ms window=400ms
+  B proto viewer connect back              calls=0     builds=0     hits=0     action=    2.6ms  settled_after=  0.00s  label_py=    0.0ms  proto: 0 hits 0 builds 0 held 0 pokes  stall~0ms window=400ms
+[19:09.12] ERROR: Grade2.gamma: Shuffle2 | Shuffle1
+rgba -> rgba
+  B proto frame -1 after connect (ALL)     calls=11155 builds=1111  hits=0     action=    0.1ms  settled_after=  2.31s  label_py=  255.3ms  proto: 10044 hits 1111 builds 0 held 1102 pokes  stall~0ms window=400ms
+  B proto scrub                            calls=46063 builds=1351  hits=0     action=    3.8ms  settled_after=  3.77s  label_py=  571.0ms  ticks=51 lat mean=28.2ms p95=53.3ms max=118.6ms  proto: 44712 hits 1351 builds 0 held 1102 pokes  stall~0ms window=400ms
+  B proto scrub back                       calls=46013 builds=1343  hits=0     action=    3.8ms  settled_after=  3.60s  label_py=  547.9ms  ticks=51 lat mean=25.6ms p95=44.7ms max=120.6ms  proto: 44670 hits 1343 builds 0 held 1102 pokes  stall~0ms window=400ms
+      >>> label implementation: stock
+  C impl stock                             calls=0     builds=0     hits=0     action=    2.6ms  settled_after=  0.00s  label_py=    0.0ms
+  C stock zoom on mid                      calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  C stock drag 1 node                      calls=0     builds=0     hits=0     action=    0.4ms  settled_after=  0.00s  label_py=    0.0ms  ticks=51 lat mean=29.0ms p95=27.0ms max=249.4ms
+  C stock select 50                        calls=0     builds=0     hits=0     action=    9.1ms  settled_after=  0.00s  label_py=    0.0ms
+  C stock drag 50 nodes                    calls=0     builds=0     hits=0     action=    0.8ms  settled_after=  0.00s  label_py=    0.0ms  ticks=51 lat mean=18.4ms p95=19.9ms max=207.1ms
+  C stock select all                       calls=0     builds=0     hits=0     action=   63.6ms  settled_after=  0.00s  label_py=    0.0ms
+  C stock drag ALL nodes                   calls=0     builds=0     hits=0     action=    0.3ms  settled_after=  0.00s  label_py=    0.0ms  ticks=51 lat mean=506.6ms p95=696.3ms max=729.2ms
+  C stock deselect                         calls=0     builds=0     hits=0     action=   80.5ms  settled_after=  0.00s  label_py=    0.0ms
+  C stock rubber-band                      calls=0     builds=0     hits=0     action=    1.0ms  settled_after=  0.00s  label_py=    0.0ms  ticks=41 lat mean=18.2ms p95=17.3ms max=207.8ms
+  C stock deselect                         calls=0     builds=0     hits=0     action=    6.7ms  settled_after=  0.00s  label_py=    0.0ms
+      >>> label implementation: on
+  C impl on                                calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  C on zoom on mid                         calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  C on drag 1 node                         calls=0     builds=0     hits=0     action=    1.2ms  settled_after=  0.00s  label_py=    0.0ms  ticks=51 lat mean=20.7ms p95=19.9ms max=201.1ms
+  C on select 50                           calls=0     builds=0     hits=0     action=    7.5ms  settled_after=  0.00s  label_py=    0.0ms
+  C on drag 50 nodes                       calls=0     builds=0     hits=0     action=    1.1ms  settled_after=  0.00s  label_py=    0.0ms  ticks=51 lat mean=18.2ms p95=21.5ms max=210.6ms
+  C on select all                          calls=0     builds=0     hits=0     action=   63.3ms  settled_after=  0.00s  label_py=    0.0ms
+  C on drag ALL nodes                      calls=0     builds=0     hits=0     action=    0.8ms  settled_after=  0.00s  label_py=    0.0ms  ticks=51 lat mean=523.1ms p95=721.7ms max=1258.0ms
+  C on deselect                            calls=0     builds=0     hits=0     action=  186.9ms  settled_after=  0.00s  label_py=    0.0ms
+  C on rubber-band                         calls=0     builds=0     hits=0     action=    0.5ms  settled_after=  0.00s  label_py=    0.0ms  ticks=41 lat mean=56.3ms p95=63.7ms max=609.2ms
+  C on deselect                            calls=0     builds=0     hits=0     action=    5.9ms  settled_after=  0.00s  label_py=    0.0ms
+      >>> label implementation: proto
+  C impl proto                             calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms  proto: 0 hits 0 builds 0 held 0 pokes  stall~0ms window=400ms
+  C proto zoom on mid                      calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms  proto: 0 hits 0 builds 0 held 0 pokes  stall~0ms window=400ms
+  C proto drag 1 node                      calls=0     builds=0     hits=0     action=    0.6ms  settled_after=  0.00s  label_py=    0.0ms  ticks=51 lat mean=39.4ms p95=68.3ms max=480.6ms  proto: 0 hits 0 builds 0 held 0 pokes  stall~0ms window=400ms
+  C proto select 50                        calls=0     builds=0     hits=0     action=    5.9ms  settled_after=  0.00s  label_py=    0.0ms  proto: 0 hits 0 builds 0 held 0 pokes  stall~0ms window=400ms
+  C proto drag 50 nodes                    calls=0     builds=0     hits=0     action=    0.6ms  settled_after=  0.00s  label_py=    0.0ms  ticks=51 lat mean=56.4ms p95=81.4ms max=604.7ms  proto: 0 hits 0 builds 0 held 0 pokes  stall~0ms window=400ms
+  C proto select all                       calls=0     builds=0     hits=0     action=  179.6ms  settled_after=  0.00s  label_py=    0.0ms  proto: 0 hits 0 builds 0 held 0 pokes  stall~0ms window=400ms
+  C proto drag ALL nodes                   calls=0     builds=0     hits=0     action=    0.6ms  settled_after=  0.00s  label_py=    0.0ms  ticks=51 lat mean=993.5ms p95=1515.1ms max=1919.2ms  proto: 0 hits 0 builds 0 held 0 pokes  stall~0ms window=400ms
+  C proto deselect                         calls=0     builds=0     hits=0     action=   77.8ms  settled_after=  0.00s  label_py=    0.0ms  proto: 0 hits 0 builds 0 held 0 pokes  stall~0ms window=400ms
+  C proto rubber-band                      calls=0     builds=0     hits=0     action=    1.0ms  settled_after=  0.00s  label_py=    0.0ms  ticks=41 lat mean=17.4ms p95=16.0ms max=199.1ms  proto: 0 hits 0 builds 0 held 0 pokes  stall~0ms window=400ms
+  C proto deselect                         calls=0     builds=0     hits=0     action=    4.6ms  settled_after=  0.00s  label_py=    0.0ms  proto: 0 hits 0 builds 0 held 0 pokes  stall~0ms window=400ms
+  D open CC panel + zoom on it             calls=0     builds=0     hits=0     action=   56.9ms  settled_after=  0.00s  label_py=    0.0ms  proto: 0 hits 0 builds 0 held 0 pokes  stall~0ms window=400ms
+  D close CC panel                         calls=0     builds=0     hits=0     action=    1.1ms  settled_after=  0.00s  label_py=    0.0ms  proto: 0 hits 0 builds 0 held 0 pokes  stall~0ms window=400ms
+
+cProfile — script-open label pass, top 25 by internal time
+         1514028 function calls (1514013 primitive calls) in 21.714 seconds
+
+   Ordered by: internal time
+   List reduced from 245 to 25 due to restriction <25>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1   15.291   15.291   15.766   15.766 {built-in method _nuke.scriptOpen}
+     9905    1.037    0.000    1.037    0.000 {built-in method _nuke.expression}
+    13542    0.779    0.000    0.779    0.000 {method 'knobs' of 'Node' objects}
+    10002    0.629    0.000    5.594    0.001 /home/bosley/git/Labelmaker/labelmaker.py:200(create_autolabel)
+    90085    0.499    0.000    0.566    0.000 {built-in method _nuke.value}
+    21662    0.438    0.000    0.438    0.000 {built-in method _nuke.tcl}
+     9905    0.325    0.000    0.993    0.000 /home/bosley/git/Labelmaker/labelmaker.py:345(knob_readout_creator)
+     6559    0.200    0.000    0.422    0.000 /usr/local/Nuke17.0v3/plugins/nuke_internal/callbacks.py:370(filenameFilter)
+   118473    0.184    0.000    0.184    0.000 /home/bosley/git/Labelmaker/labelmaker.py:152(_record)
+     9905    0.173    0.000    0.194    0.000 {built-in method _nuke.knob}
+     9905    0.146    0.000    0.360    0.000 /home/bosley/git/Labelmaker/labelmaker.py:450(label_readout_creator)
+     9905    0.126    0.000    1.466    0.000 /home/bosley/git/Labelmaker/labelmaker.py:248(set_indicators)
+     9905    0.110    0.000    1.244    0.000 /home/bosley/git/Labelmaker/labelmaker.py:290(channels_line_creator)
+    19810    0.109    0.000    0.109    0.000 {built-in method _nuke.numvalue}
+    30623    0.106    0.000    0.106    0.000 {method 'format' of 'str' objects}
+    10002    0.100    0.000    5.722    0.001 /home/bosley/git/Labelmaker/.profiling/drawpath/menu.py:196(_timed_autolabel)
+    22789    0.096    0.000    0.168    0.000 /usr/local/Nuke17.0v3/plugins/nuke_internal/callbacks.py:40(_doCallbacks)
+    10002    0.095    0.000    5.827    0.001 /usr/local/Nuke17.0v3/plugins/nuke_internal/callbacks.py:154(autolabel)
+   256960    0.090    0.000    0.090    0.000 {built-in method time.perf_counter}
+   196684    0.078    0.000    0.078    0.000 {method 'get' of 'dict' objects}
+     9905    0.076    0.000    0.116    0.000 /home/bosley/git/Labelmaker/labelmaker.py:237(update)
+    79252    0.057    0.000    0.057    0.000 {built-in method builtins.getattr}
+     9905    0.057    0.000    0.111    0.000 /home/bosley/git/Labelmaker/labelmaker.py:262(name_line_creator)
+     6567    0.055    0.000    0.074    0.000 shibokensupport/feature.py:83(feature_import)
+    19907    0.050    0.000    0.050    0.000 {method 'getValue' of 'String_Knob' objects}
+
+
+
+cProfile — top 25 by cumulative time
+         1514028 function calls (1514013 primitive calls) in 21.714 seconds
+
+   Ordered by: cumulative time
+   List reduced from 245 to 25 due to restriction <25>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000   15.767   15.767 /home/bosley/git/Labelmaker/.profiling/drawpath/menu.py:381(measure)
+        1    0.000    0.000   15.766   15.766 /home/bosley/git/Labelmaker/.profiling/drawpath/menu.py:442(<lambda>)
+        1   15.291   15.291   15.766   15.766 {built-in method _nuke.scriptOpen}
+    10002    0.095    0.000    5.827    0.001 /usr/local/Nuke17.0v3/plugins/nuke_internal/callbacks.py:154(autolabel)
+    10002    0.100    0.000    5.722    0.001 /home/bosley/git/Labelmaker/.profiling/drawpath/menu.py:196(_timed_autolabel)
+    10002    0.629    0.000    5.594    0.001 /home/bosley/git/Labelmaker/labelmaker.py:200(create_autolabel)
+     9905    0.126    0.000    1.466    0.000 /home/bosley/git/Labelmaker/labelmaker.py:248(set_indicators)
+     9905    0.110    0.000    1.244    0.000 /home/bosley/git/Labelmaker/labelmaker.py:290(channels_line_creator)
+     9905    1.037    0.000    1.037    0.000 {built-in method _nuke.expression}
+     9905    0.325    0.000    0.993    0.000 /home/bosley/git/Labelmaker/labelmaker.py:345(knob_readout_creator)
+     9905    0.031    0.000    0.885    0.000 /home/bosley/git/Labelmaker/labelmaker.py:71(node_mask_input_plugged)
+    13542    0.041    0.000    0.820    0.000 /home/bosley/git/Labelmaker/labelmaker.py:18(node_has_mask)
+    13542    0.779    0.000    0.779    0.000 {method 'knobs' of 'Node' objects}
+    90085    0.499    0.000    0.566    0.000 {built-in method _nuke.value}
+    21662    0.438    0.000    0.438    0.000 {built-in method _nuke.tcl}
+     6559    0.200    0.000    0.422    0.000 /usr/local/Nuke17.0v3/plugins/nuke_internal/callbacks.py:370(filenameFilter)
+     9905    0.146    0.000    0.360    0.000 /home/bosley/git/Labelmaker/labelmaker.py:450(label_readout_creator)
+     9905    0.023    0.000    0.208    0.000 /home/bosley/git/Labelmaker/labelmaker.py:284(file_line_creator)
+     9905    0.173    0.000    0.194    0.000 {built-in method _nuke.knob}
+   118473    0.184    0.000    0.184    0.000 /home/bosley/git/Labelmaker/labelmaker.py:152(_record)
+    22789    0.096    0.000    0.168    0.000 /usr/local/Nuke17.0v3/plugins/nuke_internal/callbacks.py:40(_doCallbacks)
+     4133    0.019    0.000    0.152    0.000 /home/bosley/git/Labelmaker/labelmaker.py:55(get_mask_input_index)
+     6567    0.045    0.000    0.119    0.000 shibokensupport/signature/loader.py:50(feature_import)
+     9905    0.076    0.000    0.116    0.000 /home/bosley/git/Labelmaker/labelmaker.py:237(update)
+     9905    0.057    0.000    0.111    0.000 /home/bosley/git/Labelmaker/labelmaker.py:262(name_line_creator)
+
+
+wrote /home/bosley/git/Labelmaker/.profiling/drawpath-on.prof
+
+DONE

@@ -138,5 +138,6 @@ dmypy.json
 # Intermediate Markdown generated from the README for the User Guide PDF
 docs/.build/
 
-# Local profiling harness (see .profiling/README.md)
-.profiling/
+# Profiling harness (see .profiling/README.md): throwaway per-run state only
+.profiling/home/
+.profiling/tmp/
