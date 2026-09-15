@@ -363,6 +363,19 @@ def test_real_request_during_verification_drops_the_node_from_the_queue(labeller
     assert "Grade20" in labeller._stale
 
 
+def test_real_request_during_verification_drops_the_node_from_verify_first(labeller, clock):
+    names = ["Grade{}".format(i) for i in range(30)]
+    for name in names:
+        request(labeller, clock, name, "old")
+    labeller._frame_dep.add("Grade20")
+    whole_script_pass(labeller, clock, names)
+    request(labeller, clock, "Grade20", "new")   # lone edit: built and held back
+    assert "Grade20" not in labeller._verify
+    assert "Grade20" not in labeller._verify_first
+    go_idle(labeller, clock)
+    assert "Grade20" not in labeller.verified
+
+
 def test_tcl_in_the_label_knob_is_composed_in_node_context(clock, monkeypatch):
     labeller = AutolabelReplacement(_EmptyConfig())
     monkeypatch.setattr(nuke, "value", lambda path, default="": "[frame]" if path == "this.label" else default)

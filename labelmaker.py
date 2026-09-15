@@ -197,6 +197,7 @@ class AutolabelReplacement(object):
         was_forced = full_name in self._forced
         self._forced.discard(full_name)
         self._verify.discard(full_name)
+        self._verify_first.discard(full_name)
         text = self._build_label()
         self._content[full_name] = text
         self._note_frame_dependence(full_name)
