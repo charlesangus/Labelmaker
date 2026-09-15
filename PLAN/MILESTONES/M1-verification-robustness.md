@@ -22,7 +22,7 @@ one fix plus its pytest coverage in `tests/test_label_cache.py`, committed on
 
 ## Phase 1.2: Poke path
 
-- [ ] M1.P2.T3 — `_release_stale` and `_poke_nodes` are per-node transactional (finding 3)
+- [x] M1.P2.T3 — `_release_stale` and `_poke_nodes` are per-node transactional (finding 3)
   - files: `labelmaker.py` (`_release_stale`, `_poke_nodes`), `tests/test_label_cache.py`
   - approach: Do not clear `_stale` up front. Restructure so each name is removed from `_stale` only once its poke has been attempted: e.g. `_poke_nodes` takes an iterable and, inside the Undo-disabled block, loops with a per-node `try/except Exception` that logs via `nuke.warning` and moves on (a persistently failing node must not block every later release, so a failed poke is dropped, not re-queued), and `_release_stale` pops names one at a time (`while self._stale: name = self._stale.pop(); ...`) or passes a callback that discards each name after its attempt — pick the simplest shape that keeps `_poke_nodes` usable by `refresh_all_labels` and `set_enabled(False)`. Keep exactly one `Undo.disable()/enable()` pair per batch. Test: 3 stale nodes whose middle node's `dope_sheet` knob `setValue` raises (subclass `_RecordingKnob`); after the refresh fires assert the other two were poked and `_stale` is empty.
   - verify: `python3 -m pytest tests/test_label_cache.py -q` passes including the new test; `ruff check .` clean.
