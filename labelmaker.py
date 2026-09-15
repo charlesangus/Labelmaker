@@ -339,23 +339,34 @@ class AutolabelReplacement(object):
             return
         deadline = time.perf_counter() + LABEL_VERIFY_SLICE_S
         had_first = bool(self._verify_first)
-        while self._verify and time.perf_counter() < deadline:
-            full_name = self._pop_verify()
-            text = self._compose_in_context(full_name)
-            if text is None:
-                continue
-            self._content[full_name] = text
-            self._note_frame_dependence(full_name)
-            if text != self._shown.get(full_name):
-                self._stale.add(full_name)
-        if self._verify:
-            if had_first and not self._verify_first:
-                # the likely-changed labels are done: release them now rather
-                # than after the whole script has been checked
+        try:
+            while self._verify and time.perf_counter() < deadline:
+                full_name = self._pop_verify()
+                try:
+                    text = self._compose_in_context(full_name)
+                except Exception as exc:
+                    # _pop_verify already dropped full_name from the queue,
+                    # so it is quarantined rather than retried; it rebuilds
+                    # normally on Nuke's next real request for it
+                    nuke.warning(
+                        "Labelmaker: could not verify {}: {}".format(full_name, exc)
+                    )
+                    continue
+                if text is None:
+                    continue
+                self._content[full_name] = text
+                self._note_frame_dependence(full_name)
+                if text != self._shown.get(full_name):
+                    self._stale.add(full_name)
+        finally:
+            if self._verify:
+                if had_first and not self._verify_first:
+                    # the likely-changed labels are done: release them now rather
+                    # than after the whole script has been checked
+                    self._release_stale()
+                self._get_verify_timer().start(LABEL_VERIFY_GAP_MS)
+            else:
                 self._release_stale()
-            self._get_verify_timer().start(LABEL_VERIFY_GAP_MS)
-        else:
-            self._release_stale()
 
     def _pop_verify(self):
         if self._verify_first:

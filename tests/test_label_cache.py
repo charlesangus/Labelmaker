@@ -353,6 +353,34 @@ def test_node_deleted_before_verification_is_skipped(labeller, clock):
     assert "Grade20" not in labeller._stale
 
 
+def test_one_failing_composition_does_not_abandon_the_rest_of_the_queue(labeller, clock, monkeypatch):
+    names = ["Grade{}".format(i) for i in range(30)]
+    for name in names:
+        request(labeller, clock, name, "old")
+    failing = "Grade15"
+    for name in names[labelmaker.LABEL_BURST_MIN:]:
+        labeller.texts[name] = "new"
+    whole_script_pass(labeller, clock, names)
+    compose = labeller._compose_label
+
+    def flaky_compose():
+        if nuke.thisNode().name() == failing:
+            raise RuntimeError("boom")
+        return compose()
+
+    monkeypatch.setattr(labeller, "_compose_label", flaky_compose)
+    warnings = []
+    monkeypatch.setattr(nuke, "warning", lambda msg: warnings.append(msg))
+    go_idle(labeller, clock)
+    expected = set(names[labelmaker.LABEL_BURST_MIN:]) - {failing}
+    assert set(labeller.verified) == expected
+    assert labeller._verify == set()
+    assert failing not in labeller._stale
+    assert pokes(labeller) == expected
+    assert len(warnings) == 1
+    assert failing in warnings[0]
+
+
 def test_real_request_during_verification_drops_the_node_from_the_queue(labeller, clock):
     names = ["Grade{}".format(i) for i in range(30)]
     for name in names:
