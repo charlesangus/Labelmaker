@@ -8,19 +8,19 @@ import pytest
 
 class _StubUndoManager:
     def __init__(self):
-        self._disabled = False
+        self.depth = 0
         self.calls = []
 
     def disable(self):
         self.calls.append("disable")
-        self._disabled = True
+        self.depth += 1
 
     def enable(self):
         self.calls.append("enable")
-        self._disabled = False
+        self.depth = max(0, self.depth - 1)
 
     def disabled(self):
-        return self._disabled
+        return self.depth > 0
 
 
 class _StubMenu:

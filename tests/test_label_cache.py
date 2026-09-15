@@ -199,32 +199,23 @@ def test_a_poke_that_fails_does_not_lose_the_other_stale_nodes(labeller, clock, 
     assert failing in warnings[0]
 
 
-def test_refresh_leaves_undo_enabled_when_it_was_enabled_on_entry(labeller, clock):
+def test_refresh_balances_undo_depth_when_it_was_zero_on_entry(labeller, clock):
     request(labeller, clock, "Grade1", "gain 1.0")
     request(labeller, clock, "Grade1", "gain 1.5")
     clock.now += 1.0
     labeller._refresh_timer.fire()
-    assert nuke.Undo.disabled() is False
+    assert nuke.Undo.depth == 0
     assert nuke.Undo.calls == ["disable", "enable"]
 
 
-def test_refresh_leaves_undo_disabled_when_it_was_already_disabled(labeller, clock):
+def test_refresh_restores_callers_undo_depth_when_already_disabled(labeller, clock):
     request(labeller, clock, "Grade1", "gain 1.0")
     request(labeller, clock, "Grade1", "gain 1.5")
     nuke.Undo.disable()
     nuke.Undo.calls = []
     clock.now += 1.0
     labeller._refresh_timer.fire()
-    assert nuke.Undo.disabled() is True
-    assert nuke.Undo.calls == ["disable"]
-
-
-def test_refresh_still_enables_undo_on_nuke_versions_without_disabled_query(labeller, clock, monkeypatch):
-    request(labeller, clock, "Grade1", "gain 1.0")
-    request(labeller, clock, "Grade1", "gain 1.5")
-    monkeypatch.delattr(type(nuke.Undo), "disabled")
-    clock.now += 1.0
-    labeller._refresh_timer.fire()
+    assert nuke.Undo.depth == 1
     assert nuke.Undo.calls == ["disable", "enable"]
 
 

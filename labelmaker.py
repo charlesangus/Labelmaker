@@ -398,10 +398,8 @@ class AutolabelReplacement(object):
         # Nothing in the API re-requests one node's label; a real knob change
         # does. Flipping dope_sheet and flipping it back in the same callback
         # yields exactly one relabel, no undo entry and no visible change.
-        # nuke.Undo.disabled() only exists from Nuke 17; without it there is
-        # no way to see a caller's prior state, so this always re-enables.
-        disabled = getattr(nuke.Undo, "disabled", None)
-        was_enabled = disabled() is False if disabled is not None else True
+        # disable()/enable() nest as a depth counter, so one balanced pair
+        # restores the caller's state regardless of what it was on entry.
         nuke.Undo.disable()
         try:
             for full_name in full_names:
@@ -427,8 +425,7 @@ class AutolabelReplacement(object):
                     if on_attempted is not None:
                         on_attempted(full_name)
         finally:
-            if was_enabled:
-                nuke.Undo.enable()
+            nuke.Undo.enable()
 
     def _on_node_created(self):
         self._forget(nuke.thisNode().fullName())
