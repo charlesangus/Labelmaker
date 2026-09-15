@@ -28,7 +28,7 @@ one fix plus its pytest coverage in `tests/test_label_cache.py`, committed on
   - verify: `python3 -m pytest tests/test_label_cache.py -q` passes including the new test; `ruff check .` clean.
   - size: M
 
-- [ ] M1.P2.T4 — The poke restores the caller's Undo state instead of unconditionally enabling it (finding 4)
+- [x] M1.P2.T4 — The poke restores the caller's Undo state instead of unconditionally enabling it (finding 4)
   - files: `labelmaker.py` (`_poke_nodes`), `tests/conftest.py` (`_StubUndoManager`), `tests/test_label_cache.py`
   - approach: Before `nuke.Undo.disable()`, read the prior state with `nuke.Undo.disabled()` where it exists (Nuke 17; guard with `getattr(nuke.Undo, "disabled", None)` so older Nukes fall back to the current always-enable behaviour) and in the `finally` call `enable()` only if Undo was enabled on entry. Extend `_StubUndoManager` in `tests/conftest.py` to track a `_disabled` flag with `disable()/enable()/disabled()` and record the call sequence. Tests: (a) with Undo enabled on entry the poke leaves it enabled; (b) with Undo already disabled on entry the poke leaves it disabled and never calls `enable()`; (c) with `disabled` absent from the stub (monkeypatch `delattr`) the old behaviour holds.
   - verify: `python3 -m pytest tests/ -q` passes (the conftest change must not break other test modules); `ruff check .` clean.

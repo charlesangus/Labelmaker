@@ -3,7 +3,7 @@ title: Label cache — address the Codex review of verify-at-idle
 status: running
 current: M1.P2.T4
 ship: none
-pm_heartbeat: 2026-09-15T09:37:05-04:00
+pm_heartbeat: 2026-09-15T09:39:16-04:00
 publish_decisions: none
 ---
 
