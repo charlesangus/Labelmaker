@@ -28,6 +28,8 @@ timeout; 10k runs take many minutes on this box.
 
 - 2026-09-15 — T2 findings (run `/tmp/v2_d3000.txt`): `activeViewer().play(1)` advances one frame in 3 s under Xvfb, so case (g) is environmental; (g2) steps `nuke.frame()` on a 40 ms timer instead. The headless Dope Sheet is floated as a top-level window (`nuke.menu("Pane")` is empty headless). Residual accepted: a slider drag on a Tcl-labelled node runs its Tcl +1/+2 vs stock (42 vs 40–41), the release poke's rebuild after a drag whose last requests were burst-served; not a doubling.
 
+- 2026-09-15 — T3 findings (`/tmp/v3_d3000.txt`, `/tmp/v3_d3000_deoverlap.txt`): LiveGroup and Group-with-onCreate-Tcl inner labels update under `on` with no `could not verify`/runIn warning; `nuke.showDag(precomp)` is a no-op in 17.0v3 (logged n/a); expression-driven dependents are not re-requested by Nuke under either impl until the next pass (50/50 correct after it). Case (k) exposed a pre-existing de-overlap gap: de-overlap was queued at *build* time, so the 150 ms timer fired while held labels still showed the short text and the release never re-queued them (16 overlapping pairs left of 300). Fix delegated: queue de-overlap where the shown text changes.
+
 ## Phase 3.1: New harness cases
 
 - [x] M3.P1.T1 — Step group `V`: regression cases for the review findings
@@ -42,7 +44,7 @@ timeout; 10k runs take many minutes on this box.
   - verify: `LM_PROFILE_ONLY="V" .profiling/run_drawpath.sh .profiling/scripts/lm_d3000.nk both` runs these cases without tracebacks; each logs a comparable `stock` and `on` line.
   - size: M
 
-- [ ] M3.P1.T3 — Step group `V`: node-type, expression-source and de-overlap cases from the brief's §8
+- [x] M3.P1.T3 — Step group `V`: node-type, expression-source and de-overlap cases from the brief's §8
   - files: `.profiling/drawpath/menu.py`, `.profiling/build_diverse_script.py` (only if the script needs new node types baked in)
   - approach: Extend `V` with: (a) **LiveGroup / Precomp / Gizmo with `onCreate` Tcl** — create at runtime a `LiveGroup` holding 20 inner nodes, a `Precomp`, and a Group whose `onCreate` knob runs Tcl; bulk-edit inside them, `nuke.showDag` each, confirm with `_check_bulk` that labels update and that no `runIn` warning was logged; delete them at the end of the case. (b) **Expression sources** — make one Grade's `white` the expression source for 50 other nodes' knobs that appear in their readouts; change it once, then a frame-step pass; confirm the 50 dependents show the new value after the pass under both implementations, and log whether they updated *before* the pass (neither should). (c) **De-overlap interplay** — with `LM_PROFILE_DEOVERLAP=1`, bulk-edit 300 nodes so their line count grows; confirm no overlap afterwards and log `len(autolabeller._pending_deoverlap)` before the deoverlap timer fires (verification's pokes must feed it). Any nodes added must be removed within the case so later groups see the same script.
   - verify: `LM_PROFILE_ONLY="V" .profiling/run_drawpath.sh .profiling/scripts/lm_d3000.nk both` (and once with `LM_PROFILE_DEOVERLAP=1`) runs these cases without tracebacks; each logs a comparable `stock` and `on` line.
