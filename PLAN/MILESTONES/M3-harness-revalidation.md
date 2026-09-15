@@ -26,6 +26,8 @@ timeout; 10k runs take many minutes on this box.
 - 2026-09-15 — Group `V` case (a) shows `on` runs label-knob Tcl `LABEL_BURST_MIN` (8) times more than stock per bulk edit (208 vs 200): the first 8 requests of a burst are built for real, held, then force-rebuilt at release. Verification itself runs no Tcl (frame/viewer passes: 0). A consultant confirmed serving the held `_content` at the forced re-request is safe (since 566db23 `_content` has one writer); `bcdc0a3` adds a `_fresh` set for it with 9 tests, so Tcl runs once per request for held labels too. Case (a) should now read 200/100/41 under `on`, to be confirmed by T4's re-run.
 - 2026-09-15 — Harness-only fixes landed with T1: `_counting_poke_nodes` forwards `on_attempted` (broke every release after `70f719f`); the load path uses `register_autolabel()/unregister_autolabel()` instead of `set_enabled(False/True)`, because two unmatched load-time `disable()`s (before Undo is initialised) kill Undo for the whole session. Fixtures exclude clones and expression-driven `size`.
 
+- 2026-09-15 — T2 findings (run `/tmp/v2_d3000.txt`): `activeViewer().play(1)` advances one frame in 3 s under Xvfb, so case (g) is environmental; (g2) steps `nuke.frame()` on a 40 ms timer instead. The headless Dope Sheet is floated as a top-level window (`nuke.menu("Pane")` is empty headless). Residual accepted: a slider drag on a Tcl-labelled node runs its Tcl +1/+2 vs stock (42 vs 40–41), the release poke's rebuild after a drag whose last requests were burst-served; not a doubling.
+
 ## Phase 3.1: New harness cases
 
 - [x] M3.P1.T1 — Step group `V`: regression cases for the review findings
@@ -34,7 +36,7 @@ timeout; 10k runs take many minutes on this box.
   - verify: `LM_PROFILE_ONLY="V" .profiling/run_drawpath.sh .profiling/scripts/lm_d3000.nk both` completes without a Python traceback in the census output and every `->` check line reports the expected count; ruff is not run on `.profiling/` (ignored), but the file must import cleanly (`python3 -c "import ast,sys; ast.parse(open('.profiling/drawpath/menu.py').read())"`).
   - size: L
 
-- [ ] M3.P1.T2 — Step group `V`: panel, playback and Viewer cases from the brief's §8
+- [x] M3.P1.T2 — Step group `V`: panel, playback and Viewer cases from the brief's §8
   - files: `.profiling/drawpath/menu.py`
   - approach: Extend `V` with: (a) **Dope Sheet open** — show the Dope Sheet pane (`nukescripts.panels` / `nuke.menu("Pane")`), bulk-edit 100 nodes and log label calls and wall time for the release vs. the same edit with it closed (does the `dope_sheet` poke rebuild the panel?). (b) **Viewer rendering** — connect the Viewer to the deepest chain and start playback (`nuke.activeViewer().play(1)`, or `nuke.frame()` on a 40 ms timer) while a bulk edit's verification runs; log settle time and that `_check_bulk` passes; stop playback. (c) **Un-pokeable Viewer stall** — switch the Viewer input 20 times 40 ms apart; log per-tick label time for the Viewer node under `stock` and `on`. Leave the script as the group found it (close the pane, stop playback, restore the Viewer input).
   - verify: `LM_PROFILE_ONLY="V" .profiling/run_drawpath.sh .profiling/scripts/lm_d3000.nk both` runs these cases without tracebacks; each logs a comparable `stock` and `on` line.
