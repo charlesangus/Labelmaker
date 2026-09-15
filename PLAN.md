@@ -1,8 +1,9 @@
 ---
 title: Label cache — address the Codex review of verify-at-idle
-status: draft
-current: null
+status: running
+current: M1.P1.T1
 ship: none
+pm_heartbeat: 2026-09-15T09:29:05-04:00
 publish_decisions: none
 ---
 
@@ -63,7 +64,7 @@ edge cases and re-run against the fixed code with the results recorded.
 
 | ID | Milestone | Status | File |
 |----|-----------|--------|------|
-| M1 | Verification robustness (findings 2–5) | todo | [M1-verification-robustness.md](PLAN/MILESTONES/M1-verification-robustness.md) |
+| M1 | Verification robustness (findings 2–5) | doing | [M1-verification-robustness.md](PLAN/MILESTONES/M1-verification-robustness.md) |
 | M2 | Side-effect-free verification (finding 1) + docs | todo | [M2-side-effect-free-verification.md](PLAN/MILESTONES/M2-side-effect-free-verification.md) |
 | M3 | Harness expansion and re-validation (finding 6) | todo | [M3-harness-revalidation.md](PLAN/MILESTONES/M3-harness-revalidation.md) |
 
