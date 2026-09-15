@@ -30,6 +30,7 @@ class _Clock:
 class _FakeTimer:
     def __init__(self):
         self.interval = None
+        self.started = False
         self.callback = None
         self.timeout = self
 
@@ -39,8 +40,9 @@ class _FakeTimer:
     def setSingleShot(self, value):
         pass
 
-    def start(self, interval):
+    def start(self, interval=None):
         self.interval = interval
+        self.started = True
 
     def fire(self):
         self.callback()
@@ -140,6 +142,26 @@ def go_idle(labeller, clock):
 
 def pokes(labeller):
     return {name for name, node in labeller.nodes.items() if node["dope_sheet"].sets}
+
+
+@pytest.fixture
+def deoverlap(labeller, monkeypatch):
+    """The de-overlap pref on, its timer faked, and the real _build_label
+    back in place over a stubbed compose (the labeller fixture's build stub
+    skips it); returns the timer."""
+    def compose(write_indicators=False, substitute_label=True):
+        name = nuke.thisNode().name()
+        labeller.node_name = name
+        labeller.builds.append(name)
+        labeller.verify_key = labeller.texts[name]
+        return labeller.texts[name]
+
+    monkeypatch.delattr(labeller, "_build_label")
+    monkeypatch.setattr(labeller, "_compose_label", compose)
+    monkeypatch.setattr(labelmaker.labelmaker_prefs.prefs_singleton, "get", lambda key: True)
+    labeller._deoverlap_timer = _FakeTimer()
+    labeller._deoverlap_timer.connect(labeller._run_deoverlap)
+    return labeller._deoverlap_timer
 
 
 # --- lone requests ---
@@ -776,6 +798,68 @@ def test_bulk_label_edit_runs_tcl_once_per_node_including_the_held_ones(clock, m
         nuke.thisNode = lambda name=name: nodes[name]
         assert labeller.create_autolabel() == name + "\n1001 v2"
     assert sorted(tcl_calls) == sorted(names)
+
+# --- de-overlap ---
+
+
+def test_label_shown_taller_queues_deoverlap(labeller, clock, deoverlap):
+    labeller.nodes["Viewer1"] = _unpokeable_node("Viewer1")
+    request(labeller, clock, "Viewer1", "input 1")
+    assert labeller._pending_deoverlap == set() and not deoverlap.started
+    assert request(labeller, clock, "Viewer1", "input 1\nrgba\n1920x1080") == "input 1\nrgba\n1920x1080"
+    assert labeller._pending_deoverlap == {"Viewer1"}
+    assert deoverlap.started
+
+
+def test_held_label_queues_deoverlap_when_shown_not_when_built(labeller, clock, deoverlap):
+    request(labeller, clock, "Grade1", "gain 1.0")
+    assert request(labeller, clock, "Grade1", "gain 1.0\ngamma 2\nlift 3\nmix 0.5") == "gain 1.0"
+    # the old, shorter string is still on screen: de-overlap would measure
+    # that and find nothing to move
+    assert labeller._pending_deoverlap == set() and not deoverlap.started
+    clock.now += 1.0
+    labeller._refresh_timer.fire()
+    assert request(labeller, clock, "Grade1", advance=0.01) == "gain 1.0\ngamma 2\nlift 3\nmix 0.5"
+    assert labeller._pending_deoverlap == {"Grade1"}
+    assert deoverlap.started
+
+
+def test_deoverlap_timer_fires_with_the_nodes_shown_taller(labeller, clock, deoverlap, monkeypatch):
+    seen = []
+    monkeypatch.setattr(labelmaker.labelmaker_deoverlap, "deoverlap_from_nodes", seen.append)
+    labeller.nodes["Viewer1"] = _unpokeable_node("Viewer1")
+    request(labeller, clock, "Viewer1", "input 1")
+    request(labeller, clock, "Viewer1", "input 1\nrgba")
+    deoverlap.fire()
+    assert seen == [{"Viewer1"}]
+    assert labeller._pending_deoverlap == set()
+
+
+def test_text_change_without_new_lines_queues_no_deoverlap(labeller, clock, deoverlap):
+    labeller.nodes["Viewer1"] = _unpokeable_node("Viewer1")
+    request(labeller, clock, "Viewer1", "input 1\nrgba")
+    request(labeller, clock, "Viewer1", "input 2\nrgb")
+    request(labeller, clock, "Viewer1", "input 2")
+    assert labeller._pending_deoverlap == set() and not deoverlap.started
+
+
+def test_deoverlap_pref_off_queues_nothing(labeller, clock, deoverlap, monkeypatch):
+    monkeypatch.setattr(labelmaker.labelmaker_prefs.prefs_singleton, "get", lambda key: False)
+    labeller.nodes["Viewer1"] = _unpokeable_node("Viewer1")
+    request(labeller, clock, "Viewer1", "input 1")
+    request(labeller, clock, "Viewer1", "input 1\nrgba\n1920x1080")
+    assert labeller._pending_deoverlap == set() and not deoverlap.started
+
+
+def test_destroyed_node_forgets_its_shown_height(labeller, clock, deoverlap):
+    labeller.nodes["Viewer1"] = _unpokeable_node("Viewer1")
+    request(labeller, clock, "Viewer1", "input 1")
+    nuke.thisNode = lambda: labeller.nodes["Viewer1"]
+    labeller._on_node_destroyed()
+    assert "Viewer1" not in labeller._line_counts
+    request(labeller, clock, "Viewer1", "input 1\nrgba")
+    assert labeller._pending_deoverlap == set() and not deoverlap.started
+
 
 # --- invalidation ---
 

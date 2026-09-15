@@ -120,8 +120,8 @@ class AutolabelReplacement(object):
         }
         self.update_class_mappings_with_ofx_nodes()
         self.NAMELESS_NODES = ("Dot", "BackdropNode", "PostageStamp", "StickyNote")
-        self._line_counts = {}       # {node_name: int} last known line count per node
-        self._pending_deoverlap = set()  # node names whose height increased since last timer fire
+        self._line_counts = {}       # {full_name: int} lines in the string Nuke was last given
+        self._pending_deoverlap = set()  # node.name()s shown taller since the last timer fire
         self._deoverlap_timer = None  # created lazily; PySide6 is not imported at module level
         self._content = {}    # {full_name: text} from the last real build
         self._verify_key = {}  # {full_name: key} of that build; what verification compares
@@ -227,22 +227,26 @@ class AutolabelReplacement(object):
             return previous
         if text != previous:
             self._stall_t = now
+            self._note_shown_height(node, full_name, text)
         self._shown[full_name] = text
         return text
 
-    def _build_label(self):
-        autolabel = self._compose_label(write_indicators=True)
-        new_line_count = autolabel.count('\n') + 1
-        old_line_count = self._line_counts.get(self.node_name)
-        self._line_counts[self.node_name] = new_line_count
+    def _note_shown_height(self, node, full_name, text):
+        # queued from the show, not the build: de-overlap reads
+        # screenHeight(), which a held-back build has not changed yet
+        line_count = text.count('\n') + 1
+        shown_count = self._line_counts.get(full_name)
+        self._line_counts[full_name] = line_count
         if (
-            old_line_count is not None
-            and new_line_count > old_line_count
+            shown_count is not None
+            and line_count > shown_count
             and labelmaker_prefs.prefs_singleton.get("deoverlap_enabled")
         ):
-            self._pending_deoverlap.add(self.node_name)
+            self._pending_deoverlap.add(node.name())
             self._get_deoverlap_timer().start()  # restarts timer if already running
-        return autolabel
+
+    def _build_label(self):
+        return self._compose_label(write_indicators=True)
 
     def _compose_label(self, write_indicators=False, substitute_label=True):
         """The label text for nuke.thisNode(); read-only unless asked to
@@ -451,6 +455,7 @@ class AutolabelReplacement(object):
         self._content.pop(full_name, None)
         self._verify_key.pop(full_name, None)
         self._shown.pop(full_name, None)
+        self._line_counts.pop(full_name, None)
         self._stale.discard(full_name)
         self._fresh.discard(full_name)
         self._forced.discard(full_name)
