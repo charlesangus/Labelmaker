@@ -15,6 +15,8 @@ changed. Depends on M1 (same functions; land M1 first to avoid conflicts).
 
 - 2026-09-15 — Tcl/Python in a label knob is never executed by verification, and a `[`-label is poked only if the rest of its label changed: the user accepts that a Tcl-only change (e.g. `[frame]` after a frame step, `[value size]` after a bulk edit that touches nothing else in the label) can stay stale until Nuke next asks for that node — Nuke itself already often misses Tcl-label rebuilds and users know that limitation. Chosen over "always poke `[`-nodes after a burst" (an extra relabel of every Tcl-labelled node per pass) and over a per-node frame stamp (more state for a hole that is accepted anyway).
 
+- 2026-09-15 — Gate review round skipped: `/cat-pm --no-review` was passed for this run, so M2's diff (`2a5215a..ca80f86`) was merged into `label-cache` on the strength of the per-task verifies alone.
+
 ## Phase 2.1: Verify without substitution
 
 - [x] M2.P1.T1 — Compose a substitution-free verify key and compare keys instead of texts

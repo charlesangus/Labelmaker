@@ -65,8 +65,8 @@ edge cases and re-run against the fixed code with the results recorded.
 | ID | Milestone | Status | File |
 |----|-----------|--------|------|
 | M1 | Verification robustness (findings 2–5) | done | [M1-verification-robustness.md](PLAN/MILESTONES/M1-verification-robustness.md) |
-| M2 | Side-effect-free verification (finding 1) + docs | doing | [M2-side-effect-free-verification.md](PLAN/MILESTONES/M2-side-effect-free-verification.md) |
-| M3 | Harness expansion and re-validation (finding 6) | todo | [M3-harness-revalidation.md](PLAN/MILESTONES/M3-harness-revalidation.md) |
+| M2 | Side-effect-free verification (finding 1) + docs | done | [M2-side-effect-free-verification.md](PLAN/MILESTONES/M2-side-effect-free-verification.md) |
+| M3 | Harness expansion and re-validation (finding 6) | doing | [M3-harness-revalidation.md](PLAN/MILESTONES/M3-harness-revalidation.md) |
 
 # Open questions
 
