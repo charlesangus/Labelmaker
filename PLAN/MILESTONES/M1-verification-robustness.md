@@ -8,7 +8,7 @@ one fix plus its pytest coverage in `tests/test_label_cache.py`, committed on
 
 ## Phase 1.1: Queue integrity
 
-- [ ] M1.P1.T1 — A real request drops the node from `_verify_first` as well as `_verify` (finding 5)
+- [x] M1.P1.T1 — A real request drops the node from `_verify_first` as well as `_verify` (finding 5)
   - files: `labelmaker.py` (`create_autolabel`, ~line 199), `tests/test_label_cache.py`
   - approach: `create_autolabel` currently does `self._verify.discard(full_name)` before a real build; also discard from `self._verify_first` so the "first ⊆ verify" invariant holds. Add a test modelled on `test_real_request_during_verification_drops_the_node_from_the_queue`: make the node frame-dependent (e.g. `labeller._frame_dep.add(name)` before the pass, or monkeypatch `nuke.expression` to return 1.0 so the keys bit is set), run a whole-script pass, then a lone real request for that node, and assert it is in neither `_verify` nor `_verify_first`; then `go_idle` and assert it is not in `labeller.verified`.
   - verify: `python3 -m pytest tests/test_label_cache.py -q` passes, the new test fails on the pre-change code (confirm by stashing the fix once), `ruff check .` clean.
