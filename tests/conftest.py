@@ -7,11 +7,20 @@ import pytest
 
 
 class _StubUndoManager:
+    def __init__(self):
+        self._disabled = False
+        self.calls = []
+
     def disable(self):
-        pass
+        self.calls.append("disable")
+        self._disabled = True
 
     def enable(self):
-        pass
+        self.calls.append("enable")
+        self._disabled = False
+
+    def disabled(self):
+        return self._disabled
 
 
 class _StubMenu:
@@ -136,6 +145,11 @@ sys.modules["PySide6"] = _pyside6
 sys.modules["PySide6.QtWidgets"] = _qtwidgets
 sys.modules["PySide6.QtCore"] = _qtcore
 sys.modules["PySide6.QtGui"] = _qtgui
+
+
+@pytest.fixture(autouse=True)
+def _reset_undo_stub():
+    _nuke_stub.Undo = _StubUndoManager()
 
 
 @pytest.fixture
