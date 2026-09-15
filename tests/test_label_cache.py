@@ -484,6 +484,20 @@ def test_tcl_in_the_label_knob_runs_once_in_the_real_build_only(clock, monkeypat
     assert labeller._content["Grade1"] == "Grade1\n1001"
 
 
+def test_two_consecutive_real_builds_each_call_tcl_exactly_once(clock, monkeypatch):
+    labeller = AutolabelReplacement(_EmptyConfig())
+    node = _node("Grade1")
+    monkeypatch.setattr(nuke, "value", lambda path, default="": "[frame]" if path == "this.label" else default)
+    calls = []
+    monkeypatch.setattr(nuke, "tcl", lambda *args: calls.append(args) or "1001")
+    nuke.thisNode = lambda: node
+    assert labeller.create_autolabel() == "Grade1\n1001"
+    assert len(calls) == 1
+    clock.now += 1.0
+    assert labeller.create_autolabel() == "Grade1\n1001"
+    assert len(calls) == 2
+
+
 def test_verification_pokes_a_changed_label_knob_but_not_a_changed_tcl_result(clock, monkeypatch):
     """The [tcl] output is not part of the verify key: a label whose only
     change is what its [tcl] now yields waits for the next real request."""
@@ -524,6 +538,89 @@ def test_verification_pokes_a_changed_label_knob_but_not_a_changed_tcl_result(cl
     built_in_pass = set(names[:labelmaker.LABEL_BURST_MIN])
     assert {name for name, node in nodes.items() if node["dope_sheet"].sets} == built_in_pass | {"Grade20"}
     assert labeller._content["Grade20"] == "Grade20\n1001"   # the poke's build replaces it
+
+
+def test_idle_verification_of_a_cache_served_pass_never_calls_tcl(clock, monkeypatch):
+    """Only the pass's LABEL_BURST_MIN burst-establishing requests are real
+    builds; the rest is cache-served, and go_idle's verification of those
+    must not run [tcl] at all -- so even a since-changed [tcl] result never
+    causes a poke."""
+    labeller = AutolabelReplacement(_EmptyConfig())
+    labeller._refresh_timer = _FakeTimer()
+    labeller._refresh_timer.connect(labeller._refresh_stale_labels)
+    labeller._verify_timer = _FakeTimer()
+    labeller._verify_timer.connect(labeller._verify_slice)
+    names = ["Grade{}".format(i) for i in range(30)]
+    nodes = {name: _node(name) for name in names}
+    monkeypatch.setattr(nuke, "value", lambda path, default="": "[frame]" if path == "this.label" else default)
+    frame = ["1001"]
+    calls = []
+    monkeypatch.setattr(nuke, "tcl", lambda *args: calls.append(args) or frame[0])
+
+    def run_in(name, code):
+        nuke.thisNode = lambda: nodes[name]
+        eval(code)
+
+    monkeypatch.setattr(nuke, "runIn", run_in, raising=False)
+    monkeypatch.setattr(nuke, "toNode", lambda name: nodes.get(name))
+    for name in names:
+        clock.now += 1.0
+        nuke.thisNode = lambda name=name: nodes[name]
+        labeller.create_autolabel()
+    calls.clear()
+    for i, name in enumerate(names):
+        clock.now += 1.0 if i == 0 else 0.0001
+        nuke.thisNode = lambda name=name: nodes[name]
+        labeller.create_autolabel()
+    assert len(calls) == labelmaker.LABEL_BURST_MIN
+    calls.clear()
+    frame[0] = "1002"
+    go_idle(labeller, clock)
+    assert calls == []
+    assert {name for name, node in nodes.items() if node["dope_sheet"].sets} == set()
+
+
+def test_a_changed_label_knob_pokes_and_its_forced_rebuild_calls_tcl_once(clock, monkeypatch):
+    """Verification catching a changed label knob pokes the node; the
+    resulting forced real build must run [tcl] exactly once, not twice."""
+    labeller = AutolabelReplacement(_EmptyConfig())
+    labeller._refresh_timer = _FakeTimer()
+    labeller._refresh_timer.connect(labeller._refresh_stale_labels)
+    labeller._verify_timer = _FakeTimer()
+    labeller._verify_timer.connect(labeller._verify_slice)
+    names = ["Grade{}".format(i) for i in range(30)]
+    nodes = {name: _node(name) for name in names}
+    labels = {name: "[frame]" for name in names}
+    monkeypatch.setattr(
+        nuke, "value",
+        lambda path, default="": labels[nuke.thisNode().name()] if path == "this.label" else default,
+    )
+    calls = []
+    monkeypatch.setattr(nuke, "tcl", lambda *args: calls.append(args) or "1001")
+
+    def run_in(name, code):
+        nuke.thisNode = lambda: nodes[name]
+        eval(code)
+
+    monkeypatch.setattr(nuke, "runIn", run_in, raising=False)
+    monkeypatch.setattr(nuke, "toNode", lambda name: nodes.get(name))
+    for name in names:
+        clock.now += 1.0
+        nuke.thisNode = lambda name=name: nodes[name]
+        labeller.create_autolabel()
+    labels["Grade20"] = "[frame] v2"
+    for i, name in enumerate(names):
+        clock.now += 1.0 if i == 0 else 0.0001
+        nuke.thisNode = lambda name=name: nodes[name]
+        labeller.create_autolabel()
+    calls.clear()
+    go_idle(labeller, clock)
+    assert calls == []
+    assert {name for name, node in nodes.items() if node["dope_sheet"].sets} == {"Grade20"}
+    clock.now += 0.01
+    nuke.thisNode = lambda: nodes["Grade20"]
+    assert labeller.create_autolabel() == "Grade20\n1001"
+    assert len(calls) == 1
 
 
 def test_compose_in_context_runs_the_label_code_with_the_node_as_context(clock, monkeypatch):
