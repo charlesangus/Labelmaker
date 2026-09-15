@@ -31,7 +31,7 @@ changed. Depends on M1 (same functions; land M1 first to avoid conflicts).
 
 ## Phase 2.2: Documentation
 
-- [ ] M2.P2.T3 — Document the Tcl-label behaviour in the README and rebuild the User Guide
+- [x] M2.P2.T3 — Document the Tcl-label behaviour in the README and rebuild the User Guide
   - files: `README.md` (performance/caching paragraph, currently around line 177–178), `docs/user-guide.pdf`
   - approach: Extend the existing bullet about background re-checking with one or two sentences: label-knob text containing Tcl or `[python …]` is never executed by the background check — such a label refreshes when Nuke next asks for the node or when anything else in its label changes, so a purely Tcl-driven change (like `[frame]`) may lag until then; the label code never runs more often than Nuke's own autolabel would. Keep GFM-clean (no pandoc attributes). Run `make pdf` and commit README + PDF together (CLAUDE.md rule). No screenshots change.
   - verify: `make pdf` succeeds; `git status` shows only `README.md` and `docs/user-guide.pdf` changed; the README renders the new sentence in the caching bullet.
