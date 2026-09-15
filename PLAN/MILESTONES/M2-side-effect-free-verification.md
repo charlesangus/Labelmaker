@@ -23,7 +23,7 @@ changed. Depends on M1 (same functions; land M1 first to avoid conflicts).
   - verify: `python3 -m pytest tests/ -q` green; `ruff check .` clean; `grep -n "_content\[" labelmaker.py` shows no write inside `_verify_slice`.
   - size: M
 
-- [ ] M2.P1.T2 — Tests pinning the no-execution contract
+- [x] M2.P1.T2 — Tests pinning the no-execution contract
   - files: `tests/test_label_cache.py`
   - approach: Using the real `_compose_label` (no fixture stubbing of compose; monkeypatch `nuke.value` to return `"[frame]"` for `this.label` and `nuke.tcl` to count calls and return e.g. `"1001"`), cover: (a) a real build calls `nuke.tcl("subst", …)` exactly once and shows the substituted text; (b) a whole-script pass served from the cache followed by `go_idle` calls `nuke.tcl` **zero** times and, with nothing else changed, pokes nothing even if `nuke.tcl` would now return `"1002"`; (c) when a knob readout line changes for that node (e.g. monkeypatch the node's configured knob value or `nuke.expression` so `_note_frame_dependence`/indicators or a readout line differs) verification pokes the node and the resulting real build calls `nuke.tcl` exactly once more — one execution per pass, never two. Reuse `request`/`whole_script_pass`/`go_idle` where the fixture's stubs are compatible, or build a small dedicated fixture that only stubs the timers and `nuke.runIn`.
   - verify: the new tests pass; temporarily reverting M2.P1.T1's step (3) makes test (b)'s `nuke.tcl` count non-zero (confirm once, then restore).
