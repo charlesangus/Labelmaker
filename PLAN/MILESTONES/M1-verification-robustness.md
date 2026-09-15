@@ -14,7 +14,7 @@ one fix plus its pytest coverage in `tests/test_label_cache.py`, committed on
   - verify: `python3 -m pytest tests/test_label_cache.py -q` passes, the new test fails on the pre-change code (confirm by stashing the fix once), `ruff check .` clean.
   - size: S
 
-- [ ] M1.P1.T2 — `_verify_slice` survives a failing compose and always reschedules (finding 2)
+- [x] M1.P1.T2 — `_verify_slice` survives a failing compose and always reschedules (finding 2)
   - files: `labelmaker.py` (`_verify_slice`, `_pop_verify`, `_compose_in_context`), `tests/test_label_cache.py`
   - approach: Wrap the per-node work inside the slice loop so an exception from `_compose_in_context` (`nuke.runIn` propagates label-code exceptions) is caught per node: log it once via `nuke.warning("Labelmaker: could not verify <full_name>: <exc>")`, leave that node out of the queue (quarantined — it is rebuilt on Nuke's next real request, do not retry it in a loop) and continue with the next node. Put the post-loop scheduling (`_release_stale` / `_get_verify_timer().start(...)`) in a `finally` so the remaining queue is always continued even if something outside the per-node guard raises. Tests: with the `labeller` fixture, make `compose` raise for one name in a 30-node pass and assert (a) every other name ends up in `labeller.verified`, (b) `_verify` is empty after `go_idle`, (c) the failing node is not in `_stale`, (d) the changed labels of the others are still poked. Monkeypatch `nuke.warning` to capture the message.
   - verify: `python3 -m pytest tests/test_label_cache.py -q` passes with the new tests; `ruff check .` clean.
