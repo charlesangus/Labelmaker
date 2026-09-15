@@ -30,6 +30,8 @@ timeout; 10k runs take many minutes on this box.
 
 - 2026-09-15 — T3 findings (`/tmp/v3_d3000.txt`, `/tmp/v3_d3000_deoverlap.txt`): LiveGroup and Group-with-onCreate-Tcl inner labels update under `on` with no `could not verify`/runIn warning; `nuke.showDag(precomp)` is a no-op in 17.0v3 (logged n/a); expression-driven dependents are not re-requested by Nuke under either impl until the next pass (50/50 correct after it). Case (k) exposed a pre-existing de-overlap gap: de-overlap was queued at *build* time, so the 150 ms timer fired while held labels still showed the short text and the release never re-queued them (16 overlapping pairs left of 300). Fixed in `da3b88f`: de-overlap is queued where the shown text gains lines (6 tests); T4's deoverlap re-run confirms.
 
+- 2026-09-15 — T4's de-overlap re-run still left 15 Dot/Merge pairs after `da3b88f`. A consultant traced it to a pre-existing `labelmaker_deoverlap.py` short-circuit (from `c23be65`, June 2026) that judged a pusher against a node's *original* slot; `94fff94` resolves pushers top-down against the landing position, with 4 tests reproducing the cascade on a fake `nuke`. Harness case (k) is to be re-run once more (deoverlap `on`) against `94fff94`; the `Timeout (0:05:00)!` lines in every result file are the harness's own traceback watchdog, not stalls.
+
 ## Phase 3.1: New harness cases
 
 - [x] M3.P1.T1 — Step group `V`: regression cases for the review findings
