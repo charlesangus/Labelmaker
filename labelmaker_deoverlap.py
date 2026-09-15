@@ -62,7 +62,7 @@ def deoverlap_from_nodes(source_node_names):
 
         for node_name in sorted_node_names:
             node_bbox = position_cache[node_name]
-            max_pusher_bottom = None
+            pushers = []
             for pusher_name in dirty_names:
                 if pusher_name == node_name:
                     continue
@@ -76,17 +76,19 @@ def deoverlap_from_nodes(source_node_names):
                 # No actual overlap: the pusher's bottom is above this node.
                 if pusher_bbox[3] < node_bbox[1]:
                     continue
-                # No actual overlap: the pusher was pushed entirely below
-                # this node earlier in the sweep.
-                if pusher_bbox[1] > node_bbox[3]:
-                    continue
-                if max_pusher_bottom is None or pusher_bbox[3] > max_pusher_bottom:
-                    max_pusher_bottom = pusher_bbox[3]
+                pushers.append((pusher_bbox[1], pusher_bbox[3]))
 
-            if max_pusher_bottom is None:
-                continue
+            # Pushers are taken top-down against where the node will land,
+            # not where it started: a pusher already pushed entirely below
+            # the node's original slot still pushes it if the other pushers
+            # would land the node on top of it.
+            height = node_bbox[3] - node_bbox[1]
+            required_top = node_bbox[1]
+            for pusher_top, pusher_bottom in sorted(pushers):
+                if pusher_top > required_top + height:
+                    break
+                required_top = max(required_top, pusher_bottom + MINIMUM_GAP)
 
-            required_top = max_pusher_bottom + MINIMUM_GAP
             if required_top > node_bbox[1]:
                 push_amount = required_top - node_bbox[1]
                 node_bbox[1] += push_amount
