@@ -318,9 +318,7 @@ class AutolabelReplacement(object):
         return time.perf_counter() - self._burst["t"] < self._refresh_window() * 0.9
 
     def _release_stale(self):
-        names = list(self._stale)
-        self._stale.clear()
-        self._poke_nodes(names)
+        self._poke_nodes(list(self._stale), on_attempted=self._stale.discard)
 
     def _get_verify_timer(self):
         if self._verify_timer is None:
@@ -387,24 +385,34 @@ class AutolabelReplacement(object):
         nuke.runIn(full_name, _VERIFY_CODE)
         return _verify_slot[1] if len(_verify_slot) > 1 else None
 
-    def _poke_nodes(self, full_names, force=True):
+    def _poke_nodes(self, full_names, force=True, on_attempted=None):
         # Nothing in the API re-requests one node's label; a real knob change
         # does. Flipping dope_sheet and flipping it back in the same callback
         # yields exactly one relabel, no undo entry and no visible change.
         nuke.Undo.disable()
         try:
             for full_name in full_names:
-                node = nuke.toNode(full_name)
-                if node is None:
-                    continue
-                knob = node.knob("dope_sheet")
-                if knob is None:
-                    continue
-                if force:
-                    self._forced.add(full_name)
-                value = knob.value()
-                knob.setValue(not value)
-                knob.setValue(value)
+                try:
+                    node = nuke.toNode(full_name)
+                    if node is None:
+                        continue
+                    knob = node.knob("dope_sheet")
+                    if knob is None:
+                        continue
+                    if force:
+                        self._forced.add(full_name)
+                    value = knob.value()
+                    knob.setValue(not value)
+                    knob.setValue(value)
+                except Exception as exc:
+                    # a node stuck this way must not block the rest of the
+                    # batch, so it is dropped here rather than re-queued
+                    nuke.warning(
+                        "Labelmaker: could not refresh {}: {}".format(full_name, exc)
+                    )
+                finally:
+                    if on_attempted is not None:
+                        on_attempted(full_name)
         finally:
             nuke.Undo.enable()
 

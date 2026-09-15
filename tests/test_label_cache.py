@@ -56,6 +56,11 @@ class _RecordingKnob(StubKnob):
         super().setValue(value)
 
 
+class _FailingKnob(_RecordingKnob):
+    def setValue(self, value):
+        raise RuntimeError("boom")
+
+
 def _node(name):
     return StubNode("Grade", knobs={"name": StubKnob("name", name), "dope_sheet": _RecordingKnob("dope_sheet", False)})
 
@@ -169,6 +174,27 @@ def test_refresh_pokes_stale_node_and_releases_new_text(labeller, clock):
     # tests simulate it with a lone request
     assert request(labeller, clock, "Grade1", "gain 1.5", advance=0.01) == "gain 1.5"
     assert "Grade1" not in labeller._forced
+
+
+def test_a_poke_that_fails_does_not_lose_the_other_stale_nodes(labeller, clock, monkeypatch):
+    names = ["Grade1", "Grade2", "Grade3"]
+    failing = "Grade2"
+    labeller.nodes[failing] = StubNode(
+        "Grade",
+        knobs={"name": StubKnob("name", failing), "dope_sheet": _FailingKnob("dope_sheet", False)},
+    )
+    for name in names:
+        request(labeller, clock, name, "old")
+    for name in names:
+        request(labeller, clock, name, "new")
+    warnings = []
+    monkeypatch.setattr(nuke, "warning", lambda msg: warnings.append(msg))
+    clock.now += 1.0
+    labeller._refresh_timer.fire()
+    assert pokes(labeller) == {"Grade1", "Grade3"}
+    assert labeller._stale == set()
+    assert len(warnings) == 1
+    assert failing in warnings[0]
 
 
 def test_refresh_waits_while_traffic_continues(labeller, clock):
