@@ -17,10 +17,11 @@ import labelmaker_prefs
 # slider drags and scrubbing sluggish. So: answer bursts from the cache, never
 # return a changed string while the user is interacting, and once label
 # traffic has gone quiet verify every label that was answered from the cache
-# (rebuild it in the background, in slices) and release the ones that
-# differ. Nothing is inferred from a burst's size or cause: a bulk edit by a
-# tool and a whole-script pass are served the same way and both converge
-# (measured with the harness on the profiling-harness branch).
+# (recompose it in the background, in slices, without running any [tcl] in
+# the label knob) and release the ones that differ. Nothing is inferred from
+# a burst's size or cause: a bulk edit by a tool and a whole-script pass are
+# served the same way and both converge (measured with the harness on the
+# profiling-harness branch).
 LABEL_BURST_GAP_S = 0.005      # requests closer together than this are one pass
 LABEL_BURST_MIN = 8            # requests before a pass counts as a burst
 LABEL_REFRESH_MIN_S = 0.4      # quiet time before stale labels are released
@@ -29,14 +30,16 @@ LABEL_STALL_FACTOR = 5.0       # wait at least this many measured stalls
 LABEL_VERIFY_SLICE_S = 0.015   # background verification runs in slices this long,
 LABEL_VERIFY_GAP_MS = 0        # returning to the event loop between them
 
-# nuke.runIn() evaluates one expression and returns nothing: the verified
-# label comes back through this slot ([labeller] in, [labeller, text] out)
+# nuke.runIn() evaluates one expression and returns nothing: the verify key
+# comes back through this slot ([labeller] in, [labeller, key] out)
 _verify_slot = []
 _VERIFY_CODE = "__import__('labelmaker')._verify_run()"
 
 
 def _verify_run():
-    _verify_slot.append(_verify_slot[0]._compose_label())
+    labeller = _verify_slot[0]
+    labeller._compose_label(substitute_label=False)
+    _verify_slot.append(labeller.verify_key)
 
 
 # from https://gist.github.com/anonymous/a802f51391163a2bf0e3
@@ -118,13 +121,14 @@ class AutolabelReplacement(object):
         self._line_counts = {}       # {node_name: int} last known line count per node
         self._pending_deoverlap = set()  # node names whose height increased since last timer fire
         self._deoverlap_timer = None  # created lazily; PySide6 is not imported at module level
-        self._content = {}    # {full_name: (frame or None, text)} from the last real build
+        self._content = {}    # {full_name: text} from the last real build
+        self._verify_key = {}  # {full_name: key} of that build; what verification compares
         self._shown = {}      # {full_name: text} the string Nuke was last given
         self._forced = set()  # full names whose next request must build and show the result
         self._stale = set()   # full names shown with a string known to be out of date
         self._verify = set()  # full names answered from the cache, to be checked when idle
         self._verify_first = set()  # ... of which the frame-dependent ones, checked first
-        self._frame_dep = set()  # full names whose last build read keys, expressions or [tcl]
+        self._frame_dep = set()  # full names whose last build read keys or expressions
         self._burst = {"t": 0.0, "n": 0, "names": []}
         self._verify_timer = None   # created lazily; PySide6 is not imported at module level
         self._stall_t = None      # when a changed string was last handed to Nuke
@@ -200,6 +204,7 @@ class AutolabelReplacement(object):
         self._verify_first.discard(full_name)
         text = self._build_label()
         self._content[full_name] = text
+        self._verify_key[full_name] = self.verify_key
         self._note_frame_dependence(full_name)
         previous = self._shown.get(full_name)
         if previous is not None and text != previous and not was_forced and self._pokeable(node):
@@ -225,9 +230,11 @@ class AutolabelReplacement(object):
             self._get_deoverlap_timer().start()  # restarts timer if already running
         return autolabel
 
-    def _compose_label(self, write_indicators=False):
+    def _compose_label(self, write_indicators=False, substitute_label=True):
         """The label text for nuke.thisNode(); read-only unless asked to
-        update the indicators knob as Nuke's own autolabel does."""
+        update the indicators knob as Nuke's own autolabel does. Either way
+        self.verify_key is left holding the label with the label knob's raw
+        text in place of its substitution."""
         self.update()
         if write_indicators:
             self.set_indicators()
@@ -238,15 +245,15 @@ class AutolabelReplacement(object):
         self.channels_line_creator()
         self.knob_readout_creator()
         self.mix_line_creator()
-        self.label_readout_creator()
+        self.label_readout_creator(substitute_label)
         return "\n".join(self.lines)
 
     def _note_frame_dependence(self, full_name):
-        # keys or an expression (indicator bits 1 and 2), or TCL in the label
-        # knob: these are the labels a frame change alters, so they are
-        # verified first after a pass (an ordering hint, not a gate)
+        # keys or an expression (indicator bits 1 and 2): these are the labels
+        # a frame change alters, so they are verified first after a pass (an
+        # ordering hint, not a gate)
         indicators = getattr(self, "indicators", 0)
-        if bool(indicators & 3) or "[" in getattr(self, "node_label_raw", ""):
+        if bool(indicators & 3):
             self._frame_dep.add(full_name)
         else:
             self._frame_dep.discard(full_name)
@@ -329,9 +336,10 @@ class AutolabelReplacement(object):
         return self._verify_timer
 
     def _verify_slice(self):
-        """Rebuild a slice of the cache-answered labels; queue the ones that
-        differ from what Nuke is showing. Yields to the event loop between
-        slices and backs off while label traffic resumes."""
+        """Recompose a slice of the cache-answered labels; queue the ones
+        whose verify key differs from their last real build's. Yields to the
+        event loop between slices and backs off while label traffic
+        resumes."""
         if self._busy():
             self._arm_refresh()
             return
@@ -341,7 +349,7 @@ class AutolabelReplacement(object):
             while self._verify and time.perf_counter() < deadline:
                 full_name = self._pop_verify()
                 try:
-                    text = self._compose_in_context(full_name)
+                    key = self._compose_in_context(full_name)
                 except Exception as exc:
                     # _pop_verify already dropped full_name from the queue,
                     # so it is quarantined rather than retried; it rebuilds
@@ -350,11 +358,12 @@ class AutolabelReplacement(object):
                         "Labelmaker: could not verify {}: {}".format(full_name, exc)
                     )
                     continue
-                if text is None:
+                if key is None:
                     continue
-                self._content[full_name] = text
                 self._note_frame_dependence(full_name)
-                if text != self._shown.get(full_name):
+                if key != self._verify_key.get(full_name):
+                    # a changed [tcl] result alone is not seen here; that
+                    # label waits for the next real request
                     self._stale.add(full_name)
         finally:
             if self._verify:
@@ -376,7 +385,7 @@ class AutolabelReplacement(object):
         return full_name
 
     def _compose_in_context(self, full_name):
-        """The label the build would produce for `full_name` right now, or
+        """The verify key a build of `full_name` would record right now, or
         None if the node is gone. The label code reads nuke.thisNode() and
         'this.*' paths, so it has to run with the node as Nuke's context."""
         if nuke.toNode(full_name) is None:
@@ -429,6 +438,7 @@ class AutolabelReplacement(object):
 
     def _forget(self, full_name):
         self._content.pop(full_name, None)
+        self._verify_key.pop(full_name, None)
         self._shown.pop(full_name, None)
         self._stale.discard(full_name)
         self._forced.discard(full_name)
@@ -439,6 +449,7 @@ class AutolabelReplacement(object):
     def invalidate_labels(self):
         """Forget every cached label; nodes rebuild when Nuke next asks."""
         self._content.clear()
+        self._verify_key.clear()
         self._shown.clear()
         self._stale.clear()
         self._forced.clear()
@@ -665,10 +676,16 @@ class AutolabelReplacement(object):
             mix_line = "mix {:.3f}".format(float(mix))
             self.lines.append(mix_line)
 
-    def label_readout_creator(self):
-        # the raw knob is what tells TCL apart; once substituted, "[frame]"
-        # is just a number
+    def label_readout_creator(self, substitute_label=True):
         self.node_label_raw = nuke.value("this.label", "") or ""
+        # the key keeps the knob's raw text so that comparing keys never has
+        # to run the [tcl] in it (that may have side effects, and stock Nuke
+        # runs it once per real label request)
+        self.verify_key = "\n".join(
+            self.lines + ([self.node_label_raw] if self.node_label_raw else [])
+        )
+        if not substitute_label:
+            return
         node_label_value = self.node_label_raw
         with contextlib.suppress(RuntimeError):
             node_label_value = nuke.tcl("subst", node_label_value)

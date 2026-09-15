@@ -81,7 +81,7 @@ def labeller(monkeypatch, clock):
     labeller = AutolabelReplacement(_EmptyConfig())
     labeller._refresh_timer = _FakeTimer()
     labeller._refresh_timer.connect(labeller._refresh_stale_labels)
-    labeller.texts = {}      # {node name: text the build returns}
+    labeller.texts = {}      # {node name: text the build returns, and its verify key}
     labeller.builds = []     # names built, in order
     labeller.nodes = {}
 
@@ -90,11 +90,13 @@ def labeller(monkeypatch, clock):
     def build():
         name = nuke.thisNode().name()
         labeller.builds.append(name)
+        labeller.verify_key = labeller.texts[name]
         return labeller.texts[name]
 
-    def compose():
+    def compose(substitute_label=True):
         name = nuke.thisNode().name()
         labeller.verified.append(name)
+        labeller.verify_key = labeller.texts[name]
         return labeller.texts[name]
 
     def run_in(name, code):
@@ -327,9 +329,9 @@ def test_verification_runs_in_slices_and_yields_between_them(labeller, clock, mo
     whole_script_pass(labeller, clock, names)
     compose = labeller._compose_label
 
-    def slow_compose():
+    def slow_compose(**kwargs):
         clock.now += labelmaker.LABEL_VERIFY_SLICE_S  # each label exhausts the slice
-        return compose()
+        return compose(**kwargs)
 
     monkeypatch.setattr(labeller, "_compose_label", slow_compose)
     clock.now += 1.0
@@ -362,7 +364,7 @@ def test_frame_dependent_labels_are_verified_first_and_released_early(labeller, 
     names = ["Grade{}".format(i) for i in range(40)]
     for name in names:
         request(labeller, clock, name, "old")
-    labeller._frame_dep.update({"Grade20", "Grade30"})   # keys/expressions/[tcl] last time
+    labeller._frame_dep.update({"Grade20", "Grade30"})   # keys/expressions last time
     labeller.texts["Grade20"] = "new"
     labeller.texts["Grade9"] = "new"
     whole_script_pass(labeller, clock, names)
@@ -370,9 +372,9 @@ def test_frame_dependent_labels_are_verified_first_and_released_early(labeller, 
     assert labeller._verify_first == {"Grade20", "Grade30"}
     compose = labeller._compose_label
 
-    def slow_compose():
+    def slow_compose(**kwargs):
         clock.now += labelmaker.LABEL_VERIFY_SLICE_S  # one label per slice
-        return compose()
+        return compose(**kwargs)
 
     monkeypatch.setattr(labeller, "_compose_label", slow_compose)
     clock.now += 1.0
@@ -392,6 +394,11 @@ def test_frame_dependence_is_noted_from_the_build(clock, monkeypatch):
     labeller.create_autolabel()
     assert "Grade1" in labeller._frame_dep
     monkeypatch.setattr(nuke, "expression", lambda expr: 0.0)
+    clock.now += 1.0
+    labeller.create_autolabel()
+    assert "Grade1" not in labeller._frame_dep
+    # [tcl] in the label knob is not verified, so it is not a hint either
+    monkeypatch.setattr(nuke, "value", lambda path, default="": "[frame]" if path == "this.label" else default)
     clock.now += 1.0
     labeller.create_autolabel()
     assert "Grade1" not in labeller._frame_dep
@@ -418,10 +425,10 @@ def test_one_failing_composition_does_not_abandon_the_rest_of_the_queue(labeller
     whole_script_pass(labeller, clock, names)
     compose = labeller._compose_label
 
-    def flaky_compose():
+    def flaky_compose(**kwargs):
         if nuke.thisNode().name() == failing:
             raise RuntimeError("boom")
-        return compose()
+        return compose(**kwargs)
 
     monkeypatch.setattr(labeller, "_compose_label", flaky_compose)
     warnings = []
@@ -459,13 +466,64 @@ def test_real_request_during_verification_drops_the_node_from_verify_first(label
     assert "Grade20" not in labeller.verified
 
 
-def test_tcl_in_the_label_knob_is_composed_in_node_context(clock, monkeypatch):
+def test_tcl_in_the_label_knob_runs_once_in_the_real_build_only(clock, monkeypatch):
     labeller = AutolabelReplacement(_EmptyConfig())
+    node = _node("Grade1")
     monkeypatch.setattr(nuke, "value", lambda path, default="": "[frame]" if path == "this.label" else default)
-    monkeypatch.setattr(nuke, "tcl", lambda *args: "1001")
-    nuke.thisNode = lambda: _node("Grade1")
+    substitutions = []
+    monkeypatch.setattr(nuke, "tcl", lambda *args: substitutions.append(args) or "1001")
+    monkeypatch.setattr(nuke, "runIn", lambda name, code: eval(code), raising=False)
+    monkeypatch.setattr(nuke, "toNode", lambda name: node)
+    nuke.thisNode = lambda: node
     assert labeller.create_autolabel() == "Grade1\n1001"
     assert labeller._content["Grade1"] == "Grade1\n1001"
+    assert labeller._verify_key["Grade1"] == "Grade1\n[frame]"
+    assert substitutions == [("subst", "[frame]")]
+    assert labeller._compose_in_context("Grade1") == "Grade1\n[frame]"
+    assert substitutions == [("subst", "[frame]")]   # verification never substitutes
+    assert labeller._content["Grade1"] == "Grade1\n1001"
+
+
+def test_verification_pokes_a_changed_label_knob_but_not_a_changed_tcl_result(clock, monkeypatch):
+    """The [tcl] output is not part of the verify key: a label whose only
+    change is what its [tcl] now yields waits for the next real request."""
+    labeller = AutolabelReplacement(_EmptyConfig())
+    labeller._refresh_timer = _FakeTimer()
+    labeller._refresh_timer.connect(labeller._refresh_stale_labels)
+    labeller._verify_timer = _FakeTimer()
+    labeller._verify_timer.connect(labeller._verify_slice)
+    names = ["Grade{}".format(i) for i in range(30)]
+    nodes = {name: _node(name) for name in names}
+    labels = {name: "[frame]" for name in names}
+    monkeypatch.setattr(
+        nuke, "value",
+        lambda path, default="": labels[nuke.thisNode().name()] if path == "this.label" else default,
+    )
+    frame = ["1001"]
+    monkeypatch.setattr(nuke, "tcl", lambda *args: frame[0])
+
+    def run_in(name, code):
+        nuke.thisNode = lambda: nodes[name]
+        eval(code)
+
+    monkeypatch.setattr(nuke, "runIn", run_in, raising=False)
+    monkeypatch.setattr(nuke, "toNode", lambda name: nodes.get(name))
+    for name in names:
+        clock.now += 1.0
+        nuke.thisNode = lambda name=name: nodes[name]
+        assert labeller.create_autolabel() == name + "\n1001"
+    frame[0] = "1002"
+    labels["Grade20"] = "[frame] v2"
+    for i, name in enumerate(names):
+        clock.now += 1.0 if i == 0 else 0.0001
+        nuke.thisNode = lambda name=name: nodes[name]
+        labeller.create_autolabel()
+    go_idle(labeller, clock)
+    # the pass's first LABEL_BURST_MIN requests are real builds, which do run
+    # the [tcl] and see 1002; only Grade20 of the cache-answered rest is poked
+    built_in_pass = set(names[:labelmaker.LABEL_BURST_MIN])
+    assert {name for name, node in nodes.items() if node["dope_sheet"].sets} == built_in_pass | {"Grade20"}
+    assert labeller._content["Grade20"] == "Grade20\n1001"   # the poke's build replaces it
 
 
 def test_compose_in_context_runs_the_label_code_with_the_node_as_context(clock, monkeypatch):
