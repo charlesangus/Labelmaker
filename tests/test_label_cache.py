@@ -239,6 +239,37 @@ def test_slider_drag_changes_text_once_at_the_end(labeller, clock):
     assert request(labeller, clock, "Grade1", "gain 39", advance=0.01) == "gain 39"
 
 
+
+def test_held_label_is_released_without_a_second_build(labeller, clock):
+    request(labeller, clock, "Grade1", "gain 1.0")
+    assert request(labeller, clock, "Grade1", "gain 1.5") == "gain 1.0"
+    assert "Grade1" in labeller._fresh
+    clock.now += 1.0
+    labeller._refresh_timer.fire()
+    assert request(labeller, clock, "Grade1", advance=0.01) == "gain 1.5"
+    assert labeller.builds == ["Grade1", "Grade1"]
+    assert labeller._fresh == set() and labeller._forced == set()
+
+
+def test_slider_drag_builds_once_per_request_and_not_again_on_release(labeller, clock):
+    request(labeller, clock, "Grade1", "gain 1.0")
+    for i in range(40):
+        request(labeller, clock, "Grade1", "gain {}".format(i), advance=0.016)
+    clock.now += 1.0
+    labeller._refresh_timer.fire()
+    assert request(labeller, clock, "Grade1", advance=0.01) == "gain 39"
+    assert len(labeller.builds) == 41
+
+
+def test_held_label_edited_again_before_release_shows_the_latest_build(labeller, clock):
+    request(labeller, clock, "Grade1", "gain 1.0")
+    assert request(labeller, clock, "Grade1", "gain 1.5") == "gain 1.0"
+    assert request(labeller, clock, "Grade1", "gain 2.0") == "gain 1.0"
+    clock.now += 1.0
+    labeller._refresh_timer.fire()
+    assert request(labeller, clock, "Grade1", advance=0.01) == "gain 2.0"
+    assert labeller.builds == ["Grade1"] * 3
+
 # --- bursts ---
 
 
@@ -651,6 +682,101 @@ def test_node_without_dope_sheet_is_rebuilt_and_shown_in_a_burst(labeller, clock
     assert set(names[labelmaker.LABEL_BURST_MIN:-1]) <= labeller._verify
 
 
+
+def test_bulk_edit_builds_each_node_exactly_once(labeller, clock):
+    names = ["Grade{}".format(i) for i in range(30)]
+    for name in names:
+        request(labeller, clock, name, "old")
+    for name in names:
+        labeller.texts[name] = "new"
+    labeller.builds = []
+    whole_script_pass(labeller, clock, names)
+    assert set(labeller._fresh) == set(names[:labelmaker.LABEL_BURST_MIN])
+    go_idle(labeller, clock)
+    assert pokes(labeller) == set(names)
+    assert all(request(labeller, clock, name, advance=0.01) == "new" for name in names)
+    assert sorted(labeller.builds) == sorted(names)
+    assert labeller._fresh == set()
+
+
+def test_held_label_served_from_cache_in_a_later_pass_is_rebuilt_on_release(labeller, clock):
+    names = ["Grade{}".format(i) for i in range(30)]
+    for name in names:
+        request(labeller, clock, name, "old")
+    assert request(labeller, clock, "Grade20", "new") == "old"   # lone edit: held back
+    labeller.texts["Grade20"] = "newest"                          # a further edit the cache has not built
+    whole_script_pass(labeller, clock, names)
+    assert "Grade20" not in labeller._fresh
+    go_idle(labeller, clock)
+    assert "Grade20" in pokes(labeller)
+    labeller.builds = []
+    assert request(labeller, clock, "Grade20", advance=0.01) == "newest"
+    assert labeller.builds == ["Grade20"]
+
+
+def test_verification_flagged_label_is_rebuilt_on_release(labeller, clock):
+    names = ["Grade{}".format(i) for i in range(30)]
+    for name in names:
+        request(labeller, clock, name, "old")
+    labeller.texts["Grade20"] = "new"
+    whole_script_pass(labeller, clock, names)
+    go_idle(labeller, clock)
+    assert pokes(labeller) == {"Grade20"}
+    labeller.builds = []
+    assert request(labeller, clock, "Grade20", advance=0.01) == "new"
+    assert labeller.builds == ["Grade20"]
+
+
+def test_bulk_label_edit_runs_tcl_once_per_node_including_the_held_ones(clock, monkeypatch):
+    """A tool editing every node's label knob: the pass's first
+    LABEL_BURST_MIN requests are built for real and held back, the rest are
+    cache-served and caught by verification. Releasing them all must run
+    the [tcl] once per node in total, never a second time for the held
+    builds."""
+    labeller = AutolabelReplacement(_EmptyConfig())
+    labeller._refresh_timer = _FakeTimer()
+    labeller._refresh_timer.connect(labeller._refresh_stale_labels)
+    labeller._verify_timer = _FakeTimer()
+    labeller._verify_timer.connect(labeller._verify_slice)
+    names = ["Grade{}".format(i) for i in range(30)]
+    nodes = {name: _node(name) for name in names}
+    labels = {name: "[frame]" for name in names}
+    monkeypatch.setattr(
+        nuke, "value",
+        lambda path, default="": labels[nuke.thisNode().name()] if path == "this.label" else default,
+    )
+    tcl_calls = []
+    monkeypatch.setattr(
+        nuke, "tcl",
+        lambda *args: tcl_calls.append(nuke.thisNode().name()) or args[1].replace("[frame]", "1001"),
+    )
+
+    def run_in(name, code):
+        nuke.thisNode = lambda: nodes[name]
+        eval(code)
+
+    monkeypatch.setattr(nuke, "runIn", run_in, raising=False)
+    monkeypatch.setattr(nuke, "toNode", lambda name: nodes.get(name))
+    for name in names:
+        clock.now += 1.0
+        nuke.thisNode = lambda name=name: nodes[name]
+        assert labeller.create_autolabel() == name + "\n1001"
+    tcl_calls.clear()
+    for name in names:
+        labels[name] = "[frame] v2"
+    for i, name in enumerate(names):
+        clock.now += 1.0 if i == 0 else 0.0001
+        nuke.thisNode = lambda name=name: nodes[name]
+        assert labeller.create_autolabel() == name + "\n1001"
+    assert sorted(tcl_calls) == sorted(names[:labelmaker.LABEL_BURST_MIN])
+    go_idle(labeller, clock)
+    assert {name for name, node in nodes.items() if node["dope_sheet"].sets} == set(names)
+    for name in names:
+        clock.now += 0.01
+        nuke.thisNode = lambda name=name: nodes[name]
+        assert labeller.create_autolabel() == name + "\n1001 v2"
+    assert sorted(tcl_calls) == sorted(names)
+
 # --- invalidation ---
 
 
@@ -660,6 +786,27 @@ def test_destroyed_node_forgets_its_label(labeller, clock):
     labeller._on_node_destroyed()
     assert "Grade1" not in labeller._content and "Grade1" not in labeller._shown
     assert request(labeller, clock, "Grade1", "gain 2.0") == "gain 2.0"
+
+
+def test_destroyed_node_forgets_its_held_build(labeller, clock):
+    request(labeller, clock, "Grade1", "gain 1.0")
+    request(labeller, clock, "Grade1", "gain 1.5")
+    assert "Grade1" in labeller._fresh
+    nuke.thisNode = lambda: labeller.nodes["Grade1"]
+    labeller._on_node_destroyed()
+    assert labeller._fresh == set()
+
+
+def test_invalidation_while_held_forces_a_real_build(labeller, clock, monkeypatch):
+    request(labeller, clock, "Grade1", "gain 1.0")
+    request(labeller, clock, "Grade1", "gain 1.5")
+    monkeypatch.setattr(nuke, "allNodes", lambda recurseGroups=False: list(labeller.nodes.values()))
+    labeller.refresh_all_labels()
+    assert labeller._fresh == set()
+    assert "Grade1" in labeller._forced
+    labeller.builds = []
+    assert request(labeller, clock, "Grade1", advance=0.01) == "gain 1.5"
+    assert labeller.builds == ["Grade1"]
 
 
 def test_created_node_forgets_entries_left_under_its_name(labeller, clock):

@@ -18,10 +18,12 @@ import labelmaker_prefs
 # return a changed string while the user is interacting, and once label
 # traffic has gone quiet verify every label that was answered from the cache
 # (recompose it in the background, in slices, without running any [tcl] in
-# the label knob) and release the ones that differ. Nothing is inferred from
-# a burst's size or cause: a bulk edit by a tool and a whole-script pass are
-# served the same way and both converge (measured with the harness on the
-# profiling-harness branch).
+# the label knob) and release the ones that differ. A build that was held
+# back is shown as it is when released; only a label that was answered from
+# the cache is rebuilt, so the label knob's [tcl] runs once per request, as
+# it does in stock Nuke. Nothing is inferred from a burst's size or cause: a
+# bulk edit by a tool and a whole-script pass are served the same way and
+# both converge (measured with the harness on the profiling-harness branch).
 LABEL_BURST_GAP_S = 0.005      # requests closer together than this are one pass
 LABEL_BURST_MIN = 8            # requests before a pass counts as a burst
 LABEL_REFRESH_MIN_S = 0.4      # quiet time before stale labels are released
@@ -124,8 +126,9 @@ class AutolabelReplacement(object):
         self._content = {}    # {full_name: text} from the last real build
         self._verify_key = {}  # {full_name: key} of that build; what verification compares
         self._shown = {}      # {full_name: text} the string Nuke was last given
-        self._forced = set()  # full names whose next request must build and show the result
+        self._forced = set()  # full names whose next request must show its held build or rebuild
         self._stale = set()   # full names shown with a string known to be out of date
+        self._fresh = set()   # ... of which the ones whose _content is the build that was held back
         self._verify = set()  # full names answered from the cache, to be checked when idle
         self._verify_first = set()  # ... of which the frame-dependent ones, checked first
         self._frame_dep = set()  # full names whose last build read keys or expressions
@@ -197,18 +200,29 @@ class AutolabelReplacement(object):
             # pass or a bulk edit): the idle verification finds out whether
             # the string is still right
             self._burst["names"].append(full_name)
+            # asked again without a build: a held build is not known to be
+            # current any more, so its release has to rebuild
+            self._fresh.discard(full_name)
             return self._shown.get(full_name, cached)
         was_forced = full_name in self._forced
         self._forced.discard(full_name)
         self._verify.discard(full_name)
         self._verify_first.discard(full_name)
-        text = self._build_label()
-        self._content[full_name] = text
-        self._verify_key[full_name] = self.verify_key
-        self._note_frame_dependence(full_name)
+        if was_forced and cached is not None and full_name in self._fresh:
+            # the poke only releases a string already built for real and held
+            # back; showing it needs no second build (stock runs the label
+            # knob's [tcl] once per request, and so does this)
+            text = cached
+        else:
+            text = self._build_label()
+            self._content[full_name] = text
+            self._verify_key[full_name] = self.verify_key
+            self._note_frame_dependence(full_name)
+        self._fresh.discard(full_name)
         previous = self._shown.get(full_name)
         if previous is not None and text != previous and not was_forced and self._pokeable(node):
             # keep showing the old string; the idle refresh releases the new one
+            self._fresh.add(full_name)
             self._mark_stale(full_name)
             return previous
         if text != previous:
@@ -438,6 +452,7 @@ class AutolabelReplacement(object):
         self._verify_key.pop(full_name, None)
         self._shown.pop(full_name, None)
         self._stale.discard(full_name)
+        self._fresh.discard(full_name)
         self._forced.discard(full_name)
         self._verify.discard(full_name)
         self._verify_first.discard(full_name)
@@ -449,6 +464,7 @@ class AutolabelReplacement(object):
         self._verify_key.clear()
         self._shown.clear()
         self._stale.clear()
+        self._fresh.clear()
         self._forced.clear()
         self._verify.clear()
         self._verify_first.clear()
