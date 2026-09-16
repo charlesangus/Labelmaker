@@ -32,6 +32,8 @@ timeout; 10k runs take many minutes on this box.
 
 - 2026-09-15 — T4's de-overlap re-run still left 15 Dot/Merge pairs after `da3b88f`. A consultant traced it to a pre-existing `labelmaker_deoverlap.py` short-circuit (from `c23be65`, June 2026) that judged a pusher against a node's *original* slot; `94fff94` resolves pushers top-down against the landing position, with 4 tests reproducing the cascade on a fake `nuke`. Harness case (k) is to be re-run once more (deoverlap `on`) against `94fff94`; the `Timeout (0:05:00)!` lines in every result file are the harness's own traceback watchdog, not stalls.
 
+- 2026-09-15 — T4 complete. Result files (all `EXIT 0`, no tracebacks): `s_d3000_fixed.txt`, `s_d10000_fixed.txt`, `v_d3000.txt` (HEAD `da3b88f`), `v_d10000.txt` (HEAD `94fff94`, `labelmaker.py` identical to `da3b88f`), `v_d3000_deoverlap.txt` (HEAD `94fff94`; the pre-fix run is kept as `v_d3000_deoverlap_da3b88f.txt`). `94fff94` only touched `labelmaker_deoverlap.py` + its tests, so the `da3b88f` runs stand for every non-de-overlap case. Case (k) after the pusher fix: 0 new overlapping pairs (want 0), 300/300 fed. Remaining MISMATCH lines are all expected: the `S` "bulk label inside Group" `0/8 show 'sgrp'` line is the same under both impls and identical to the §11 baseline (`spike_verify_d3000.txt:158` — Group innards are never labelled until the Group is shown; the next step reads 8/8); the `V` (g) `activeViewer().play` lines are the T2 environmental finding. One new residual at 10k: `V on (g2)` settled 6.93 s after 3 s of frame-stepping in the first of two samples (second: 4.92 s; threshold 6 s; 3k: 1.5–1.8 s) — the deferred verify queue (~10.6k verifications) draining after playback, on a box where stock needs 19–21 s to step the same 75 frames (`on`: 4–5.4 s). Timing, not a count check; to be recorded in §12 as a residual, not a regression.
+
 ## Phase 3.1: New harness cases
 
 - [x] M3.P1.T1 — Step group `V`: regression cases for the review findings
@@ -54,7 +56,7 @@ timeout; 10k runs take many minutes on this box.
 
 ## Phase 3.2: Re-run and record
 
-- [ ] M3.P2.T4 — Full census re-run at 3k and 10k against the fixed code
+- [x] M3.P2.T4 — Full census re-run at 3k and 10k against the fixed code
   - files: `.profiling/results/` (new `v_d3000.txt`, `v_d10000.txt`, `s_d3000_fixed.txt`, `s_d10000_fixed.txt`), no source changes
   - approach: From `label-cache` at the M2 gate commit, run `.profiling/run_drawpath.sh .profiling/scripts/lm_d3000.nk both` and the 10k script with `LM_PROFILE_ONLY="S"` (the existing verify-at-idle cases, to confirm nothing regressed) and `LM_PROFILE_ONLY="V"`, capturing each run's output into `.profiling/results/<name>.txt`. Run each in the background with a ≥ 30-minute timeout, one at a time (one Nuke per box); before each run `pkill -x Nuke` any stray instance. If a run hangs past the timeout, kill it, note it in the results file name (`_aborted`) and re-run once.
   - verify: the four result files exist, end with the harness's finish summary, and every `S` `->` check reports the same pass/fail as §11 of `RESULTS-2026-09-13.md` (all OK) and every `V` check the expected count.
