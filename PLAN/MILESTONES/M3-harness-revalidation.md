@@ -62,7 +62,7 @@ timeout; 10k runs take many minutes on this box.
   - verify: the four result files exist, end with the harness's finish summary, and every `S` `->` check reports the same pass/fail as §11 of `RESULTS-2026-09-13.md` (all OK) and every `V` check the expected count.
   - size: M
 
-- [ ] M3.P2.T5 — Write up §12 of the results and refresh the harness README
+- [x] M3.P2.T5 — Write up §12 of the results and refresh the harness README
   - files: `.profiling/RESULTS-2026-09-13.md` (append `## 12. Review fixes and expanded edge cases (2026-09-xx)`), `.profiling/README.md` (mention group `V` and the new counter module if any)
   - approach: Summarise per case: what was exercised, stock vs. on numbers (label calls, Tcl executions, settle times), pass/fail, and any new residual (e.g. Tcl-only changes staying stale by design — cite M2's decision). Keep the same tabular style as §11. Note the code SHA tested and the harness SHA.
   - verify: the section reads standalone; every claim cites a `results/*.txt` file.
