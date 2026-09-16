@@ -34,6 +34,8 @@ timeout; 10k runs take many minutes on this box.
 
 - 2026-09-15 — T4 complete. Result files (all `EXIT 0`, no tracebacks): `s_d3000_fixed.txt`, `s_d10000_fixed.txt`, `v_d3000.txt` (HEAD `da3b88f`), `v_d10000.txt` (HEAD `94fff94`, `labelmaker.py` identical to `da3b88f`), `v_d3000_deoverlap.txt` (HEAD `94fff94`; the pre-fix run is kept as `v_d3000_deoverlap_da3b88f.txt`). `94fff94` only touched `labelmaker_deoverlap.py` + its tests, so the `da3b88f` runs stand for every non-de-overlap case. Case (k) after the pusher fix: 0 new overlapping pairs (want 0), 300/300 fed. Remaining MISMATCH lines are all expected: the `S` "bulk label inside Group" `0/8 show 'sgrp'` line is the same under both impls and identical to the §11 baseline (`spike_verify_d3000.txt:158` — Group innards are never labelled until the Group is shown; the next step reads 8/8); the `V` (g) `activeViewer().play` lines are the T2 environmental finding. One new residual at 10k: `V on (g2)` settled 6.93 s after 3 s of frame-stepping in the first of two samples (second: 4.92 s; threshold 6 s; 3k: 1.5–1.8 s) — the deferred verify queue (~10.6k verifications) draining after playback, on a box where stock needs 19–21 s to step the same 75 frames (`on`: 4–5.4 s). Timing, not a count check; to be recorded in §12 as a residual, not a regression.
 
+- 2026-09-15 — T6 landed as `14cf760` on `profiling-harness` (pushed). Two deviations from the task's recipe, both environmental: `/home/bosley/git` is root-owned, so the worktree was created at `/home/bosley/Labelmaker-harness` instead of `../Labelmaker-harness`; there is no `rsync` on the box, so the copy used `find … | xargs cp -a --parents` with the same exclusions (`home`, `tmp`, `__pycache__`). Gate passed: `S` unchanged from §11 at 3k/10k, every `V` case logged stock vs on with no traceback, §12 written, `label-cache` HEAD `94fff94` untouched.
+
 ## Phase 3.1: New harness cases
 
 - [x] M3.P1.T1 — Step group `V`: regression cases for the review findings
@@ -68,7 +70,7 @@ timeout; 10k runs take many minutes on this box.
   - verify: the section reads standalone; every claim cites a `results/*.txt` file.
   - size: S
 
-- [ ] M3.P2.T6 — Commit the harness changes and results on `profiling-harness`
+- [x] M3.P2.T6 — Commit the harness changes and results on `profiling-harness`
   - files: `.profiling/**` (via a separate worktree of `profiling-harness`)
   - approach: `git worktree add ../Labelmaker-harness profiling-harness`; `rsync -a --exclude home --exclude tmp .profiling/ ../Labelmaker-harness/.profiling/`; in that worktree `git add .profiling && git commit` with a message listing the new group, results and §12; `git push origin profiling-harness`; then `git worktree remove ../Labelmaker-harness`. Do **not** check out `profiling-harness` in the main working tree (the ignored `.profiling/` would be clobbered).
   - verify: `git log --oneline -1 profiling-harness` shows the commit; `git diff --stat label-cache profiling-harness -- .profiling` lists only `.profiling/` files; `git status` on `label-cache` is unchanged (only the untracked `CODEX-REVIEW-FINDINGS.md`).
