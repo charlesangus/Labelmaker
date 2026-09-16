@@ -1,0 +1,254 @@
+# HEAD da3b88f  LM_PROFILE_DEOVERLAP=1 LM_PROFILE_ONLY='V '  lm_d3000.nk on  2026-09-15T13:08:59-04:00
+for more information.
+
+##############################################################################
+# Labelmaker draw-path profile — mode=on deoverlap=True script=/home/bosley/git/Labelmaker/.profiling/tmp/lm_d3000.nk
+##############################################################################
+DAG window 1256x405
+[13:09.05] Warning: Could not find value "scene_linear" for "colorspace". It will be appended to the menu list.
+[13:09.05] Warning: Could not find value "ACES - ACEScg" for "colorspace". It will be appended to the menu list.
+  scriptOpen (lm_d3000.nk)                 calls=3002  builds=0     hits=0     action= 1313.7ms  settled_after=  0.65s  label_py=  583.2ms  builds=2977 pokes=0 (0ms) verified=26 (9ms) slices=1 span=0.00s
+3002 nodes loaded; autolabel calls so far = 3003
+
+  script open — per node class (slowest total first)
+  class                                         calls   total ms   mean us
+  Grade                                           265       81.2     306.3
+  Read                                            312       72.2     231.4
+  Roto                                             91       42.3     464.6
+  Merge2                                          170       39.7     233.6
+  ColorCorrect                                    124       38.5     310.2
+  Blur                                            169       29.5     174.6
+  Reformat                                        124       28.6     230.5
+  Dot                                             306       28.1      91.8
+  Transform                                       124       26.9     217.2
+  Constant                                        170       20.4     120.0
+  Premult                                         153       18.3     119.7
+  ZDefocus2                                        62       13.8     222.6
+  Write                                            46       12.9     281.2
+  Unpremult                                       107       12.7     118.7
+  Copy                                             45       10.6     236.1
+  HueCorrect                                       62        9.9     160.5
+  EdgeBlur                                         46        8.3     181.5
+  Multiply                                         40        8.2     205.1
+
+event census (calls = label requests from Nuke; label_py = time in the Python label fn, stock or Labelmaker)
+  V viewer connect #1                      calls=1     builds=0     hits=0     action=   69.6ms  settled_after=  0.19s  label_py=    0.4ms  builds=1 pokes=0 (0ms) verified=0 (0ms)
+  V viewer connect #2 other node           calls=0     builds=0     hits=0     action=    1.4ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+[13:09.16] ERROR: Grade2.gamma: Viewer1
+(rgba)
+      first slices (work ms, n, gap ms, busy): (15,73,0,0) (15,74,2,0) (26,92,63,0) (0,0,9,1) (15,92,418,0) (15,92,60,0) (15,100,3,0) (15,80,64,0) (15,84,1,0) (15,89,55,0) (15,77,1,0) (15,89,56,0)
+  V frame +1                               calls=3317  builds=0     hits=0     action=    0.1ms  settled_after=  2.56s  label_py=   87.1ms  builds=682 pokes=314 (105ms) verified=2609 (419ms) first_release=0.91s releases=2 slices=30 span=1.60s gap median=3ms p95=63ms busy_exits=1
+  V viewer connect #3 after frame change   calls=0     builds=0     hits=0     action=    1.1ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+  V viewer connect #4                      calls=0     builds=0     hits=0     action=    3.8ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+  V knob edit                              calls=2     builds=0     hits=0     action=    0.4ms  settled_after=  0.52s  label_py=    0.9ms  builds=1 pokes=1 (6ms) verified=0 (0ms) first_release=0.42s releases=1
+  V viewer connect #5 after knob edit      calls=0     builds=0     hits=0     action=    3.4ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+  V rename node                            calls=1     builds=0     hits=0     action=    1.0ms  settled_after=  0.09s  label_py=    0.3ms  builds=1 pokes=0 (0ms) verified=0 (0ms)
+      first slices (work ms, n, gap ms, busy): (15,84,0,0) (15,59,2,0) (25,90,65,0) (0,0,8,1) (15,96,472,0) (15,84,2,0) (15,104,61,0) (15,98,2,0) (15,93,61,0) (15,94,2,0) (15,90,64,0) (15,103,1,0)
+  V frame +1 after rename                  calls=3316  builds=0     hits=0     action=    0.1ms  settled_after=  2.27s  label_py=   83.7ms  builds=682 pokes=314 (75ms) verified=2608 (414ms) first_release=0.59s releases=2 slices=29 span=1.60s gap median=3ms p95=65ms busy_exits=1
+  V viewer connect #6 after rename         calls=0     builds=0     hits=0     action=    1.2ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+  V create node                            calls=1     builds=0     hits=0     action=    2.3ms  settled_after=  0.09s  label_py=    0.5ms  builds=1 pokes=0 (0ms) verified=0 (0ms)
+      first slices (work ms, n, gap ms, busy): (15,89,0,0) (15,81,2,0) (25,76,64,0) (0,0,9,1) (15,95,468,0) (15,92,56,0) (15,106,2,0) (15,95,61,0) (15,94,1,0) (15,97,2,0) (15,83,62,0) (15,101,2,0)
+  V frame +1 after create                  calls=3317  builds=0     hits=0     action=    0.2ms  settled_after=  2.22s  label_py=   87.5ms  builds=682 pokes=314 (62ms) verified=2609 (411ms) first_release=0.58s releases=2 slices=29 span=1.64s gap median=9ms p95=63ms busy_exits=1
+  V viewer connect #7 after create         calls=0     builds=0     hits=0     action=    1.1ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+  V delete node                            calls=0     builds=0     hits=0     action=    0.7ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      first slices (work ms, n, gap ms, busy): (15,81,0,0) (15,69,55,0) (27,90,2,0) (0,0,69,1) (15,97,422,0) (15,95,2,0) (15,105,61,0) (15,96,2,0) (15,90,61,0) (15,92,2,0) (15,90,60,0) (15,109,1,0)
+  V frame +1 after delete                  calls=3317  builds=0     hits=0     action=    0.2ms  settled_after=  2.24s  label_py=   82.6ms  builds=682 pokes=314 (71ms) verified=2609 (412ms) first_release=0.56s releases=2 slices=29 span=1.60s gap median=4ms p95=64ms busy_exits=1
+  V viewer connect #8 after delete         calls=0     builds=0     hits=0     action=    1.5ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+  V disconnect viewer                      calls=0     builds=0     hits=0     action=    1.0ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      first slices (work ms, n, gap ms, busy): (15,78,0,0) (15,72,2,0) (24,89,67,0) (0,0,8,1) (15,93,447,0) (15,82,59,0) (15,94,4,0) (15,89,65,0) (15,86,1,0) (15,80,2,0) (15,84,65,0) (15,86,2,0)
+  V frame +1 after disconnect              calls=3317  builds=0     hits=0     action=    0.1ms  settled_after=  2.38s  label_py=   84.9ms  builds=682 pokes=314 (70ms) verified=2609 (456ms) first_release=0.57s releases=2 slices=32 span=1.79s gap median=4ms p95=68ms busy_exits=1
+  V viewer connect #9 after disconnect     calls=0     builds=0     hits=0     action=    0.6ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+  V root first_frame change                calls=0     builds=0     hits=0     action=    0.3ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+  V viewer connect #10 after root edit     calls=0     builds=0     hits=0     action=    4.1ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      first slices (work ms, n, gap ms, busy): (15,90,0,0) (15,86,2,0) (25,99,59,0) (0,0,11,1) (15,96,471,0) (15,82,59,0) (15,101,2,0) (15,92,63,0) (15,92,1,0) (15,93,2,0) (15,79,66,0) (15,107,2,0)
+  V frame +1 after root edit               calls=3317  builds=0     hits=0     action=    0.1ms  settled_after=  2.28s  label_py=   85.2ms  builds=682 pokes=314 (76ms) verified=2609 (415ms) first_release=0.59s releases=2 slices=30 span=1.69s gap median=3ms p95=66ms busy_exits=1
+  V select all + deselect                  calls=0     builds=0     hits=0     action=   34.5ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+  V viewer connect #11                     calls=0     builds=0     hits=0     action=    2.2ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+  V zoom 0.15 + viewer connect #12         calls=0     builds=0     hits=0     action=    3.5ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      >>> label implementation: stock
+  V impl stock                             calls=0     builds=0     hits=0     action=    1.1ms  settled_after=  0.00s  label_py=    0.0ms
+      Undo.disabled()=False (want False)  ->  OK
+  V stock  -> undo alive at group start    calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  V stock warm: edit + frame +1 (whole-script pass) calls=3003  builds=0     hits=0     action=    0.1ms  settled_after=  0.23s  label_py=  203.5ms
+  V stock (a) set [python] label on 200    calls=200   builds=0     hits=0     action=    3.0ms  settled_after=  0.14s  label_py=   20.5ms
+      tcl execs [set label on 200] stock=200  ->  want 200: OK
+      (stock: no cache to inspect)
+  V stock (a)  -> tcl execs: set label     calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  V stock (a) pass: frame +1               calls=2803  builds=0     hits=0     action=    0.1ms  settled_after=  0.22s  label_py=  187.5ms
+      tcl execs [frame +1 pass] stock=0  ->  (reference)
+  V stock (a)  -> tcl execs: frame +1      calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  V stock (a) pass: viewer connect         calls=0     builds=0     hits=0     action=    3.7ms  settled_after=  0.00s  label_py=    0.0ms
+      tcl execs [viewer connect pass] stock=0  ->  (reference)
+  V stock (a)  -> tcl execs: viewer connect calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  V stock (a) bulk edit label on the 200   calls=200   builds=0     hits=0     action=    9.4ms  settled_after=  0.16s  label_py=   25.1ms
+      tcl execs [bulk label edit on 200] stock=200  ->  want 200: OK
+      (stock: no cache to inspect)
+  V stock (a)  -> tcl execs: bulk label edit calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  V stock (a) open panel of a [python] Grade + zoom calls=0     builds=0     hits=0     action=   24.3ms  settled_after=  0.00s  label_py=    0.0ms
+  V stock (a) X slider drag its white (40 moves) calls=41    builds=0     hits=0     action=    6.2ms  settled_after=  1.06s  label_py=   10.6ms  ticks=51 lat mean=6.7ms p95=12.2ms max=17.7ms
+      tcl execs [slider drag] stock=41  ->  (reference)
+  V stock (a)  -> tcl execs: slider drag   calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  V stock (a) close panel                  calls=0     builds=0     hits=0     action=    3.6ms  settled_after=  0.00s  label_py=    0.0ms
+  V stock (b) edit size on 100 [python] Blurs calls=100   builds=0     hits=0     action=    4.1ms  settled_after=  0.05s  label_py=   12.5ms
+      tcl execs [readout edit on 100] stock=100  ->  want 100: OK
+      (stock: no cache to inspect)
+  V stock (b)  -> readout shown, tcl execs calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  V stock (a/b) restore labels and sizes   calls=200   builds=0     hits=0     action=    8.4ms  settled_after=  0.13s  label_py=   13.5ms
+      tcl execs [restore] stock=0  ->  (reference)
+      (stock: no cache to inspect)
+  V stock (a/b)  -> tcl execs: restore     calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  V stock (c) install failing _compose_label for one node calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  V stock (c) bulk label on 100 incl. that node calls=100   builds=0     hits=0     action=    2.7ms  settled_after=  0.12s  label_py=    8.9ms
+      (stock: no verifier to fail; 0 warnings, verify=0)
+  V stock (c)  -> verify drained, others released calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  V stock (c) restore labels               calls=100   builds=0     hits=0     action=    8.2ms  settled_after=  0.13s  label_py=   11.4ms
+  V stock (d) Undo.disable + bulk label on 100 calls=100   builds=0     hits=0     action=    3.3ms  settled_after=  0.14s  label_py=   13.3ms
+      (stock: no cache to inspect)
+      Undo.disabled(): before=False after release=True (want True) after enable=False (want False)  ->  OK
+  V stock (d)  -> Undo still disabled after release calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  V stock (d) restore labels               calls=100   builds=0     hits=0     action=    3.0ms  settled_after=  0.11s  label_py=    7.7ms
+  V stock (e) install failing poke for one node calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  V stock (e) bulk label on 100 incl. that node calls=100   builds=0     hits=0     action=    5.8ms  settled_after=  0.11s  label_py=   10.8ms
+      (stock: nothing is poked; 0 warnings, stale=0)
+  V stock (e)  -> others released despite the failed poke calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  V stock (e) restore labels               calls=100   builds=0     hits=0     action=    6.1ms  settled_after=  0.11s  label_py=    8.2ms
+  V stock (f) pane closed: bulk label on 100 calls=100   builds=0     hits=0     action=    3.2ms  settled_after=  0.11s  label_py=   10.3ms
+      Dope Sheet visible=False (want False)  DAG visible=True (want True)  ->  OK
+      (stock: no cache to inspect)
+  V stock (f)  -> shown, pane closed       calls=0     builds=0     hits=0     action=    8.0ms  settled_after=  0.00s  label_py=    0.0ms
+  V stock (f) restore labels (closed)      calls=100   builds=0     hits=0     action=    6.4ms  settled_after=  0.11s  label_py=    9.3ms
+  V stock (f) float the Dope Sheet beside the DAG calls=0     builds=0     hits=0     action=    5.6ms  settled_after=  0.00s  label_py=    0.0ms
+  V stock (f) pane open: bulk label on 100 calls=100   builds=0     hits=0     action=   10.2ms  settled_after=  0.11s  label_py=   10.1ms
+      Dope Sheet visible=True (want True)  DAG visible=True (want True)  ->  OK
+      (stock: no cache to inspect)
+      pane open vs closed: calls 100 vs 100 (want equal)  settle 0.11s vs 0.11s (want open <= 2x closed + 0.25s)  label_py 10.1 vs 10.3 ms  pokes 0 in 0.0 vs 0 in 0.0 ms  ->  OK
+  V stock (f)  -> shown, pane open vs closed calls=0     builds=0     hits=0     action=   11.8ms  settled_after=  0.00s  label_py=    0.0ms
+  V stock (f) restore labels (open)        calls=100   builds=0     hits=0     action=    6.5ms  settled_after=  0.10s  label_py=    7.7ms
+  V stock (f) hide the floated Dope Sheet  calls=0     builds=0     hits=0     action=    0.3ms  settled_after=  0.00s  label_py=    0.0ms
+      Dope Sheet visible=False (want False)  DAG visible=True (want True)  ->  OK
+  V stock (f)  -> pane closed again        calls=0     builds=0     hits=0     action=   10.3ms  settled_after=  0.00s  label_py=    0.0ms
+  V stock (g) record viewer, connect to deepest chain (36 deep) calls=3     builds=0     hits=0     action=    6.2ms  settled_after=  0.08s  label_py=    0.3ms
+  V stock (g) bulk label on 100 + playback 3s calls=3001  builds=0     hits=0     action=    8.4ms  settled_after=  3.25s  label_py=  217.7ms  ticks=74 lat mean=0.0ms p95=0.7ms max=0.9ms
+      playback via activeViewer.play: 1 frame changes seen in 3.25s (3s asked; want >= 30 changes)  settled -0.00s after playback stopped (want <= 6s)  ->  MISMATCH
+      (stock: no cache to inspect)
+  V stock (g)  -> settled after playback, shown calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  V stock (g) restore labels               calls=100   builds=0     hits=0     action=    8.7ms  settled_after=  0.11s  label_py=    9.0ms
+  V stock (g2) bulk label on 100 + frame-step 3s calls=24692 builds=0     hits=0     action=   10.5ms  settled_after=  6.70s  label_py= 2727.3ms  ticks=74 lat mean=48.3ms p95=86.5ms max=188.5ms
+      playback via nuke.frame step (40 ms): 75 frame changes seen in 6.65s (3s asked; want >= 30 changes)  settled 0.05s after playback stopped (want <= 6s)  ->  OK
+      (stock: no cache to inspect)
+  V stock (g2)  -> settled after stepping, shown calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  V stock (g2) restore labels              calls=100   builds=0     hits=0     action=    6.5ms  settled_after=  0.09s  label_py=    8.0ms
+  V stock (h) wire viewer inputs 0/1       calls=3     builds=0     hits=0     action=   31.6ms  settled_after=  0.09s  label_py=    0.4ms
+  V stock (h) switch viewer input 20x, 40 ms apart calls=20    builds=0     hits=0     action=    0.3ms  settled_after=  0.90s  label_py=    7.8ms  ticks=20 lat mean=2.9ms p95=4.5ms max=5.5ms
+      Viewer label calls=20 per-call mean=0.39ms max=0.53ms  tick latency mean=2.9ms max=5.5ms  ->  want 20 calls: OK
+  V stock (h)  -> Viewer label calls + per-call time calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+      Viewer1 inputs back to ['Grade239', None] active input 0
+  V stock (g/h) restore viewer inputs      calls=1     builds=0     hits=0     action=    1.9ms  settled_after=  0.12s  label_py=    0.5ms
+      pasted VGroup: onCreate Tcl wrote label='made by VGroup'  ->  OK
+      created LiveGroup VLiveGroup (20 inner), Precomp VPrecomp (5 inner), Group VGroup (20 inner)
+  V stock (i) create LiveGroup(20) / Precomp(5) / Group with onCreate Tcl calls=3     builds=0     hits=0     action=   60.8ms  settled_after=  0.09s  label_py=    0.3ms
+  V stock (i) dirty: white=1.5 on every inner Grade (root shown) calls=3     builds=0     hits=0     action=    4.2ms  settled_after=  0.05s  label_py=    0.5ms
+      DAG tab DAG.VLiveGroup: visible after showDag=True  root DAG visible=False
+  V stock (i) warm: show LiveGroup DAG     calls=20    builds=0     hits=0     action=   12.3ms  settled_after=  0.05s  label_py=    2.8ms
+      LiveGroup VLiveGroup: 20/20 inner nodes requested while shown (20 requests)
+      root DAG visible after showDag(root)=True
+  V stock (i) warm: LiveGroup back to root calls=0     builds=0     hits=0     action=   35.8ms  settled_after=  0.00s  label_py=    0.0ms
+      (no DAG tab for VPrecomp)
+  V stock (i) warm: show Precomp DAG       calls=0     builds=0     hits=0     action=    6.0ms  settled_after=  0.00s  label_py=    0.0ms
+      Precomp VPrecomp: 0/5 inner nodes requested while shown (0 requests)
+      root DAG visible after showDag(root)=True
+  V stock (i) warm: Precomp back to root   calls=0     builds=0     hits=0     action=    1.9ms  settled_after=  0.00s  label_py=    0.0ms
+      DAG tab DAG.VGroup: visible after showDag=True  root DAG visible=False
+  V stock (i) warm: show onCreate Group DAG calls=20    builds=0     hits=0     action=   10.0ms  settled_after=  0.05s  label_py=    3.0ms
+      Group VGroup: 20/20 inner nodes requested while shown (20 requests)
+      root DAG visible after showDag(root)=True
+  V stock (i) warm: Group back to root     calls=0     builds=0     hits=0     action=    3.5ms  settled_after=  0.00s  label_py=    0.0ms
+  V stock (i) bulk edit white=2.5 on every inner Grade (root shown) calls=3     builds=0     hits=0     action=    4.4ms  settled_after=  0.10s  label_py=    0.3ms
+      DAG tab DAG.VLiveGroup: visible after showDag=True  root DAG visible=False
+  V stock (i) show LiveGroup DAG           calls=20    builds=0     hits=0     action=    9.2ms  settled_after=  0.05s  label_py=    2.9ms
+      LiveGroup VLiveGroup: show DAG made 20 label requests, 20/20 inner nodes requested (20 requests)  ->  OK
+  V stock (i)  -> LiveGroup inner labels   calls=0     builds=0     hits=0     action=    3.8ms  settled_after=  0.00s  label_py=    0.0ms
+      (no DAG tab for VPrecomp)
+  V stock (i) show Precomp DAG             calls=0     builds=0     hits=0     action=    4.6ms  settled_after=  0.00s  label_py=    0.0ms
+      Precomp VPrecomp: show DAG made 0 label requests, 0/5 inner nodes requested (0 requests)  ->  n/a (Precomp DAG not entered by showDag)
+  V stock (i)  -> Precomp inner labels     calls=0     builds=0     hits=0     action=    1.9ms  settled_after=  0.00s  label_py=    0.0ms
+      DAG tab DAG.VGroup: visible after showDag=True  root DAG visible=False
+  V stock (i) show onCreate Group DAG      calls=20    builds=0     hits=0     action=    8.4ms  settled_after=  0.05s  label_py=    3.6ms
+      Group VGroup: show DAG made 20 label requests, 20/20 inner nodes requested (20 requests)  ->  OK
+  V stock (i)  -> onCreate Group inner labels calls=0     builds=0     hits=0     action=    3.9ms  settled_after=  0.00s  label_py=    0.0ms
+      'could not verify' / runIn warnings=0 (want 0)  ->  OK
+      groups deleted; allNodes=3003 (recurse 3289)
+  V stock (i)  -> verify warnings; delete the groups calls=0     builds=0     hits=0     action=   16.2ms  settled_after=  0.00s  label_py=    0.0ms
+  V stock (j) link white on 50 Grades to Grade125.white calls=50    builds=0     hits=0     action=    7.3ms  settled_after=  0.10s  label_py=    3.8ms
+  V stock (j) edit the source once         calls=1     builds=0     hits=0     action=    0.6ms  settled_after=  0.10s  label_py=    0.3ms
+      source edit: 1 label requests in all, 0/50 dependents re-requested (0 requests), dependents showing '2.750': n/a (0 expected: no re-request on an expression-driven change)
+  V stock (j)  -> dependents before the pass calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  V stock (j) pass: frame +1               calls=3002  builds=0     hits=0     action=    0.3ms  settled_after=  0.25s  label_py=  210.0ms
+      pass: 3002 label requests in all, 50/50 dependents re-requested (50 requests; want 50/50)  ->  OK
+  V stock (j)  -> dependents after the pass calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  V stock (j) clear expressions + restore values calls=51    builds=0     hits=0     action=    5.1ms  settled_after=  0.10s  label_py=    4.0ms
+      (stock: no cache to inspect)
+  V stock (j)  -> restored                 calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+      pending_deoverlap right after the edit = 0
+  V stock (k) bulk 4-line label on 300 (de-overlap on) calls=300   builds=0     hits=0     action=   54.8ms  settled_after=  0.12s  label_py=   23.2ms
+      (stock: no de-overlap) pending after edit=0 peak=0 fires=0  overlapping pairs: baseline=0 after=56 new=56
+  V stock (k)  -> pending fed by the pokes, overlaps calls=0     builds=0     hits=0     action=   14.2ms  settled_after=  0.00s  label_py=    0.0ms
+  V stock (k) restore labels               calls=300   builds=0     hits=0     action=   24.1ms  settled_after=  0.12s  label_py=   22.5ms
+      (layout unchanged)
+  V stock (k) restore layout               calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  V stock restore grade.white + frame      calls=3003  builds=0     hits=0     action=    0.7ms  settled_after=  0.25s  label_py=  211.7ms
+      >>> label implementation: on
+  V impl on                                calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      Undo.disabled()=False (want False)  ->  OK
+Timeout (0:05:00)!
+Thread 0x0000735e1dffb6c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/process.py", line 68 in _readOutputFromPipe
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x0000735e1f7fe6c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/zmq/sugar/poll.py", line 103 in poll
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/zmq/__init__.py", line 15 in call
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/postprocessscript.py", line 226 in messageLoop
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/postprocessscript.py", line 401 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x0000735e357fa6c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/zmq/sugar/poll.py", line 103 in poll
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/zmq/__init__.py", line 15 in call
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/frameserver.py", line 80 in process
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/frameserver.py", line 51 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x0000735e35ffb6c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 331 in wait
+  File "/usr/local/Nuke17.0v3/lib/python3.11/queue.py", line 180 in get
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/renderqueue.py", line 76 in processFileSyncs
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x0000735e377fe6c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/zmq/sugar/poll.py", line 103 in poll
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/zmq/__init__.py", line 15 in call
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/renderqueue.py", line 665 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x0000735e48dd46c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/frameserver.py", line 341 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x0000735f44823040 (most recent call first):
+  File "/usr/local/Nuke17.0v3/lib/python3.11/site-packages/psutil/_common.py", line 396 in usage_percent
+  File "/usr/local/Nuke17.0v3/lib/python3.11/site-packages/psutil/_pslinux.py", line 522 in virtual_memory
+  File "/usr/local/Nuke17.0v3/lib/python3.11/site-packages/psutil/__init__.py"Segmentation fault (core dumped)
+EXIT 139

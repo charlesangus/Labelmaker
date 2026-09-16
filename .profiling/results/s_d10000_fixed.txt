@@ -1,0 +1,734 @@
+# HEAD da3b88f  LM_PROFILE_ONLY='S '  lm_d10000.nk both  2026-09-15T13:26:04-04:00
+for more information.
+
+##############################################################################
+# Labelmaker draw-path profile — mode=off deoverlap=False script=/home/bosley/git/Labelmaker/.profiling/tmp/lm_d10000.nk
+##############################################################################
+DAG window 1256x405
+[13:26.10] Warning: Could not find value "scene_linear" for "colorspace". It will be appended to the menu list.
+[13:26.10] Warning: Could not find value "ACES - ACEScg" for "colorspace". It will be appended to the menu list.
+  scriptOpen (lm_d10000.nk)                calls=10002 builds=0     hits=0     action= 5689.4ms  settled_after=  0.83s  label_py=  714.3ms
+10002 nodes loaded; autolabel calls so far = 10003
+
+  script open — per node class (slowest total first)
+  class                                         calls   total ms   mean us
+  Read                                           1044      125.6     120.3
+  Grade                                           914       73.3      80.2
+  Roto                                            302       61.6     203.9
+  Merge2                                          496       35.8      72.2
+  Blur                                            514       32.2      62.6
+  ColorCorrect                                    354       31.7      89.7
+  Dot                                            1050       30.1      28.7
+  Premult                                         532       25.8      48.5
+  Constant                                        496       24.0      48.5
+  Reformat                                        354       22.4      63.1
+  ZDefocus2                                       230       19.8      86.1
+  Transform                                       354       19.6      55.2
+  Write                                           142       19.4     136.7
+  Unpremult                                       390       19.1      48.9
+  Shuffle2                                        230       14.6      63.7
+  HueCorrect                                      230       14.4      62.7
+  Copy                                            160       13.2      82.7
+  Noise                                           148       12.2      82.2
+
+event census (calls = label requests from Nuke; label_py = time in the Python label fn, stock or Labelmaker)
+      x60: work 0.00 ms/tick, round trip mean 6.6 ms  median 0.0  p95 2.3  max 197.2
+  S probe 0ms timer, no work               calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+      x60: work 0.02 ms/tick, round trip mean 6.7 ms  median 0.1  p95 2.6  max 201.5
+  S probe runIn noop                       calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+      x60: work 0.04 ms/tick, round trip mean 10.3 ms  median 0.3  p95 6.0  max 199.1
+  S probe runIn thisNode().Class()         calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+      x60: work 0.09 ms/tick, round trip mean 23.7 ms  median 0.7  p95 193.2  max 201.3
+  S probe runIn nuke.expression(keys)      calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+      x60: work 0.04 ms/tick, round trip mean 10.2 ms  median 0.1  p95 7.6  max 200.8
+  S probe runIn nuke.value(this.label)     calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+      x60: work 0.09 ms/tick, round trip mean 36.3 ms  median 0.8  p95 212.1  max 217.7
+  S probe runIn nuke.knob(this.indicators) write calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+      x60: work 0.23 ms/tick, round trip mean 53.9 ms  median 1.3  p95 246.4  max 249.5
+  S probe compose_in_context x1/slice      calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+      x30: work 5.36 ms/tick, round trip mean 118.0 ms  median 14.7  p95 252.3  max 274.1
+  S probe compose_in_context x30/slice     calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+      x40: work 5.95 ms/tick, round trip mean 101.2 ms  median 13.7  p95 228.8  max 229.8
+  S probe compose_in_context x30/slice DISTINCT calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+      x40: work 0.54 ms/tick, round trip mean 67.1 ms  median 6.6  p95 239.5  max 252.0
+  S probe runIn noop x30/slice DISTINCT    calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+      x40: work 2.23 ms/tick, round trip mean 99.7 ms  median 11.4  p95 246.8  max 267.9
+  S probe runIn expression(keys) x30/slice DISTINCT calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+      x40: work 0.95 ms/tick, round trip mean 107.2 ms  median 10.2  p95 250.7  max 280.1
+  S probe runIn value(this.label) x30/slice DISTINCT calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+      x40: work 0.06 ms/tick, round trip mean 30.9 ms  median 0.8  p95 233.7  max 248.8
+  S probe node['label'].value() x30/slice DISTINCT calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+      x40: work 5.63 ms/tick, round trip mean 106.0 ms  median 15.6  p95 243.2  max 247.1
+  S probe compose_in_context x30/slice DISTINCT again calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+      x30: work 0.05 ms/tick, round trip mean 55.2 ms  median 7.7  p95 225.5  max 234.4
+  S probe node.knob('label').value() x30   calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+      x30: work 0.05 ms/tick, round trip mean 0.4 ms  median 0.1  p95 1.0  max 7.1
+  S probe nuke.toNode x30                  calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+      0 ms timer x100: mean 51.6 ms  median 0.9  p95 231.6  max 242.2
+  S timer cadence 0 ms x100                calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+      1 ms timer x100: mean 70.4 ms  median 5.4  p95 238.2  max 256.9
+  S timer cadence 1 ms x100                calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+      4 ms timer x100: mean 15.2 ms  median 4.8  p95 6.7  max 216.5
+  S timer cadence 4 ms x100                calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+      15 ms timer x50: mean 16.0 ms  median 16.0  p95 16.5  max 18.2
+  S timer cadence 15 ms x50                calls=0     builds=0     hits=0     action=    0.3ms  settled_after=  0.00s  label_py=    0.0ms
+      >>> label implementation: stock
+  S impl stock                             calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock stamps: on                       calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock warm: frame +1                   calls=996   builds=0     hits=0     action=    0.1ms  settled_after=  0.14s  label_py=  118.9ms
+      x40: work 4.71 ms/tick, round trip mean 69.6 ms  median 6.7  p95 191.2  max 197.8
+  S stock probe after frame change         calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+      x40: work 4.69 ms/tick, round trip mean 91.3 ms  median 10.3  p95 212.6  max 215.3
+  S stock probe again, quiet               calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock edit knob                        calls=1     builds=0     hits=0     action=    0.3ms  settled_after=  0.24s  label_py=    0.2ms
+  S stock pass: frame +1 after edit        calls=10001 builds=0     hits=0     action=    0.2ms  settled_after=  0.92s  label_py=  809.6ms
+  S stock edit knob                        calls=1     builds=0     hits=0     action=    0.1ms  settled_after=  0.22s  label_py=    0.2ms
+  S stock pass: frame +1 after edit (2)    calls=10001 builds=0     hits=0     action=    0.1ms  settled_after=  0.93s  label_py=  814.3ms
+  S stock pass: viewer connect             calls=1     builds=0     hits=0     action=  135.1ms  settled_after=  0.49s  label_py=    0.3ms
+  S stock pass: viewer connect other       calls=0     builds=0     hits=0     action=    2.2ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock scrub 24 frames, 40ms apart      calls=11995 builds=0     hits=0     action=    1.1ms  settled_after=  1.63s  label_py= 1043.3ms
+  S stock X timeslider scrub (40 moves)    calls=40836 builds=0     hits=0     action=    5.3ms  settled_after= 11.54s  label_py= 5283.1ms  ticks=51 lat mean=236.0ms p95=346.2ms max=364.8ms
+  S stock open Grade panel + zoom          calls=0     builds=0     hits=0     action=   15.7ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock pass then immediate slider drag  calls=41    builds=0     hits=0     action=   11.2ms  settled_after=  1.97s  label_py=    9.0ms  ticks=51 lat mean=25.9ms p95=28.8ms max=362.7ms
+  S stock slider drag (quiet)              calls=40    builds=0     hits=0     action=    5.7ms  settled_after=  1.46s  label_py=    7.4ms  ticks=51 lat mean=15.3ms p95=20.7ms max=25.1ms
+      knob white=0.35  label text='<no cache>'  ->  STALE
+  S stock  -> white shown                  calls=0     builds=0     hits=0     action=    0.2ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock close panel                      calls=0     builds=0     hits=0     action=    3.4ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock bulk label on 100                calls=101   builds=0     hits=0     action=    2.8ms  settled_after=  0.37s  label_py=   10.0ms
+      (stock: no cache to inspect)
+  S stock  -> shown                        calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock bulk label on 1000               calls=1001  builds=0     hits=0     action=   24.1ms  settled_after=  0.09s  label_py=   72.8ms
+      (stock: no cache to inspect)
+  S stock  -> shown                        calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock bulk label on ALL                calls=9993  builds=0     hits=0     action=  768.6ms  settled_after=  0.84s  label_py=  735.5ms
+      (stock: no cache to inspect)
+  S stock  -> shown                        calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock bulk label 1000 + frame +1 same callback calls=10003 builds=0     hits=0     action=  169.0ms  settled_after=  0.81s  label_py=  711.2ms
+      (stock: no cache to inspect)
+  S stock  -> shown                        calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock bulk label 1000 + viewer connect same callback calls=1001  builds=0     hits=0     action=  177.5ms  settled_after=  0.10s  label_py=   75.2ms
+      (stock: no cache to inspect)
+  S stock  -> shown                        calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock bulk label 1000 then delete 100 of them at once calls=901   builds=0     hits=0     action=  374.9ms  settled_after=  0.09s  label_py=   65.1ms
+      (stock: no cache to inspect)
+  S stock  -> shown                        calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+[13:29.48] ERROR: Grade2.gamma: Read1040: /jobs/SHOW/elements/smoke/smoke_066/smoke_066.1001.exr: Read error: No such file or directory
+  S stock undo that delete                 calls=100   builds=0     hits=0     action=  160.8ms  settled_after=  0.07s  label_py=    7.7ms
+  S stock re-resolve                       calls=0     builds=0     hits=0     action=   29.7ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock bulk label 1000 then rename 100 of them at once calls=1001  builds=0     hits=0     action=  298.4ms  settled_after=  0.09s  label_py=   70.4ms
+      (stock: no cache to inspect)
+  S stock  -> shown                        calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock bulk label 1000 in undo group    calls=1001  builds=0     hits=0     action=   23.3ms  settled_after=  0.09s  label_py=   75.0ms
+      (stock: no cache to inspect)
+  S stock  -> shown                        calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock undo the bulk edit               calls=1001  builds=0     hits=0     action=    6.0ms  settled_after=  0.10s  label_py=   83.2ms
+      (stock: no cache to inspect)
+  S stock  -> shown                        calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock bulk label inside Group (all its nodes) calls=1     builds=0     hits=0     action=    6.9ms  settled_after=  0.05s  label_py=    0.2ms
+      (stock: no cache to inspect)
+  S stock  -> shown                        calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock open the Group in the DAG        calls=8     builds=0     hits=0     action=    3.8ms  settled_after=  0.10s  label_py=    1.4ms
+      (stock: no cache to inspect)
+  S stock  -> shown                        calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock back to root                     calls=0     builds=0     hits=0     action=   97.1ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock bulk label 1000 then set_enabled(False) at once calls=8859  builds=0     hits=0     action= 3287.5ms  settled_after=  0.81s  label_py=  703.8ms
+  S stock set_enabled(True) + re-wrap      calls=8746  builds=0     hits=0     action= 2220.5ms  settled_after=  0.77s  label_py=  673.4ms
+  S stock frame +1 (cold after enable)     calls=2253  builds=0     hits=0     action=    0.2ms  settled_after=  0.20s  label_py=  163.2ms
+      (stock: no cache to inspect)
+  S stock  -> shown                        calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock bulk label cleared on ALL        calls=9993  builds=0     hits=0     action= 3586.8ms  settled_after=  0.79s  label_py=  674.4ms
+      (stock: no cache to inspect)
+  S stock  -> shown                        calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+      >>> label implementation: on
+  S impl on                                calls=0     builds=0     hits=0     action=    0.3ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+  S on stamps: on                          calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+  S on warm: frame +1                      calls=1005  builds=0     hits=0     action=    0.2ms  settled_after=  0.23s  label_py=  201.3ms  builds=1005 pokes=0 (0ms) verified=0 (0ms)
+      x40: work 6.21 ms/tick, round trip mean 114.5 ms  median 12.5  p95 252.3  max 253.8
+  S on probe after frame change            calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=1200 (242ms)
+      x40: work 5.58 ms/tick, round trip mean 109.1 ms  median 11.3  p95 226.7  max 232.7
+Timeout (0:05:00)!
+Thread 0x000076404b7fe6c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/process.py", line 68 in _readOutputFromPipe
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x00007640597fa6c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/zmq/sugar/poll.py", line 103 in poll
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/zmq/__init__.py", line 15 in call
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/postprocessscript.py", line 226 in messageLoop
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/postprocessscript.py", line 401 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x000076405affd6c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/zmq/sugar/poll.py", line 103 in poll
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/zmq/__init__.py", line 15 in call
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/frameserver.py", line 80 in process
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/frameserver.py", line 51 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x000076405b7fe6c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 331 in wait
+  File "/usr/local/Nuke17.0v3/lib/python3.11/queue.py", line 180 in get
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/renderqueue.py", line 76 in processFileSyncs
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x00007640617fb6c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/zmq/sugar/poll.py", line 103 in poll
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/zmq/__init__.py", line 15 in call
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/renderqueue.py", line 665 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x0000764062ffe6c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/frameserver.py", line 341 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x0000764171d05040 (most recent call first):
+  <no Python frame>
+  S on probe again, quiet                  calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=1200 (218ms)
+  S on edit knob                           calls=2     builds=0     hits=0     action=    0.5ms  settled_after=  0.72s  label_py=    0.5ms  builds=1 pokes=1 (0ms) verified=0 (0ms) first_release=0.47s releases=1
+[13:31.14] ERROR: Grade2.gamma: Unpremult2
+(rgb) / alpha
+      first slices (work ms, n, gap ms, busy): (55,72,0,0) (0,0,39,1) (15,66,423,0) (15,70,205,0) (15,67,4,0) (15,71,210,0) (15,74,1,0) (15,75,2,0) (15,70,209,0) (15,72,1,0) (15,68,206,0) (15,73,2,0)
+  S on pass: frame +1 after edit           calls=10998 builds=0     hits=0     action=    0.0ms  settled_after=  5.13s  label_py= 1470.5ms  builds=9899 pokes=996 (1108ms) verified=1099 (232ms) first_release=1.87s releases=2 slices=17 span=1.99s gap median=39ms p95=210ms busy_exits=1
+  S on edit knob                           calls=2     builds=0     hits=0     action=    0.6ms  settled_after=  0.72s  label_py=    0.5ms  builds=1 pokes=1 (0ms) verified=0 (0ms) first_release=0.47s releases=1
+[13:31.26] ERROR: Grade2.gamma: Viewer1
+(rgba)
+      first slices (work ms, n, gap ms, busy): (15,70,0,0) (15,73,211,0) (15,74,2,0) (15,65,208,0) (15,76,1,0) (15,79,2,0) (15,74,215,0) (15,70,3,0) (118,74,216,0) (0,0,40,1) (15,83,447,0) (15,84,2,0)
+  S on pass: frame +1 after edit (2)       calls=11064 builds=0     hits=0     action=    0.0ms  settled_after= 14.44s  label_py=  305.3ms  builds=2319 pokes=1062 (1131ms) verified=8648 (1604ms) first_release=1.85s releases=2 slices=110 span=12.11s gap median=4ms p95=218ms busy_exits=1
+  S on pass: viewer connect                calls=0     builds=0     hits=0     action=    1.5ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+  S on pass: viewer connect other          calls=0     builds=0     hits=0     action=    1.8ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+[13:31.48] ERROR: Grade2.gamma: Read1044: /jobs/SHOW/seq011/sh011_0071/renders/cg/beauty/v006/beauty.1032.exr: Read error: No such file or directory
+      first slices (work ms, n, gap ms, busy): (15,70,0,0) (15,72,12,0) (15,69,213,0) (15,77,3,0) (15,67,13,0) (15,68,213,0) (15,78,1,0) (15,73,2,0) (209,77,208,0) (0,0,42,1) (30,83,444,0) (0,0,24,1)
+  S on scrub 24 frames, 40ms apart         calls=11112 builds=0     hits=0     action=    0.9ms  settled_after= 15.36s  label_py=  315.1ms  builds=2360 pokes=1102 (1676ms) verified=8655 (1602ms) first_release=1.72s releases=3 slices=111 span=12.76s gap median=4ms p95=220ms busy_exits=2
+[13:32.08] ERROR: Grade2.gamma: Read1044: /jobs/SHOW/seq011/sh011_0071/renders/cg/beauty/v006/beauty.1001.exr: Read error: No such file or directory
+[13:32.14] ERROR: Grade2.gamma: <div style="text-align: center"><font face="Bitstream Vera Sans"><div style="text-align: center"><font face="Bitstream Vera Sans">Grade70
+(rgb)
+<span style="background-color: #C2C2C2; color: black;">gain: </span> 1.105</span>
+<span style="background-color: #B5B5B5; color: black;">gamma: </span> 0.823</span>
+mix 0.770
+      first slices (work ms, n, gap ms, busy): (15,67,0,0) (15,69,223,0) (15,63,13,0) (15,74,219,0) (15,72,4,0) (15,73,11,0) (15,76,233,0) (15,74,4,0) (141,71,221,0) (0,0,248,1) (15,65,4889,0) (15,63,219,0)
+  S on X timeslider scrub (40 moves)       calls=21416 builds=0     hits=0     action=    4.5ms  settled_after= 22.11s  label_py=  503.9ms  ticks=51 lat mean=153.9ms p95=234.4ms max=421.6ms  builds=3926 pokes=1170 (1040ms) verified=9280 (1782ms) first_release=2.83s releases=3 slices=123 span=19.08s gap median=4ms p95=224ms busy_exits=2
+  S on open Grade panel + zoom             calls=0     builds=0     hits=0     action=   13.3ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+  S on pass then immediate slider drag     calls=42    builds=0     hits=0     action=    8.5ms  settled_after=  2.75s  label_py=   17.1ms  ticks=51 lat mean=22.1ms p95=38.8ms max=40.7ms  builds=41 pokes=1 (0ms) verified=0 (0ms) first_release=2.48s releases=1
+  S on slider drag (quiet)                 calls=41    builds=0     hits=0     action=   32.5ms  settled_after=  2.18s  label_py=   16.8ms  ticks=51 lat mean=21.1ms p95=38.1ms max=41.4ms  builds=40 pokes=1 (0ms) verified=0 (0ms) first_release=2.19s releases=1
+      knob white=0.35  label text='<div style="text-align: center"><font face="Bitstream Vera Sans">Grade817 / (rgb M alpha) / <span style="background-color: #898989; color: black;">gain: </span> 0.350</span>'  ->  OK
+  S on  -> white shown                     calls=0     builds=0     hits=0     action=    0.2ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+  S on close panel                         calls=0     builds=0     hits=0     action=    1.2ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+  S on bulk label on 100                   calls=189   builds=0     hits=0     action=   50.8ms  settled_after=  0.94s  label_py=   14.2ms  builds=102 pokes=87 (35ms) verified=81 (26ms) first_release=0.51s releases=2 slices=3 span=0.45s
+      100/100 show 's100' (want 100), 0 not in cache, stale=0 forced=0 verify=0  ->  OK
+  S on  -> shown                           calls=0     builds=0     hits=0     action=    1.6ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      first slices (work ms, n, gap ms, busy): (15,36,0,0) (100,91,1,0) (0,0,41,1) (31,37,420,0) (0,0,35,1) (15,46,409,0) (15,91,1,0) (15,99,1,0) (15,98,0,0) (15,106,0,0) (15,100,0,0) (15,97,1,0)
+  S on bulk label on 1000                  calls=1889  builds=0     hits=0     action=  403.1ms  settled_after=  1.90s  label_py=  130.2ms  builds=992 pokes=879 (262ms) verified=881 (165ms) first_release=0.87s releases=3 slices=14 span=2.20s gap median=1ms p95=420ms busy_exits=2
+      1000/1000 show 's1k' (want 1000), 0 not in cache, stale=0 forced=0 verify=0  ->  OK
+  S on  -> shown                           calls=0     builds=0     hits=0     action=    9.9ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+[13:33.07] ERROR: Grade2.gamma: sall
+[13:33.08] ERROR: Grade2.gamma: <div style="text-align: center"><font face="Bitstream Vera Sans"><div style="text-align: center"><font face="Bitstream Vera Sans"><div style="text-align: center"><font face="Bitstream Vera Sans">Grade1
+(rgb)
+<span style="background-color: #CCCCCC; color: black;">gain: </span> 1.435</span>
+<span style="background-color: #C0C0C0; color: black;">multiply: </span> 1.052</span>
+<span style="background-color: #C8C8C8; color: black;">gamma: </span> 1.299</span>
+mix 0.340
+sall
+      first slices (work ms, n, gap ms, busy): (15,88,0,0) (15,88,2,0) (15,78,1,0) (15,79,0,0) (15,80,1,0) (15,78,1,0) (15,74,1,0) (904,73,1,0) (0,0,131,1) (18,36,420,0) (0,0,22,1) (15,40,381,0)
+  S on bulk label on ALL                   calls=18731 builds=0     hits=0     action= 4667.4ms  settled_after=  7.03s  label_py= 1292.2ms  builds=9897 pokes=8641 (2810ms) verified=8737 (1367ms) first_release=5.45s releases=3 slices=96 span=6.87s gap median=0ms p95=2ms busy_exits=2
+      9992/9992 show 'sall' (want 9992), 0 not in cache, stale=0 forced=0 verify=0  ->  OK
+  S on  -> shown                           calls=0     builds=0     hits=0     action=   45.2ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      first slices (work ms, n, gap ms, busy): (15,86,0,0) (15,84,17,0) (15,70,1,0) (15,77,2,0) (15,90,20,0) (15,86,1,0) (15,85,18,0) (177,85,1,0) (0,0,41,1) (28,90,427,0) (0,0,24,1) (15,97,380,0)
+  S on bulk label 1000 + frame +1 same callback calls=11846 builds=0     hits=0     action=  662.0ms  settled_after=  5.49s  label_py=  367.8ms  builds=3091 pokes=1834 (1025ms) verified=8658 (1389ms) first_release=1.68s releases=3 slices=97 span=5.07s gap median=2ms p95=23ms busy_exits=2
+      1000/1000 show 'sfr' (want 1000), 0 not in cache, stale=0 forced=0 verify=0  ->  OK
+  S on  -> shown                           calls=0     builds=0     hits=0     action=    3.4ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      first slices (work ms, n, gap ms, busy): (138,70,0,0) (0,0,40,1) (44,88,436,0) (0,0,37,1) (15,79,391,0) (15,84,2,0) (15,80,19,0) (15,79,1,0) (15,95,1,0) (15,79,22,0) (15,80,2,0) (15,78,21,0)
+  S on bulk label 1000 + viewer connect same callback calls=1889  builds=0     hits=0     action=  850.6ms  settled_after=  2.38s  label_py=  154.0ms  builds=992 pokes=879 (347ms) verified=881 (161ms) first_release=1.34s releases=3 slices=14 span=2.39s gap median=21ms p95=436ms busy_exits=2
+      1000/1000 show 'svw' (want 1000), 0 not in cache, stale=0 forced=0 verify=0  ->  OK
+  S on  -> shown                           calls=0     builds=0     hits=0     action=   10.0ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      first slices (work ms, n, gap ms, busy): (15,37,0,0) (121,100,1,0) (0,0,43,1) (26,39,421,0) (0,0,26,1) (15,42,380,0) (15,98,1,0) (15,93,1,0) (15,109,0,0) (15,99,0,0) (15,76,3,0) (15,93,1,0)
+  S on bulk label 1000 then delete 100 of them at once calls=1702  builds=0     hits=0     action=  799.8ms  settled_after=  1.83s  label_py=  117.3ms  builds=894 pokes=792 (249ms) verified=794 (153ms) first_release=1.28s releases=3 slices=14 span=2.05s gap median=1ms p95=421ms busy_exits=2
+      900/900 show 'sdel' (want 900), 0 not in cache, stale=0 forced=0 verify=0  ->  OK
+  S on  -> shown                           calls=0     builds=0     hits=0     action=    4.2ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+  S on undo that delete                    calls=99    builds=0     hits=0     action=  159.8ms  settled_after=  0.11s  label_py=   15.9ms  builds=99 pokes=0 (0ms) verified=0 (0ms)
+      (1 pool nodes not found)
+  S on re-resolve                          calls=0     builds=0     hits=0     action=   35.4ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      first slices (work ms, n, gap ms, busy): (15,29,0,0) (115,65,1,0) (0,0,33,1) (24,45,389,0) (0,0,31,1) (15,49,380,0) (15,69,1,0) (15,96,1,0) (15,92,1,0) (15,105,0,0) (15,102,0,0) (15,96,1,0)
+  S on bulk label 1000 then rename 100 of them at once calls=1891  builds=0     hits=0     action=  646.3ms  settled_after=  1.83s  label_py=  130.2ms  builds=993 pokes=880 (293ms) verified=882 (170ms) first_release=1.08s releases=3 slices=15 span=2.15s gap median=1ms p95=389ms busy_exits=2
+      1000/1000 show 'sren' (want 1000), 0 not in cache, stale=0 forced=0 verify=0  ->  OK
+  S on  -> shown                           calls=0     builds=0     hits=0     action=   10.0ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      first slices (work ms, n, gap ms, busy): (15,35,0,0) (100,103,1,0) (0,0,40,1) (21,32,420,0) (0,0,25,1) (15,78,380,0) (15,77,1,0) (15,67,1,0) (15,66,1,0) (15,91,1,0) (15,94,1,0) (15,96,0,0)
+  S on bulk label 1000 in undo group       calls=1891  builds=0     hits=0     action=   19.6ms  settled_after=  1.81s  label_py=  131.1ms  builds=993 pokes=880 (214ms) verified=882 (174ms) first_release=0.48s releases=3 slices=15 span=2.04s gap median=1ms p95=420ms busy_exits=2
+      1000/1000 show 'sundo' (want 1000), 0 not in cache, stale=0 forced=0 verify=0  ->  OK
+  S on  -> shown                           calls=0     builds=0     hits=0     action=    9.3ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      first slices (work ms, n, gap ms, busy): (15,36,0,0) (84,100,1,0) (0,0,40,1) (20,37,393,0) (0,0,25,1) (15,36,381,0) (15,97,1,0) (15,103,1,0) (15,90,1,0) (15,100,1,0) (15,79,1,0) (15,93,1,0)
+  S on undo the bulk edit                  calls=1891  builds=0     hits=0     action=   12.9ms  settled_after=  1.76s  label_py=  132.8ms  builds=993 pokes=880 (228ms) verified=882 (169ms) first_release=0.45s releases=3 slices=15 span=2.10s gap median=1ms p95=393ms busy_exits=2
+      0/1000 show 'sundo' (want 0), 0 not in cache, stale=0 forced=0 verify=0  ->  OK
+  S on  -> shown                           calls=0     builds=0     hits=0     action=    8.1ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+  S on bulk label inside Group (all its nodes) calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      0/8 show 'sgrp' (want 8), 8 not in cache, stale=0 forced=0 verify=0  ->  MISMATCH
+  S on  -> shown                           calls=0     builds=0     hits=0     action=    0.3ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+  S on open the Group in the DAG           calls=8     builds=0     hits=0     action=    1.4ms  settled_after=  0.05s  label_py=    2.9ms  builds=8 pokes=0 (0ms) verified=0 (0ms)
+      8/8 show 'sgrp' (want 8), 0 not in cache, stale=0 forced=0 verify=0  ->  OK
+  S on  -> shown                           calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+  S on back to root                        calls=0     builds=0     hits=0     action=    6.6ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+[13:34.28] ERROR: Grade2.gamma: Unpremult2
+(rgb) / alpha
+sall
+  S on bulk label 1000 then set_enabled(False) at once calls=8859  builds=0     hits=0     action= 3451.5ms  settled_after=  1.35s  label_py= 1233.8ms  builds=8762 pokes=11365 (2832ms) verified=97 (28ms) first_release=0.62s releases=1 slices=2 span=0.02s
+  S on set_enabled(True) + re-wrap         calls=8746  builds=0     hits=0     action= 2278.8ms  settled_after=  1.29s  label_py= 1174.4ms  builds=8649 pokes=11365 (2257ms) verified=97 (21ms) first_release=0.02s releases=1 slices=2 span=0.02s
+      first slices (work ms, n, gap ms, busy): (15,99,0,0) (187,78,179,0) (0,0,47,1) (15,85,550,0) (15,87,1,0) (15,76,179,0) (15,74,3,0) (15,84,2,0) (15,85,181,0) (15,89,1,0) (15,81,180,0) (15,88,1,0)
+  S on frame +1 (cold after enable)        calls=3421  builds=0     hits=0     action=    0.2ms  settled_after=  3.76s  label_py=  241.2ms  builds=2319 pokes=1062 (1222ms) verified=1102 (196ms) first_release=0.69s releases=2 slices=15 span=2.05s gap median=179ms p95=181ms busy_exits=1
+      1000/1000 show 'sdis' (want 1000), 0 not in cache, stale=0 forced=946 verify=0  ->  OK
+  S on  -> shown                           calls=0     builds=0     hits=0     action=    3.9ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+[13:35.02] ERROR: Grade2.gamma: <div style="text-align: center"><font face="Bitstream Vera Sans"><div style="text-align: center"><font face="Bitstream Vera Sans"><div style="text-align: center"><font face="Bitstream Vera Sans">Grade1
+(rgb)
+<span style="background-color: #CCCCCC; color: black;">gain: </span> 1.435</span>
+<span style="background-color: #C0C0C0; color: black;">multiply: </span> 1.052</span>
+<span style="background-color: #C8C8C8; color: black;">gamma: </span> 1.299</span>
+mix 0.340
+      first slices (work ms, n, gap ms, busy): (15,64,0,0) (15,63,203,0) (15,68,2,0) (15,71,3,0) (15,72,209,0) (15,71,5,0) (15,75,207,0) (15,58,259,0) (15,54,255,0) (1432,60,6,0) (15,61,616,0) (44,53,15,0)
+  S on bulk label cleared on ALL           calls=18731 builds=0     hits=0     action= 9932.0ms  settled_after= 19.44s  label_py= 1552.3ms  builds=9897 pokes=8641 (3079ms) verified=8737 (1728ms) first_release=12.17s releases=3 slices=119 span=18.54s gap median=5ms p95=234ms busy_exits=1
+      0/9991 show 'sdis' (want 0), 0 not in cache, stale=0 forced=946 verify=0  ->  OK
+  S on  -> shown                           calls=0     builds=0     hits=0     action=   40.3ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+  S on bulk label 1000 then scriptClear at once calls=0     builds=0     hits=0     action=14248.9ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      verify=0 stale=0 content=0
+  S on  -> queue after scriptClear         calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+  S on scriptOpen again                    calls=10002 builds=0     hits=0     action= 6257.8ms  settled_after=  1.51s  label_py= 1384.2ms  builds=9905 pokes=0 (0ms) verified=97 (19ms) slices=2 span=0.20s
+      verify=0 stale=0 content=9905
+  S on  -> queue after scriptOpen          calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+
+DONE
+for more information.
+
+##############################################################################
+# Labelmaker draw-path profile — mode=on deoverlap=False script=/home/bosley/git/Labelmaker/.profiling/tmp/lm_d10000.nk
+##############################################################################
+DAG window 1256x405
+[13:36.12] Warning: Could not find value "scene_linear" for "colorspace". It will be appended to the menu list.
+[13:36.12] Warning: Could not find value "ACES - ACEScg" for "colorspace". It will be appended to the menu list.
+  scriptOpen (lm_d10000.nk)                calls=10002 builds=0     hits=0     action= 6072.9ms  settled_after=  2.42s  label_py= 2188.5ms  builds=9906 pokes=0 (0ms) verified=97 (34ms) slices=3 span=0.24s
+10002 nodes loaded; autolabel calls so far = 10003
+
+  script open — per node class (slowest total first)
+  class                                         calls   total ms   mean us
+  Grade                                           914      313.0     342.4
+  Read                                           1044      278.2     266.5
+  Roto                                            302      156.1     516.9
+  Merge2                                          496      131.1     264.3
+  ColorCorrect                                    354      125.4     354.1
+  Dot                                            1050      111.7     106.4
+  Blur                                            514      104.4     203.1
+  Reformat                                        354       93.3     263.5
+  Transform                                       354       86.9     245.6
+  Premult                                         532       74.1     139.3
+  Constant                                        496       67.4     135.8
+  ZDefocus2                                       230       59.0     256.4
+  Unpremult                                       390       53.2     136.4
+  Write                                           142       45.2     318.0
+  Copy                                            160       44.0     274.8
+  HueCorrect                                      230       42.7     185.8
+  Multiply                                        148       35.0     236.2
+  Shuffle2                                        230       34.2     148.6
+
+event census (calls = label requests from Nuke; label_py = time in the Python label fn, stock or Labelmaker)
+      x60: work 0.00 ms/tick, round trip mean 14.3 ms  median 0.1  p95 203.2  max 215.3
+  S probe 0ms timer, no work               calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      x60: work 0.05 ms/tick, round trip mean 29.5 ms  median 0.7  p95 213.3  max 223.2
+  S probe runIn noop                       calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      x60: work 0.05 ms/tick, round trip mean 25.4 ms  median 0.6  p95 210.6  max 213.8
+  S probe runIn thisNode().Class()         calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      x60: work 0.09 ms/tick, round trip mean 22.6 ms  median 0.7  p95 214.4  max 221.7
+  S probe runIn nuke.expression(keys)      calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      x60: work 0.07 ms/tick, round trip mean 33.0 ms  median 0.7  p95 211.5  max 221.2
+  S probe runIn nuke.value(this.label)     calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      x60: work 0.09 ms/tick, round trip mean 49.3 ms  median 4.0  p95 220.9  max 231.5
+  S probe runIn nuke.knob(this.indicators) write calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      x60: work 0.19 ms/tick, round trip mean 52.0 ms  median 1.1  p95 214.3  max 233.4
+  S probe compose_in_context x1/slice      calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=60 (11ms)
+      x30: work 4.70 ms/tick, round trip mean 94.0 ms  median 12.2  p95 227.4  max 230.3
+  S probe compose_in_context x30/slice     calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=900 (137ms)
+      x40: work 5.37 ms/tick, round trip mean 103.0 ms  median 14.2  p95 237.6  max 256.6
+  S probe compose_in_context x30/slice DISTINCT calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=1200 (210ms)
+      x40: work 0.50 ms/tick, round trip mean 59.0 ms  median 6.6  p95 225.8  max 235.3
+  S probe runIn noop x30/slice DISTINCT    calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      x40: work 2.04 ms/tick, round trip mean 75.2 ms  median 8.9  p95 221.6  max 222.8
+  S probe runIn expression(keys) x30/slice DISTINCT calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      x40: work 0.85 ms/tick, round trip mean 75.5 ms  median 8.3  p95 225.6  max 228.2
+  S probe runIn value(this.label) x30/slice DISTINCT calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      x40: work 0.06 ms/tick, round trip mean 57.1 ms  median 5.9  p95 220.6  max 233.7
+  S probe node['label'].value() x30/slice DISTINCT calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      x40: work 5.98 ms/tick, round trip mean 124.4 ms  median 19.1  p95 289.8  max 304.5
+  S probe compose_in_context x30/slice DISTINCT again calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=1200 (234ms)
+      x30: work 0.04 ms/tick, round trip mean 38.5 ms  median 0.7  p95 219.4  max 229.8
+  S probe node.knob('label').value() x30   calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      x30: work 0.07 ms/tick, round trip mean 56.3 ms  median 5.6  p95 230.0  max 250.5
+  S probe nuke.toNode x30                  calls=0     builds=0     hits=0     action=    0.2ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      0 ms timer x100: mean 23.1 ms  median 0.4  p95 220.6  max 230.2
+  S timer cadence 0 ms x100                calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      1 ms timer x100: mean 48.9 ms  median 2.2  p95 216.3  max 232.8
+  S timer cadence 1 ms x100                calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      4 ms timer x100: mean 5.0 ms  median 5.0  p95 5.5  max 5.6
+  S timer cadence 4 ms x100                calls=0     builds=0     hits=0     action=    0.2ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      15 ms timer x50: mean 16.1 ms  median 16.0  p95 16.4  max 21.8
+  S timer cadence 15 ms x50                calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      >>> label implementation: stock
+  S impl stock                             calls=0     builds=0     hits=0     action=    3.7ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock stamps: on                       calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock warm: frame +1                   calls=1036  builds=0     hits=0     action=    0.1ms  settled_after=  0.14s  label_py=  122.8ms
+      x40: work 4.51 ms/tick, round trip mean 77.3 ms  median 7.7  p95 190.3  max 191.3
+  S stock probe after frame change         calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+      x40: work 4.48 ms/tick, round trip mean 77.9 ms  median 6.9  p95 188.1  max 195.2
+  S stock probe again, quiet               calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock edit knob                        calls=1     builds=0     hits=0     action=    0.1ms  settled_after=  0.22s  label_py=    0.2ms
+  S stock pass: frame +1 after edit        calls=10001 builds=0     hits=0     action=    0.1ms  settled_after=  0.92s  label_py=  803.9ms
+  S stock edit knob                        calls=1     builds=0     hits=0     action=    0.1ms  settled_after=  0.22s  label_py=    0.2ms
+  S stock pass: frame +1 after edit (2)    calls=10001 builds=0     hits=0     action=    0.0ms  settled_after=  1.10s  label_py=  788.8ms
+  S stock pass: viewer connect             calls=1     builds=0     hits=0     action=  129.1ms  settled_after=  0.49s  label_py=    0.2ms
+  S stock pass: viewer connect other       calls=0     builds=0     hits=0     action=    1.8ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock scrub 24 frames, 40ms apart      calls=11995 builds=0     hits=0     action=    1.0ms  settled_after=  1.64s  label_py= 1048.6ms
+  S stock X timeslider scrub (40 moves)    calls=40836 builds=0     hits=0     action=    5.4ms  settled_after= 11.44s  label_py= 5233.6ms  ticks=51 lat mean=234.3ms p95=340.7ms max=511.6ms
+  S stock open Grade panel + zoom          calls=0     builds=0     hits=0     action=   16.0ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock pass then immediate slider drag  calls=41    builds=0     hits=0     action=   11.1ms  settled_after=  1.86s  label_py=    8.9ms  ticks=51 lat mean=23.8ms p95=34.5ms max=243.5ms
+  S stock slider drag (quiet)              calls=40    builds=0     hits=0     action=    5.9ms  settled_after=  1.45s  label_py=    7.4ms  ticks=51 lat mean=14.9ms p95=20.8ms max=23.0ms
+      knob white=0.35  label text='<no cache>'  ->  STALE
+  S stock  -> white shown                  calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock close panel                      calls=0     builds=0     hits=0     action=    4.5ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock bulk label on 100                calls=101   builds=0     hits=0     action=    1.4ms  settled_after=  0.33s  label_py=   10.0ms
+      (stock: no cache to inspect)
+  S stock  -> shown                        calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock bulk label on 1000               calls=1001  builds=0     hits=0     action=   29.7ms  settled_after=  0.09s  label_py=   73.9ms
+      (stock: no cache to inspect)
+  S stock  -> shown                        calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock bulk label on ALL                calls=9993  builds=0     hits=0     action=  780.9ms  settled_after=  0.87s  label_py=  762.5ms
+      (stock: no cache to inspect)
+  S stock  -> shown                        calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock bulk label 1000 + frame +1 same callback calls=10003 builds=0     hits=0     action=  160.1ms  settled_after=  0.81s  label_py=  709.7ms
+      (stock: no cache to inspect)
+  S stock  -> shown                        calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock bulk label 1000 + viewer connect same callback calls=1001  builds=0     hits=0     action=  227.6ms  settled_after=  0.09s  label_py=   71.3ms
+      (stock: no cache to inspect)
+  S stock  -> shown                        calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock bulk label 1000 then delete 100 of them at once calls=901   builds=0     hits=0     action=  347.9ms  settled_after=  0.08s  label_py=   63.0ms
+      (stock: no cache to inspect)
+  S stock  -> shown                        calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+[13:39.51] ERROR: Grade2.gamma: Read1040: /jobs/SHOW/elements/smoke/smoke_066/smoke_066.1001.exr: Read error: No such file or directory
+  S stock undo that delete                 calls=100   builds=0     hits=0     action=  153.3ms  settled_after=  0.08s  label_py=    7.9ms
+  S stock re-resolve                       calls=0     builds=0     hits=0     action=   28.3ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock bulk label 1000 then rename 100 of them at once calls=1001  builds=0     hits=0     action=  273.1ms  settled_after=  0.09s  label_py=   72.3ms
+      (stock: no cache to inspect)
+  S stock  -> shown                        calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock bulk label 1000 in undo group    calls=1001  builds=0     hits=0     action=   27.0ms  settled_after=  0.10s  label_py=   75.9ms
+      (stock: no cache to inspect)
+  S stock  -> shown                        calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock undo the bulk edit               calls=1001  builds=0     hits=0     action=   12.4ms  settled_after=  0.09s  label_py=   72.9ms
+      (stock: no cache to inspect)
+  S stock  -> shown                        calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock bulk label inside Group (all its nodes) calls=1     builds=0     hits=0     action=    5.7ms  settled_after=  0.05s  label_py=    0.3ms
+      (stock: no cache to inspect)
+  S stock  -> shown                        calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock open the Group in the DAG        calls=8     builds=0     hits=0     action=    3.5ms  settled_after=  0.12s  label_py=    1.6ms
+      (stock: no cache to inspect)
+  S stock  -> shown                        calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock back to root                     calls=0     builds=0     hits=0     action=   88.2ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock bulk label 1000 then set_enabled(False) at once calls=8859  builds=0     hits=0     action= 2986.9ms  settled_after=  0.78s  label_py=  675.9ms
+  S stock set_enabled(True) + re-wrap      calls=8746  builds=0     hits=0     action= 2228.7ms  settled_after=  0.77s  label_py=  669.7ms
+  S stock frame +1 (cold after enable)     calls=2253  builds=0     hits=0     action=    0.1ms  settled_after=  0.18s  label_py=  153.6ms
+      (stock: no cache to inspect)
+  S stock  -> shown                        calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+  S stock bulk label cleared on ALL        calls=9993  builds=0     hits=0     action= 3526.4ms  settled_after=  0.95s  label_py=  669.9ms
+      (stock: no cache to inspect)
+  S stock  -> shown                        calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms
+      >>> label implementation: on
+  S impl on                                calls=0     builds=0     hits=0     action=    0.3ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+  S on stamps: on                          calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+  S on warm: frame +1                      calls=1005  builds=0     hits=0     action=    0.1ms  settled_after=  0.21s  label_py=  183.1ms  builds=1005 pokes=0 (0ms) verified=0 (0ms)
+      x40: work 5.37 ms/tick, round trip mean 104.0 ms  median 9.6  p95 226.9  max 228.6
+  S on probe after frame change            calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=1200 (209ms)
+      x40: work 5.42 ms/tick, round trip mean 103.1 ms  median 10.9  p95 225.7  max 226.5
+Timeout (0:05:00)!
+Thread 0x000079cfe1ffb6c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/process.py", line 68 in _readOutputFromPipe
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x000079cfe37fe6c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/zmq/sugar/poll.py", line 103 in poll
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/zmq/__init__.py", line 15 in call
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/postprocessscript.py", line 226 in messageLoop
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/postprocessscript.py", line 401 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x000079cfe97fb6c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/zmq/sugar/poll.py", line 103 in poll
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/zmq/__init__.py", line 15 in call
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/frameserver.py", line 80 in process
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/frameserver.py", line 51 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x000079cfe9ffc6c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 331 in wait
+  File "/usr/local/Nuke17.0v3/lib/python3.11/queue.py", line 180 in get
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/renderqueue.py", line 76 in processFileSyncs
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x000079cff0ffb6c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/zmq/sugar/poll.py", line 103 in poll
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/zmq/__init__.py", line 15 in call
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/renderqueue.py", line 665 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x000079cff8dd46c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/frameserver.py", line 341 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x000079d0f885b040 (most recent call first):
+  <no Python frame>
+  S on probe again, quiet                  calls=0     builds=0     hits=0     action=    0.1ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=1200 (212ms)
+  S on edit knob                           calls=2     builds=0     hits=0     action=    0.5ms  settled_after=  0.74s  label_py=    0.5ms  builds=1 pokes=1 (0ms) verified=0 (0ms) first_release=0.47s releases=1
+[13:41.17] ERROR: Grade2.gamma: Unpremult2
+(rgb) / alpha
+      first slices (work ms, n, gap ms, busy): (47,71,0,0) (0,0,235,1) (15,59,431,0) (15,52,227,0) (15,62,2,0) (15,66,231,0) (15,69,1,0) (15,69,2,0) (15,68,223,0) (15,66,1,0) (15,65,217,0) (15,68,4,0)
+  S on pass: frame +1 after edit           calls=10998 builds=0     hits=0     action=    0.1ms  settled_after=  5.50s  label_py= 1400.0ms  builds=9899 pokes=996 (1019ms) verified=1099 (244ms) first_release=1.80s releases=2 slices=18 span=2.28s gap median=4ms p95=235ms busy_exits=1
+  S on edit knob                           calls=2     builds=0     hits=0     action=    0.6ms  settled_after=  0.77s  label_py=    0.5ms  builds=1 pokes=1 (0ms) verified=0 (0ms) first_release=0.50s releases=1
+[13:41.29] ERROR: Grade2.gamma: Viewer1
+(rgba)
+      first slices (work ms, n, gap ms, busy): (15,75,0,0) (15,74,214,0) (15,75,4,0) (15,69,214,0) (15,72,1,0) (15,71,2,0) (15,80,210,0) (15,74,1,0) (139,76,211,0) (0,0,38,1) (15,84,443,0) (15,87,2,0)
+  S on pass: frame +1 after edit (2)       calls=11064 builds=0     hits=0     action=    0.1ms  settled_after= 15.42s  label_py=  317.6ms  builds=2319 pokes=1062 (1006ms) verified=8648 (1684ms) first_release=1.88s releases=2 slices=115 span=13.42s gap median=4ms p95=242ms busy_exits=1
+  S on pass: viewer connect                calls=0     builds=0     hits=0     action=    1.8ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+  S on pass: viewer connect other          calls=0     builds=0     hits=0     action=    2.2ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+[13:41.53] ERROR: Grade2.gamma: Read1044: /jobs/SHOW/seq011/sh011_0071/renders/cg/beauty/v006/beauty.1027.exr: Read error: No such file or directory
+      first slices (work ms, n, gap ms, busy): (15,69,0,0) (15,69,12,0) (15,68,223,0) (15,75,1,0) (15,71,2,0) (15,67,216,0) (15,78,1,0) (15,56,232,0) (218,58,1,0) (0,0,46,1) (33,74,465,0) (0,0,24,1)
+  S on scrub 24 frames, 40ms apart         calls=11112 builds=0     hits=0     action=    0.9ms  settled_after= 17.30s  label_py=  358.8ms  builds=2360 pokes=1102 (1869ms) verified=8655 (1737ms) first_release=1.76s releases=3 slices=120 span=14.45s gap median=4ms p95=244ms busy_exits=2
+[13:42.13] ERROR: Grade2.gamma: Read1044: /jobs/SHOW/seq011/sh011_0071/renders/cg/beauty/v006/beauty.1001.exr: Read error: No such file or directory
+[13:42.20] ERROR: Grade2.gamma: <div style="text-align: center"><font face="Bitstream Vera Sans"><div style="text-align: center"><font face="Bitstream Vera Sans">Grade70
+(rgb)
+<span style="background-color: #C2C2C2; color: black;">gain: </span> 1.105</span>
+<span style="background-color: #B5B5B5; color: black;">gamma: </span> 0.823</span>
+mix 0.770
+      first slices (work ms, n, gap ms, busy): (15,68,0,0) (15,76,11,0) (15,72,240,0) (15,70,12,0) (15,65,228,0) (15,62,12,0) (15,54,261,0) (15,63,4,0) (172,71,249,0) (0,0,267,1) (15,66,4950,0) (15,74,217,0)
+  S on X timeslider scrub (40 moves)       calls=21398 builds=0     hits=0     action=    5.2ms  settled_after= 22.91s  label_py=  510.7ms  ticks=51 lat mean=165.9ms p95=254.2ms max=423.0ms  builds=3908 pokes=1168 (1135ms) verified=9242 (1806ms) first_release=3.02s releases=3 slices=124 span=19.70s gap median=4ms p95=252ms busy_exits=2
+  S on open Grade panel + zoom             calls=0     builds=0     hits=0     action=   14.1ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+  S on pass then immediate slider drag     calls=42    builds=0     hits=0     action=    9.5ms  settled_after=  2.86s  label_py=   17.3ms  ticks=51 lat mean=22.9ms p95=36.3ms max=39.9ms  builds=41 pokes=1 (0ms) verified=0 (0ms) first_release=2.50s releases=1
+  S on slider drag (quiet)                 calls=41    builds=0     hits=0     action=   32.6ms  settled_after=  2.52s  label_py=   17.0ms  ticks=51 lat mean=21.9ms p95=40.6ms max=55.0ms  builds=40 pokes=1 (0ms) verified=0 (0ms) first_release=2.19s releases=1
+      knob white=0.35  label text='<div style="text-align: center"><font face="Bitstream Vera Sans">Grade817 / (rgb M alpha) / <span style="background-color: #898989; color: black;">gain: </span> 0.350</span>'  ->  OK
+  S on  -> white shown                     calls=0     builds=0     hits=0     action=    0.2ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+  S on close panel                         calls=0     builds=0     hits=0     action=    2.9ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+  S on bulk label on 100                   calls=189   builds=0     hits=0     action=   45.2ms  settled_after=  0.90s  label_py=   14.3ms  builds=102 pokes=87 (39ms) verified=81 (27ms) first_release=0.46s releases=2 slices=3 span=0.45s
+      100/100 show 's100' (want 100), 0 not in cache, stale=0 forced=0 verify=0  ->  OK
+  S on  -> shown                           calls=0     builds=0     hits=0     action=    0.7ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      first slices (work ms, n, gap ms, busy): (15,37,0,0) (116,93,1,0) (0,0,40,1) (26,36,420,0) (0,0,26,1) (15,34,381,0) (15,96,1,0) (15,102,1,0) (15,101,0,0) (15,102,0,0) (15,89,0,0) (15,102,1,0)
+  S on bulk label on 1000                  calls=1889  builds=0     hits=0     action=  399.8ms  settled_after=  1.83s  label_py=  129.8ms  builds=992 pokes=879 (276ms) verified=881 (165ms) first_release=0.83s releases=3 slices=14 span=2.17s gap median=1ms p95=420ms busy_exits=2
+      1000/1000 show 's1k' (want 1000), 0 not in cache, stale=0 forced=0 verify=0  ->  OK
+  S on  -> shown                           calls=0     builds=0     hits=0     action=    8.6ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+[13:43.14] ERROR: Grade2.gamma: sall
+[13:43.15] ERROR: Grade2.gamma: <div style="text-align: center"><font face="Bitstream Vera Sans"><div style="text-align: center"><font face="Bitstream Vera Sans"><div style="text-align: center"><font face="Bitstream Vera Sans">Grade1
+(rgb)
+<span style="background-color: #CCCCCC; color: black;">gain: </span> 1.435</span>
+<span style="background-color: #C0C0C0; color: black;">multiply: </span> 1.052</span>
+<span style="background-color: #C8C8C8; color: black;">gamma: </span> 1.299</span>
+mix 0.340
+sall
+      first slices (work ms, n, gap ms, busy): (15,90,0,0) (15,90,2,0) (15,89,0,0) (15,96,0,0) (15,93,1,0) (15,93,0,0) (903,95,0,0) (0,0,128,1) (24,38,420,0) (0,0,25,1) (15,40,380,0) (15,88,1,0)
+  S on bulk label on ALL                   calls=18731 builds=0     hits=0     action= 4688.8ms  settled_after=  7.04s  label_py= 1300.4ms  builds=9897 pokes=8641 (2832ms) verified=8737 (1339ms) first_release=5.46s releases=3 slices=94 span=6.91s gap median=0ms p95=2ms busy_exits=2
+      9992/9992 show 'sall' (want 9992), 0 not in cache, stale=0 forced=0 verify=0  ->  OK
+  S on  -> shown                           calls=0     builds=0     hits=0     action=   42.0ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      first slices (work ms, n, gap ms, busy): (15,74,0,0) (15,86,20,0) (15,86,1,0) (15,83,18,0) (15,90,1,0) (15,83,17,0) (15,93,1,0) (124,91,1,0) (0,0,249,1) (23,64,428,0) (0,0,276,1) (15,82,380,0)
+  S on bulk label 1000 + frame +1 same callback calls=11846 builds=0     hits=0     action=  674.8ms  settled_after=  6.06s  label_py=  396.6ms  builds=3091 pokes=1834 (1331ms) verified=8658 (1393ms) first_release=1.68s releases=3 slices=98 span=5.99s gap median=2ms p95=25ms busy_exits=2
+      1000/1000 show 'sfr' (want 1000), 0 not in cache, stale=0 forced=0 verify=0  ->  OK
+  S on  -> shown                           calls=0     builds=0     hits=0     action=    4.2ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      first slices (work ms, n, gap ms, busy): (118,67,0,0) (0,0,280,1) (30,80,419,0) (0,0,343,1) (15,73,420,0) (15,84,21,0) (15,79,1,0) (15,81,21,0) (15,88,1,0) (15,80,21,0) (15,85,1,0) (15,82,24,0)
+  S on bulk label 1000 + viewer connect same callback calls=1889  builds=0     hits=0     action=  749.8ms  settled_after=  2.91s  label_py=  157.4ms  builds=992 pokes=879 (352ms) verified=881 (163ms) first_release=1.21s releases=3 slices=14 span=2.92s gap median=21ms p95=420ms busy_exits=2
+      1000/1000 show 'svw' (want 1000), 0 not in cache, stale=0 forced=0 verify=0  ->  OK
+  S on  -> shown                           calls=0     builds=0     hits=0     action=   10.2ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      first slices (work ms, n, gap ms, busy): (85,54,0,0) (0,0,29,1) (33,37,420,0) (0,0,24,1) (15,31,380,0) (15,51,1,0) (15,83,1,0) (15,81,0,0) (15,93,0,0) (15,95,0,0) (15,97,1,0) (15,90,0,0)
+  S on bulk label 1000 then delete 100 of them at once calls=1702  builds=0     hits=0     action=  779.1ms  settled_after=  1.80s  label_py=  120.0ms  builds=894 pokes=792 (250ms) verified=794 (166ms) first_release=1.20s releases=3 slices=14 span=2.13s gap median=1ms p95=420ms busy_exits=2
+      900/900 show 'sdel' (want 900), 0 not in cache, stale=0 forced=0 verify=0  ->  OK
+  S on  -> shown                           calls=0     builds=0     hits=0     action=    7.9ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+  S on undo that delete                    calls=99    builds=0     hits=0     action=  155.6ms  settled_after=  0.09s  label_py=   12.7ms  builds=99 pokes=0 (0ms) verified=0 (0ms)
+      (1 pool nodes not found)
+  S on re-resolve                          calls=0     builds=0     hits=0     action=   34.8ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      first slices (work ms, n, gap ms, busy): (15,36,0,0) (129,96,0,0) (0,0,41,1) (32,39,401,0) (0,0,27,1) (15,74,380,0) (15,98,0,0) (15,103,1,0) (15,104,0,0) (15,105,0,0) (15,105,0,0) (15,101,1,0)
+  S on bulk label 1000 then rename 100 of them at once calls=1891  builds=0     hits=0     action=  620.1ms  settled_after=  1.82s  label_py=  128.6ms  builds=994 pokes=880 (295ms) verified=881 (156ms) first_release=1.05s releases=3 slices=14 span=2.16s gap median=1ms p95=401ms busy_exits=2
+      1000/1000 show 'sren' (want 1000), 0 not in cache, stale=0 forced=0 verify=0  ->  OK
+  S on  -> shown                           calls=0     builds=0     hits=0     action=    6.9ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      first slices (work ms, n, gap ms, busy): (15,44,0,0) (106,96,0,0) (0,0,41,1) (26,37,421,0) (0,0,37,1) (15,73,392,0) (15,83,1,0) (15,89,1,0) (15,103,0,0) (15,104,0,0) (15,106,0,0) (15,108,1,0)
+  S on bulk label 1000 in undo group       calls=1891  builds=0     hits=0     action=   20.4ms  settled_after=  1.88s  label_py=  142.5ms  builds=994 pokes=880 (264ms) verified=881 (157ms) first_release=0.49s releases=3 slices=14 span=2.11s gap median=1ms p95=421ms busy_exits=2
+      1000/1000 show 'sundo' (want 1000), 0 not in cache, stale=0 forced=0 verify=0  ->  OK
+  S on  -> shown                           calls=0     builds=0     hits=0     action=    7.7ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      first slices (work ms, n, gap ms, busy): (15,51,0,0) (93,96,0,0) (0,0,43,1) (23,37,420,0) (0,0,24,1) (15,44,421,0) (15,95,0,0) (15,100,0,0) (15,101,1,0) (15,98,1,0) (15,104,0,0) (15,107,0,0)
+  S on undo the bulk edit                  calls=1891  builds=0     hits=0     action=   11.9ms  settled_after=  1.83s  label_py=  128.9ms  builds=993 pokes=880 (204ms) verified=882 (156ms) first_release=0.48s releases=3 slices=14 span=2.05s gap median=1ms p95=421ms busy_exits=2
+      0/1000 show 'sundo' (want 0), 0 not in cache, stale=0 forced=0 verify=0  ->  OK
+  S on  -> shown                           calls=0     builds=0     hits=0     action=    7.9ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+  S on bulk label inside Group (all its nodes) calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      0/8 show 'sgrp' (want 8), 8 not in cache, stale=0 forced=0 verify=0  ->  MISMATCH
+  S on  -> shown                           calls=0     builds=0     hits=0     action=    0.4ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+  S on open the Group in the DAG           calls=8     builds=0     hits=0     action=    1.2ms  settled_after=  0.05s  label_py=    2.9ms  builds=8 pokes=0 (0ms) verified=0 (0ms)
+      8/8 show 'sgrp' (want 8), 0 not in cache, stale=0 forced=0 verify=0  ->  OK
+  S on  -> shown                           calls=0     builds=0     hits=0     action=    0.2ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+  S on back to root                        calls=0     builds=0     hits=0     action=    6.7ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+[13:44.36] ERROR: Grade2.gamma: Unpremult2
+(rgb) / alpha
+sall
+  S on bulk label 1000 then set_enabled(False) at once calls=8859  builds=0     hits=0     action= 3346.4ms  settled_after=  1.28s  label_py= 1163.2ms  builds=8762 pokes=11365 (2736ms) verified=97 (22ms) first_release=0.61s releases=1 slices=2 span=0.02s
+  S on set_enabled(True) + re-wrap         calls=8746  builds=0     hits=0     action= 2149.9ms  settled_after=  1.28s  label_py= 1166.7ms  builds=8649 pokes=11365 (2127ms) verified=97 (25ms) first_release=0.02s releases=1 slices=2 span=0.02s
+      first slices (work ms, n, gap ms, busy): (15,98,0,0) (179,87,175,0) (0,0,44,1) (15,80,550,0) (15,87,4,0) (15,84,172,0) (15,89,1,0) (15,85,1,0) (15,83,191,0) (15,91,2,0) (15,86,179,0) (15,80,2,0)
+  S on frame +1 (cold after enable)        calls=3421  builds=0     hits=0     action=    0.1ms  settled_after=  3.26s  label_py=  244.0ms  builds=2319 pokes=1062 (695ms) verified=1102 (189ms) first_release=0.71s releases=2 slices=14 span=1.85s gap median=44ms p95=191ms busy_exits=1
+      1000/1000 show 'sdis' (want 1000), 0 not in cache, stale=0 forced=946 verify=0  ->  OK
+  S on  -> shown                           calls=0     builds=0     hits=0     action=    3.1ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+[13:45.07] ERROR: Grade2.gamma: <div style="text-align: center"><font face="Bitstream Vera Sans"><div style="text-align: center"><font face="Bitstream Vera Sans"><div style="text-align: center"><font face="Bitstream Vera Sans">Grade1
+(rgb)
+<span style="background-color: #CCCCCC; color: black;">gain: </span> 1.435</span>
+<span style="background-color: #C0C0C0; color: black;">multiply: </span> 1.052</span>
+<span style="background-color: #C8C8C8; color: black;">gamma: </span> 1.299</span>
+mix 0.340
+      first slices (work ms, n, gap ms, busy): (15,66,0,0) (15,55,217,0) (15,61,2,0) (15,68,213,0) (15,57,2,0) (15,66,3,0) (15,59,209,0) (15,74,3,0) (15,70,212,0) (984,71,3,0) (0,0,433,1) (30,75,621,0)
+  S on bulk label cleared on ALL           calls=18731 builds=0     hits=0     action= 8878.8ms  settled_after= 25.19s  label_py= 1430.7ms  builds=9897 pokes=8641 (3186ms) verified=8737 (2088ms) first_release=10.88s releases=3 slices=144 span=25.04s gap median=6ms p95=324ms busy_exits=2
+      0/9991 show 'sdis' (want 0), 0 not in cache, stale=0 forced=946 verify=0  ->  OK
+  S on  -> shown                           calls=0     builds=0     hits=0     action=   38.7ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+  S on bulk label 1000 then scriptClear at once calls=0     builds=0     hits=0     action=19287.1ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+      verify=0 stale=0 content=0
+  S on  -> queue after scriptClear         calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+  S on scriptOpen again                    calls=10002 builds=0     hits=0     action= 6189.1ms  settled_after=  1.53s  label_py= 1403.7ms  builds=9905 pokes=0 (0ms) verified=97 (19ms) slices=2 span=0.20s
+      verify=0 stale=0 content=9905
+Timeout (0:05:00)!
+Thread 0x000079cfe1ffb6c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/process.py", line 68 in _readOutputFromPipe
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x000079cfe37fe6c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/zmq/sugar/poll.py", line 103 in poll
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/zmq/__init__.py", line 15 in call
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/postprocessscript.py", line 226 in messageLoop
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/postprocessscript.py", line 401 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x000079cfe97fb6c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/zmq/sugar/poll.py", line 103 in poll
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/zmq/__init__.py", line 15 in call
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/frameserver.py", line 80 in process
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/frameserver.py", line 51 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x000079cfe9ffc6c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 331 in wait
+  File "/usr/local/Nuke17.0v3/lib/python3.11/queue.py", line 180 in get
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/renderqueue.py", line 76 in processFileSyncs
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x000079cff0ffb6c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/zmq/sugar/poll.py", line 103 in poll
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/zmq/__init__.py", line 15 in call
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/renderqueue.py", line 665 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x000079cff8dd46c0 (most recent call first):
+  File "/usr/local/Nuke17.0v3/pythonextensions/site-packages/foundry/frameserver/nuke/frameserver.py", line 341 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 982 in run
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1045 in _bootstrap_inner
+  File "/usr/local/Nuke17.0v3/lib/python3.11/threading.py", line 1002 in _bootstrap
+
+Thread 0x000079d0f885b040 (most recent call first):
+  <no Python frame>
+  S on  -> queue after scriptOpen          calls=0     builds=0     hits=0     action=    0.0ms  settled_after=  0.00s  label_py=    0.0ms  builds=0 pokes=0 (0ms) verified=0 (0ms)
+
+cProfile — script-open label pass, top 25 by internal time
+         1451923 function calls (1451898 primitive calls) in 8.439 seconds
+
+   Ordered by: internal time
+   List reduced from 279 to 25 due to restriction <25>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    5.837    5.837    6.073    6.073 {built-in method _nuke.scriptOpen}
+    10002    0.472    0.000    0.472    0.000 {built-in method _nuke.expression}
+    13736    0.340    0.000    0.340    0.000 {method 'knobs' of 'Node' objects}
+    90958    0.205    0.000    0.228    0.000 {built-in method _nuke.value}
+    21693    0.153    0.000    0.153    0.000 {built-in method _nuke.tcl}
+    10002    0.132    0.000    0.401    0.000 /home/bosley/git/Labelmaker/labelmaker.py:599(knob_readout_creator)
+    10002    0.081    0.000    2.177    0.000 /home/bosley/git/Labelmaker/labelmaker.py:191(create_autolabel)
+     6590    0.064    0.000    0.135    0.000 /usr/local/Nuke17.0v3/plugins/nuke_internal/callbacks.py:370(filenameFilter)
+    10002    0.063    0.000    0.133    0.000 /home/bosley/git/Labelmaker/labelmaker.py:697(label_readout_creator)
+    10002    0.057    0.000    1.989    0.000 /home/bosley/git/Labelmaker/labelmaker.py:251(_compose_label)
+     9905    0.056    0.000    0.063    0.000 {built-in method _nuke.knob}
+    22789    0.051    0.000    0.147    0.000 /usr/local/Nuke17.0v3/plugins/nuke_internal/callbacks.py:40(_doCallbacks)
+    21363    0.050    0.000    0.050    0.000 {method 'fullName' of 'Node' objects}
+    10002    0.047    0.000    2.241    0.000 /home/bosley/git/Labelmaker/.profiling/drawpath/menu.py:203(_timed_autolabel)
+    10002    0.046    0.000    0.534    0.000 /home/bosley/git/Labelmaker/labelmaker.py:544(channels_line_creator)
+    10002    0.046    0.000    0.067    0.000 /home/bosley/git/Labelmaker/labelmaker.py:484(update)
+    31995    0.043    0.000    0.043    0.000 {method 'format' of 'str' objects}
+   241926    0.040    0.000    0.040    0.000 {method 'get' of 'dict' objects}
+    20004    0.039    0.000    0.039    0.000 {built-in method _nuke.numvalue}
+    10002    0.036    0.000    2.282    0.000 /usr/local/Nuke17.0v3/plugins/nuke_internal/callbacks.py:154(autolabel)
+    10002    0.036    0.000    0.547    0.000 /home/bosley/git/Labelmaker/labelmaker.py:501(compute_indicators)
+    11361    0.025    0.000    0.034    0.000 /home/bosley/git/Labelmaker/labelmaker.py:454(_forget)
+    10002    0.022    0.000    0.045    0.000 /home/bosley/git/Labelmaker/labelmaker.py:516(name_line_creator)
+     9905    0.021    0.000    0.626    0.000 /home/bosley/git/Labelmaker/labelmaker.py:495(set_indicators)
+     6699    0.020    0.000    0.027    0.000 shibokensupport/feature.py:83(feature_import)
+
+
+
+cProfile — top 25 by cumulative time
+         1451923 function calls (1451898 primitive calls) in 8.439 seconds
+
+   Ordered by: cumulative time
+   List reduced from 279 to 25 due to restriction <25>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    6.073    6.073 /home/bosley/git/Labelmaker/.profiling/drawpath/menu.py:396(measure)
+        1    0.000    0.000    6.073    6.073 /home/bosley/git/Labelmaker/.profiling/drawpath/menu.py:482(<lambda>)
+        1    5.837    5.837    6.073    6.073 {built-in method _nuke.scriptOpen}
+    10002    0.036    0.000    2.282    0.000 /usr/local/Nuke17.0v3/plugins/nuke_internal/callbacks.py:154(autolabel)
+    10002    0.047    0.000    2.241    0.000 /home/bosley/git/Labelmaker/.profiling/drawpath/menu.py:203(_timed_autolabel)
+    10002    0.081    0.000    2.177    0.000 /home/bosley/git/Labelmaker/labelmaker.py:191(create_autolabel)
+    10002    0.057    0.000    1.989    0.000 /home/bosley/git/Labelmaker/labelmaker.py:251(_compose_label)
+     9905    0.010    0.000    1.976    0.000 /home/bosley/git/Labelmaker/.profiling/drawpath/menu.py:1393(_counting_build_label)
+     9905    0.006    0.000    1.965    0.000 /home/bosley/git/Labelmaker/labelmaker.py:248(_build_label)
+     9905    0.021    0.000    0.626    0.000 /home/bosley/git/Labelmaker/labelmaker.py:495(set_indicators)
+    10002    0.036    0.000    0.547    0.000 /home/bosley/git/Labelmaker/labelmaker.py:501(compute_indicators)
+    10002    0.046    0.000    0.534    0.000 /home/bosley/git/Labelmaker/labelmaker.py:544(channels_line_creator)
+    10002    0.472    0.000    0.472    0.000 {built-in method _nuke.expression}
+    10002    0.132    0.000    0.401    0.000 /home/bosley/git/Labelmaker/labelmaker.py:599(knob_readout_creator)
+    10002    0.011    0.000    0.382    0.000 /home/bosley/git/Labelmaker/labelmaker.py:101(node_mask_input_plugged)
+    13736    0.017    0.000    0.357    0.000 /home/bosley/git/Labelmaker/labelmaker.py:48(node_has_mask)
+    13736    0.340    0.000    0.340    0.000 {method 'knobs' of 'Node' objects}
+    90958    0.205    0.000    0.228    0.000 {built-in method _nuke.value}
+    21693    0.153    0.000    0.153    0.000 {built-in method _nuke.tcl}
+    22789    0.051    0.000    0.147    0.000 /usr/local/Nuke17.0v3/plugins/nuke_internal/callbacks.py:40(_doCallbacks)
+     6590    0.064    0.000    0.135    0.000 /usr/local/Nuke17.0v3/plugins/nuke_internal/callbacks.py:370(filenameFilter)
+    10002    0.063    0.000    0.133    0.000 /home/bosley/git/Labelmaker/labelmaker.py:697(label_readout_creator)
+    11359    0.005    0.000    0.120    0.000 /usr/local/Nuke17.0v3/plugins/nuke_internal/callbacks.py:71(onCreate)
+    10002    0.010    0.000    0.076    0.000 /home/bosley/git/Labelmaker/labelmaker.py:538(file_line_creator)
+     4230    0.008    0.000    0.072    0.000 /home/bosley/git/Labelmaker/labelmaker.py:85(get_mask_input_index)
+
+
+wrote /home/bosley/git/Labelmaker/.profiling/drawpath-on.prof
+
+DONE
+EXIT 0

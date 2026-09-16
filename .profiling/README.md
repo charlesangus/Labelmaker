@@ -26,6 +26,13 @@ LM_OUT=/tmp/lm_800.nk LM_NODES=800 nuke -t .profiling/build_big_script.py       
 LM_PROFILE_ONLY="frame,viewer" .profiling/run_drawpath.sh /tmp/lm_800.nk on
 LM_PROFILE_DEOVERLAP=1 ...                          # leave auto-deoverlap on
 
+# 2b. step group V — label-cache edge cases (Tcl/Python side effects, a
+#     failing compose or poke, Undo state, Dope Sheet panel, Viewer
+#     playback/input switching, LiveGroup/Precomp/onCreate-Tcl Group,
+#     expression dependents, de-overlap interplay)
+LM_PROFILE_ONLY="V " .profiling/run_drawpath.sh .profiling/scripts/lm_d3000.nk both
+LM_PROFILE_DEOVERLAP=1 LM_PROFILE_ONLY="V " .profiling/run_drawpath.sh .profiling/scripts/lm_d3000.nk on
+
 # 3. per-build cost via nuke.runIn (older harness; cProfile per phase)
 LM_PROFILE_SCENARIOS=build,cache,repeat .profiling/run.sh /tmp/lm_800.nk
 ```
@@ -36,6 +43,18 @@ paste, undo …) and for each reports how many times Nuke asked for a label and
 the time spent in the Python label function — Labelmaker's, or in `off` mode
 Nuke's stock `plugins/autolabel.py` (also Python), so the two are comparable.
 The script-open label pass is cProfiled to `.profiling/drawpath-on.prof`.
+
+Step names are grouped by a leading letter (`S `, `V `, `E `, `Z`, …) inside
+`drawpath/menu.py`; `LM_PROFILE_ONLY` matches any of its comma-separated
+values as a substring against the step name, so `"V "` (with the trailing
+space) selects just that group. Group `V` (cases (a)-(k)) is the label
+cache's review-driven edge-case coverage — see `RESULTS-2026-09-13.md` §12
+for what each case checks and the results at 3k/10k nodes.
+`drawpath/lm_probe.py` sits beside `menu.py` as the group's one helper: a
+`[python {__import__('lm_probe').tick()}]` label knob calls into it, and
+cases (a)/(b) read its counter to tell whether a cache hit or a background
+verification pass ran the knob's Tcl (it should not) versus a real rebuild
+(which does).
 
 ## Getting Nuke to draw labels under Xvfb
 

@@ -12,6 +12,7 @@ saw zero calls).
   LM_PROFILE_DEOVERLAP  1 to leave auto-deoverlap enabled (default 0)
   LM_PROFILE_OUT        cProfile .prof for the script-open label pass (mode on)
 """
+import bisect
 import cProfile
 import faulthandler
 import os
@@ -33,12 +34,20 @@ repo = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 sys.path.insert(0, repo)
 nuke.pluginAddPath(repo)
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import labelmaker  # noqa: E402
 import labelmaker_prefs  # noqa: E402
+import lm_probe  # noqa: E402
 
 labelmaker_prefs.prefs_singleton._prefs["deoverlap_enabled"] = DEOVERLAP
 autolabeller = labelmaker.autolabeller_singleton
-autolabeller.set_enabled(MODE != "off")
+# not set_enabled(): its poke runs nuke.Undo.disable() while undo is still
+# uninitialised (disabled() is True at load), and two of those unmatched
+# disables leave the whole session without undo ("Undo::init() error")
+if MODE == "off":
+    autolabeller.unregister_autolabel()
+else:
+    autolabeller.register_autolabel()
 
 # Wrap whichever label function is live (Labelmaker's, or Nuke's stock
 # plugins/autolabel.py — also Python) so both modes report the same two
@@ -51,7 +60,8 @@ import autolabel as _stock  # noqa: E402
 
 nuke.removeAutolabel(_stock.autolabel)
 nuke.removeAutolabel(autolabeller.create_autolabel)
-autolabeller.set_enabled(True)
+autolabeller.register_autolabel()
+autolabeller.invalidate_labels()
 nuke.removeAutolabel(autolabeller.create_autolabel)
 _stock_target = _stock.autolabel
 _lm_target = autolabeller.create_autolabel
@@ -198,9 +208,17 @@ def _timed_autolabel():
     finally:
         dt = time.perf_counter() - t0
         counter["seconds"] += dt
-        entry = by_class.setdefault(nuke.thisClass(), [0, 0.0])
+        cls = nuke.thisClass()
+        entry = by_class.setdefault(cls, [0, 0.0])
         entry[0] += 1
         entry[1] += dt
+        viewer_log = state.get("v_viewer_log")
+        if viewer_log is not None and cls == "Viewer":
+            viewer_log.append(dt)
+        watch = state.get("v_watch")
+        if watch is not None:
+            name = nuke.thisNode().fullName()
+            watch[name] = watch.get(name, 0) + 1
 
 
 def log_by_class(title, top=18):
@@ -251,8 +269,8 @@ def x_button(button, down):
     _X11.XFlush(_dpy)
 
 
-def gesture(steps):
-    """Run callables one per TICK_MS from the event loop; record tick latency.
+def gesture(steps, tick_ms=TICK_MS):
+    """Run callables one per tick_ms from the event loop; record tick latency.
 
     Sets state["busy"] so wait_settled holds until the gesture is finished.
     Each tick's latency (actual - scheduled interval) is Nuke's main-loop
@@ -265,16 +283,16 @@ def gesture(steps):
 
     def tick():
         now = time.perf_counter()
-        state["ticks"].append(now - last["t"] - TICK_MS / 1000.0)
+        state["ticks"].append(now - last["t"] - tick_ms / 1000.0)
         last["t"] = now
         try:
             next(it)()
         except StopIteration:
             state["busy"] = False
             return
-        QtCore.QTimer.singleShot(TICK_MS, tick)
+        QtCore.QTimer.singleShot(tick_ms, tick)
 
-    QtCore.QTimer.singleShot(TICK_MS, tick)
+    QtCore.QTimer.singleShot(tick_ms, tick)
 
 
 def path(a, b, n):
@@ -396,6 +414,8 @@ def measure(label, action, then):
         deov = getattr(autolabeller, "_stats_time", {}).get("deoverlap (timer)", 0.0)
         ticks = state.pop("ticks", None)
         results.append((label, calls, builds, hits, action_s, settle_s, lm, deov))
+        state["last_ticks"] = ticks
+        state["last_stats"] = dict(impl_stats)
         extra = ""
         if ticks and len(ticks) > 1:
             lat = sorted(t * 1000 for t in ticks[1:])
@@ -404,8 +424,9 @@ def measure(label, action, then):
         if deov:
             extra += "  deoverlap={:.1f}ms".format(deov * 1000)
         if state.get("impl", MODE) == "on":
-            extra += "  builds={} pokes={} verified={} ({:.0f}ms)".format(
-                impl_stats["builds"], impl_stats["pokes"], impl_stats["verified"], impl_stats["verify_s"] * 1000)
+            extra += "  builds={} pokes={} ({:.0f}ms) verified={} ({:.0f}ms)".format(
+                impl_stats["builds"], impl_stats["pokes"], impl_stats["poke_s"] * 1000,
+                impl_stats["verified"], impl_stats["verify_s"] * 1000)
             if impl_stats.get("first_release"):
                 extra += " first_release={:.2f}s releases={}".format(
                     impl_stats["first_release"] - impl_stats["step_t0"], impl_stats["releases"])
@@ -420,7 +441,7 @@ def measure(label, action, then):
                     log("      first slices (work ms, n, gap ms, busy): " + " ".join(
                         "({:.0f},{},{:.0f},{})".format(r[2], r[3], r[4], int(r[5])) for r in rec[:12]))
         impl_stats.clear()
-        impl_stats.update(builds=0, pokes=0, verified=0, verify_s=0.0)
+        impl_stats.update(builds=0, pokes=0, poke_s=0.0, verified=0, verify_s=0.0)
         if False:
             extra += "  proto: {} hits {} builds {} held {} pokes  stall~{:.0f}ms window={:.0f}ms".format(
                 cache_stats["hits"], cache_stats["builds"], cache_stats["held"], cache_stats["pokes"], stall["ema"] * 1000, _window() * 1000)
@@ -508,6 +529,27 @@ def run_events():
         for i in range(lo, hi):
             pool[i].setName("Ren_{}_{}".format(tag, i))
             pool_names[i] = pool[i].fullName()
+
+    tcl_label = "[python {__import__('lm_probe').tick()}]"
+    # clones share the label knob (one edit relabels two nodes) and an
+    # expression-driven size ignores setValue, so neither can be counted
+    tcl_blurs = [n for n in pool if n.Class() == "Blur" and not n.clones() and not n["size"].hasExpression()][:100]
+    tcl_grades = [n for n in pool if n.Class() == "Grade" and not n.clones()][:100]
+    tcl_nodes = tcl_blurs + tcl_grades
+    tcl_grade = tcl_grades[0]
+    # the cache paths under test (verify, release) only ever see pokeable nodes
+    pokeable = [n for n in pool if n.knob("dope_sheet") is not None]
+    cset, dset, eset = pokeable[300:400], pokeable[400:500], pokeable[500:600]
+    fset, gset = pokeable[600:700], pokeable[700:800]
+    victim_c, victim_e = cset[50], eset[50]
+    deepest, depth = _deepest(nodes)
+    # one Grade drives 50 others through an expression on a readout knob
+    expr_pool = [n for n in pool if n.Class() == "Grade" and not n.clones()][100:]
+    expr_pool = [n for n in expr_pool if not n["white"].hasExpression() and not n["white"].isAnimated()
+                 and isinstance(n["white"].value(), float)]
+    expr_src, expr_deps = expr_pool[0], expr_pool[1:51]
+    # a multi-line label on an unlabelled node grows it; clones share the knob
+    kset = [n for n in pokeable[800:] if not n.clones() and n.knob("label") is not None and not n["label"].value()][:300]
 
     steps = [
         ("zoom to fit all (nuke.zoom 0.15)", lambda: nuke.zoom(0.15, (cx, cy))),
@@ -897,6 +939,94 @@ def run_events():
         ("S on  -> queue after scriptClear", lambda: log("      verify={} stale={} content={}".format(len(autolabeller._verify), len(autolabeller._stale), len(autolabeller._content)))),
         ("S on scriptOpen again", lambda: [_rm_autosave(), nuke.scriptOpen(SCRIPT)]),
         ("S on  -> queue after scriptOpen", lambda: log("      verify={} stale={} content={}".format(len(autolabeller._verify), len(autolabeller._stale), len(autolabeller._content)))),
+        # V: label-cache edge cases (Tcl side effects, verify failure, undo
+        # state, a failing poke). lm_probe counts how often each impl
+        # substitutes a [python] label knob, so a pass that reads the cache
+        # but must not run the knob's Tcl shows 0.
+        *[st for impl in ("stock", "on") for st in (
+        ("V impl " + impl, lambda impl=impl: [use_impl(impl), state.setdefault("v_frame0", nuke.frame()), state.setdefault("v_white0", grade["white"].value())]),
+        ("V {}  -> undo alive at group start".format(impl), lambda: log("      Undo.disabled()={} (want False)  ->  {}".format(nuke.Undo.disabled(), "MISMATCH" if nuke.Undo.disabled() else "OK"))),
+        ("V {} warm: edit + frame +1 (whole-script pass)".format(impl), lambda: [grade["white"].setValue(grade["white"].value() + 0.01), nuke.frame(nuke.frame() + 1)]),
+        ("V {} (a) set [python] label on 200".format(impl), lambda: [_tcl_mark(), _v_set_labels(tcl_nodes, tcl_label)]),
+        ("V {} (a)  -> tcl execs: set label".format(impl), lambda impl=impl: [_tcl_check(impl, "set label on 200", want=200), _check_bulk(tcl_nodes, "probe")]),
+        ("V {} (a) pass: frame +1".format(impl), lambda: [_tcl_mark(), nuke.frame(nuke.frame() + 1)]),
+        ("V {} (a)  -> tcl execs: frame +1".format(impl), lambda impl=impl: _tcl_check(impl, "frame +1 pass")),
+        ("V {} (a) pass: viewer connect".format(impl), lambda impl=impl: [_tcl_mark(), nuke.connectViewer(0, grade if impl == "stock" else merge)]),
+        ("V {} (a)  -> tcl execs: viewer connect".format(impl), lambda impl=impl: _tcl_check(impl, "viewer connect pass")),
+        ("V {} (a) bulk edit label on the 200".format(impl), lambda: [_tcl_mark(), _v_set_labels(tcl_nodes, tcl_label + " v2")]),
+        ("V {} (a)  -> tcl execs: bulk label edit".format(impl), lambda impl=impl: [_tcl_check(impl, "bulk label edit on 200", want=200), _check_bulk(tcl_nodes, "probe v2")]),
+        ("V {} (a) open panel of a [python] Grade + zoom".format(impl), lambda: [tcl_grade.showControlPanel(), nuke.zoom(1.0, (tcl_grade.xpos(), tcl_grade.ypos()))]),
+        ("V {} (a) X slider drag its white (40 moves)".format(impl), lambda: [_tcl_mark(), gesture(slider_drag(tcl_grade, "white"))]),
+        ("V {} (a)  -> tcl execs: slider drag".format(impl), lambda impl=impl: [_tcl_check(impl, "slider drag"), _check_label(tcl_grade, "white") if impl == "on" else None]),
+        ("V {} (a) close panel".format(impl), lambda: tcl_grade.hideControlPanel()),
+        ("V {} (b) edit size on 100 [python] Blurs".format(impl), lambda: [_tcl_mark(), _v_set_sizes(tcl_blurs, 7.25)]),
+        ("V {} (b)  -> readout shown, tcl execs".format(impl), lambda impl=impl: [_tcl_check(impl, "readout edit on 100", want=100), _check_bulk(tcl_blurs, "size 7.250")]),
+        ("V {} (a/b) restore labels and sizes".format(impl), lambda: [_tcl_mark(), _v_restore_labels(tcl_nodes), _v_restore_sizes(tcl_blurs)]),
+        ("V {} (a/b)  -> tcl execs: restore".format(impl), lambda impl=impl: [_tcl_check(impl, "restore"), _check_bulk(tcl_nodes, "probe", expect=0)]),
+        ("V {} (c) install failing _compose_label for one node".format(impl), lambda: _v_fail_compose(victim_c)),
+        ("V {} (c) bulk label on 100 incl. that node".format(impl), lambda: _v_set_labels(cset, "vfail")),
+        ("V {} (c)  -> verify drained, others released".format(impl), lambda impl=impl: _v_check_c(impl, cset, victim_c)),
+        ("V {} (c) restore labels".format(impl), lambda: _v_restore_labels(cset)),
+        ("V {} (d) Undo.disable + bulk label on 100".format(impl), lambda: [state.__setitem__("v_undo_before", nuke.Undo.disabled()), nuke.Undo.disable(), _v_set_labels(dset, "vundo")]),
+        ("V {} (d)  -> Undo still disabled after release".format(impl), lambda: _v_check_d(dset)),
+        ("V {} (d) restore labels".format(impl), lambda: _v_restore_labels(dset)),
+        ("V {} (e) install failing poke for one node".format(impl), lambda: _v_fail_poke(victim_e)),
+        ("V {} (e) bulk label on 100 incl. that node".format(impl), lambda: _v_set_labels(eset, "vpoke")),
+        ("V {} (e)  -> others released despite the failed poke".format(impl), lambda impl=impl: _v_check_e(impl, eset, victim_e)),
+        ("V {} (e) restore labels".format(impl), lambda: _v_restore_labels(eset)),
+        ("V {} (f) pane closed: bulk label on 100".format(impl), lambda: _v_set_labels(fset, "vpane")),
+        ("V {} (f)  -> shown, pane closed".format(impl), lambda: [_v_check_pane(False), _check_bulk(fset, "vpane"), _v_pane_snapshot("closed")]),
+        ("V {} (f) restore labels (closed)".format(impl), lambda: _v_restore_labels(fset)),
+        ("V {} (f) float the Dope Sheet beside the DAG".format(impl), _v_show_dope_sheet),
+        ("V {} (f) pane open: bulk label on 100".format(impl), lambda: _v_set_labels(fset, "vpane2")),
+        ("V {} (f)  -> shown, pane open vs closed".format(impl), lambda: [_v_check_pane(True), _check_bulk(fset, "vpane2"), _v_pane_snapshot("open"), _v_check_f()]),
+        ("V {} (f) restore labels (open)".format(impl), lambda: _v_restore_labels(fset)),
+        ("V {} (f) hide the floated Dope Sheet".format(impl), _v_hide_dope_sheet),
+        ("V {} (f)  -> pane closed again".format(impl), lambda: _v_check_pane(False)),
+        ("V {} (g) record viewer, connect to deepest chain ({} deep)".format(impl, depth), lambda: [_v_record_viewer(), nuke.connectViewer(0, deepest)]),
+        ("V {} (g) bulk label on 100 + playback 3s".format(impl), lambda: [_v_set_labels(gset, "vplay"), _v_playback(3.0)]),
+        ("V {} (g)  -> settled after playback, shown".format(impl), lambda: [_v_check_g(), _check_bulk(gset, "vplay")]),
+        ("V {} (g) restore labels".format(impl), lambda: _v_restore_labels(gset)),
+        ("V {} (g2) bulk label on 100 + frame-step 3s".format(impl), lambda: [_v_set_labels(gset, "vstep"), _v_playback(3.0, step_frames=True)]),
+        ("V {} (g2)  -> settled after stepping, shown".format(impl), lambda: [_v_check_g(), _check_bulk(gset, "vstep")]),
+        ("V {} (g2) restore labels".format(impl), lambda: _v_restore_labels(gset)),
+        ("V {} (h) wire viewer inputs 0/1".format(impl), lambda: [nuke.connectViewer(0, merge), nuke.connectViewer(1, grade)]),
+        ("V {} (h) switch viewer input 20x, 40 ms apart".format(impl), lambda: [state.__setitem__("v_viewer_log", []), gesture([lambda i=i: nuke.connectViewer(i % 2, (merge, grade)[i % 2]) for i in range(20)], tick_ms=40)]),
+        ("V {} (h)  -> Viewer label calls + per-call time".format(impl), lambda impl=impl: _v_check_h(impl)),
+        ("V {} (g/h) restore viewer inputs".format(impl), _v_restore_viewer),
+        ("V {} (i) create LiveGroup(20) / Precomp(5) / Group with onCreate Tcl".format(impl), _v_make_groups),
+        ("V {} (i) dirty: white=1.5 on every inner Grade (root shown)".format(impl), lambda: _v_edit_inner(1.5)),
+        ("V {} (i) warm: show LiveGroup DAG".format(impl), lambda: _v_show_group(0)),
+        ("V {} (i) warm: LiveGroup back to root".format(impl), lambda: _v_leave_group(0)),
+        ("V {} (i) warm: show Precomp DAG".format(impl), lambda: _v_show_group(1)),
+        ("V {} (i) warm: Precomp back to root".format(impl), lambda: _v_leave_group(1)),
+        ("V {} (i) warm: show onCreate Group DAG".format(impl), lambda: _v_show_group(2)),
+        ("V {} (i) warm: Group back to root".format(impl), lambda: _v_leave_group(2)),
+        ("V {} (i) bulk edit white=2.5 on every inner Grade (root shown)".format(impl), lambda: _v_edit_inner(2.5)),
+        ("V {} (i) show LiveGroup DAG".format(impl), lambda: _v_show_group(0)),
+        ("V {} (i)  -> LiveGroup inner labels".format(impl), lambda impl=impl: _v_check_i(impl, 0)),
+        ("V {} (i) show Precomp DAG".format(impl), lambda: _v_show_group(1)),
+        ("V {} (i)  -> Precomp inner labels".format(impl), lambda impl=impl: _v_check_i(impl, 1)),
+        ("V {} (i) show onCreate Group DAG".format(impl), lambda: _v_show_group(2)),
+        ("V {} (i)  -> onCreate Group inner labels".format(impl), lambda impl=impl: _v_check_i(impl, 2)),
+        ("V {} (i)  -> verify warnings; delete the groups".format(impl), lambda impl=impl: _v_finish_i(impl)),
+        ("V {} (j) link white on 50 Grades to {}.white".format(impl, expr_src.name()), lambda: _v_link_white(expr_deps, expr_src)),
+        ("V {} (j) edit the source once".format(impl), lambda: [_v_watch(expr_deps), expr_src["white"].setValue(2.75)]),
+        ("V {} (j)  -> dependents before the pass".format(impl), lambda impl=impl: _v_check_j(impl, expr_deps, "2.750", before=True)),
+        ("V {} (j) pass: frame +1".format(impl), lambda: [_v_watch(expr_deps), nuke.frame(nuke.frame() + 1)]),
+        ("V {} (j)  -> dependents after the pass".format(impl), lambda impl=impl: _v_check_j(impl, expr_deps, "2.750", before=False)),
+        ("V {} (j) clear expressions + restore values".format(impl), _v_unlink_white),
+        ("V {} (j)  -> restored".format(impl), lambda: _check_bulk(expr_deps, "2.750", expect=0)),
+        *((
+        ("V {} (k) bulk 4-line label on 300 (de-overlap on)".format(impl), lambda: _v_deov_edit(kset)),
+        ("V {} (k)  -> pending fed by the pokes, overlaps".format(impl), lambda impl=impl: _v_check_k(impl, kset)),
+        ("V {} (k) restore labels".format(impl), lambda: _v_restore_labels(kset)),
+        ("V {} (k) restore layout".format(impl), _v_deov_restore_layout),
+        ) if DEOVERLAP else (
+        ("V {} (k) de-overlap interplay".format(impl), lambda: log("      (skipped: LM_PROFILE_DEOVERLAP=0)")),
+        )),
+        ("V {} restore grade.white + frame".format(impl), lambda: [grade["white"].setValue(state["v_white0"]), nuke.frame(state["v_frame0"])]),
+        )],
         # Z: do label requests grow with the undo history? 3 identical
         # paste/delete/undo/redo cycles per implementation, node count logged
         *[st for impl in ("stock", "on") for cyc in (1, 2, 3) for st in (
@@ -1222,7 +1352,7 @@ def _rm_autosave():
             os.remove(path)
 
 
-impl_stats = {"builds": 0, "pokes": 0, "verified": 0, "verify_s": 0.0}
+impl_stats = {"builds": 0, "pokes": 0, "poke_s": 0.0, "verified": 0, "verify_s": 0.0}
 _orig_compose_in_context = autolabeller._compose_in_context
 
 
@@ -1265,16 +1395,33 @@ def _counting_build_label():
     return _orig_build_label()
 
 
-def _counting_poke_nodes(full_names, force=True):
+def _counting_poke_nodes(full_names, force=True, **kwargs):
     impl_stats["pokes"] += len(full_names)
     if full_names:
         impl_stats.setdefault("first_release", time.perf_counter())
         impl_stats["releases"] = impl_stats.get("releases", 0) + 1
-    return _orig_poke_nodes(full_names, force=force)
+    t0 = time.perf_counter()
+    try:
+        return _orig_poke_nodes(full_names, force=force, **kwargs)
+    finally:
+        impl_stats["poke_s"] += time.perf_counter() - t0
 
 
 autolabeller._build_label = _counting_build_label
 autolabeller._poke_nodes = _counting_poke_nodes
+_orig_run_deoverlap = autolabeller._run_deoverlap
+
+
+def _counting_run_deoverlap():
+    rec = state.get("v_deov")
+    if rec is not None:
+        rec["fires"].append((len(autolabeller._pending_deoverlap), len(_v_overlaps(rec["names"]))))
+    return _orig_run_deoverlap()
+
+
+# installed before the timer exists: it connects to whatever _run_deoverlap
+# is bound at its first creation
+autolabeller._run_deoverlap = _counting_run_deoverlap
 
 
 def _noop_kc():
@@ -1320,6 +1467,538 @@ def _check_bulk(sel, needle, expect=None):
     log("      {}/{} show {!r} (want {}), {} not in cache, stale={} forced={} verify={}  ->  {}".format(
         n_has, len(sel), needle, want, n_none, len(autolabeller._stale), len(autolabeller._forced),
         len(autolabeller._verify), "OK" if n_has == want and not autolabeller._stale else "MISMATCH"))
+
+
+def _tcl_mark():
+    state["v_tcl_mark"] = lm_probe.count
+
+
+def _tcl_check(impl, name, want=None):
+    """How often the label knob's Tcl ran since _tcl_mark(); `on` is judged
+    against the stock round's count for the same pass."""
+    n = lm_probe.count - state["v_tcl_mark"]
+    ref = state.setdefault("v_tcl", {}).setdefault(name, {})
+    ref[impl] = n
+    verdict = []
+    if want is not None:
+        verdict.append("want {}: {}".format(want, "OK" if n == want else "MISMATCH"))
+    if impl == "on" and "stock" in ref:
+        stock = ref["stock"]
+        verdict.append("<= stock {}: {}".format(stock, "OK" if n <= stock else "NO (+{})".format(n - stock)))
+        verdict.append("< 2x stock: {}".format("OK" if (n < 2 * stock if stock else n == 0) else "NO"))
+    log("      tcl execs [{}] {}={}  ->  {}".format(name, impl, n, "  ".join(verdict) or "(reference)"))
+
+
+def _v_set_labels(sel, text):
+    orig = state.setdefault("v_orig_labels", {})
+    for n in sel:
+        orig.setdefault(n.fullName(), n["label"].value())
+        n["label"].setValue(text)
+
+
+def _v_restore_labels(sel):
+    orig = state.get("v_orig_labels", {})
+    for n in sel:
+        n["label"].setValue(orig.pop(n.fullName(), ""))
+
+
+def _v_set_sizes(sel, value):
+    state["v_orig_sizes"] = [(n, n["size"].value()) for n in sel]
+    for n in sel:
+        n["size"].setValue(value)
+
+
+def _v_restore_sizes(sel):
+    for n, value in state.pop("v_orig_sizes", []):
+        n["size"].setValue(value)
+
+
+_orig_compose_label = autolabeller._compose_label
+_orig_warning = nuke.warning
+_orig_toNode = nuke.toNode
+
+
+def _recording_warning(message):
+    state.setdefault("v_warnings", []).append(str(message))
+    return _orig_warning(message)
+
+
+def _failing_compose_label(write_indicators=False, substitute_label=True):
+    # substitute_label=False is the verifier's call; real builds pass through
+    if not substitute_label and nuke.thisNode().fullName() == state.get("v_victim"):
+        raise RuntimeError("harness: compose failure")
+    return _orig_compose_label(write_indicators=write_indicators, substitute_label=substitute_label)
+
+
+def _failing_toNode(name):
+    # verification resolves the name too; only the poke sees the victim in _stale
+    if name == state.get("v_victim") and name in autolabeller._stale:
+        raise RuntimeError("harness: poke failure")
+    return _orig_toNode(name)
+
+
+def _v_warnings(needle):
+    return [w for w in state.get("v_warnings", []) if needle in w]
+
+
+def _v_fail_compose(victim):
+    state["v_victim"] = victim.fullName()
+    state["v_warnings"] = []
+    nuke.warning = _recording_warning
+    autolabeller._compose_label = _failing_compose_label
+
+
+def _v_check_c(impl, sel, victim):
+    autolabeller._compose_label = _orig_compose_label
+    nuke.warning = _orig_warning
+    warned = _v_warnings("could not verify")
+    if impl != "on":
+        log("      (stock: no verifier to fail; {} warnings, verify={})".format(len(warned), len(autolabeller._verify)))
+        return
+    log("      verify={} (want 0)  'could not verify' warnings={} (want 1)  ->  {}".format(
+        len(autolabeller._verify), len(warned), "OK" if not autolabeller._verify and len(warned) == 1 else "MISMATCH"))
+    for w in warned:
+        log("        " + w[:140])
+    _check_bulk([n for n in sel if n is not victim], "vfail")
+    _check_bulk([victim], "vfail", expect=0)
+
+
+def _v_check_d(sel):
+    """nuke.Undo.disable()/enable() nest as a counter, so the release must
+    leave the count where it found it: after the caller's own enable() the
+    state has to read as it did before the caller's disable()."""
+    before = state.pop("v_undo_before")
+    after_release = nuke.Undo.disabled()
+    _check_bulk(sel, "vundo")
+    nuke.Undo.enable()
+    after_enable = nuke.Undo.disabled()
+    extra = 0
+    while nuke.Undo.disabled() and extra < 5:
+        nuke.Undo.enable()
+        extra += 1
+    log("      Undo.disabled(): before={} after release={} (want True) after enable={} (want {})  ->  {}{}".format(
+        before, after_release, after_enable, before, "OK" if after_release and after_enable == before else "MISMATCH",
+        "  (recovered with {} extra enable())".format(extra) if extra else ""))
+
+
+def _v_fail_poke(victim):
+    state["v_victim"] = victim.fullName()
+    state["v_warnings"] = []
+    nuke.warning = _recording_warning
+    nuke.toNode = _failing_toNode
+
+
+def _v_check_e(impl, sel, victim):
+    nuke.toNode = _orig_toNode
+    nuke.warning = _orig_warning
+    warned = _v_warnings("could not refresh")
+    if impl != "on":
+        log("      (stock: nothing is poked; {} warnings, stale={})".format(len(warned), len(autolabeller._stale)))
+        return
+    log("      stale={} (want 0)  'could not refresh' warnings={} (want 1)  ->  {}".format(
+        len(autolabeller._stale), len(warned), "OK" if not autolabeller._stale and len(warned) == 1 else "MISMATCH"))
+    for w in warned:
+        log("        " + w[:140])
+    _check_bulk([n for n in sel if n is not victim], "vpoke")
+    _check_bulk([victim], "vpoke", expect=0)
+
+
+def _deepest(nodes):
+    """The node with the longest upstream chain, and that chain's length."""
+    depth = {}
+    for start in nodes:
+        stack = [start]
+        while stack:
+            node = stack[-1]
+            key = node.fullName()
+            if key in depth:
+                stack.pop()
+                continue
+            inputs = [node.input(i) for i in range(node.inputs())]
+            inputs = [n for n in inputs if n is not None]
+            pending = [n for n in inputs if n.fullName() not in depth]
+            if pending:
+                stack.extend(pending)
+                continue
+            depth[key] = 1 + max([depth[n.fullName()] for n in inputs] or [-1])
+            stack.pop()
+    best = max(nodes, key=lambda n: depth[n.fullName()])
+    return best, depth[best.fullName()]
+
+
+def _widget(class_name, object_name=None):
+    app = QtWidgets.QApplication.instance()
+    for w in app.allWidgets():
+        if class_name in w.metaObject().className() and (object_name is None or w.objectName() == object_name):
+            return w
+    return None
+
+
+def _v_show_dope_sheet():
+    """Float the Dope Sheet in its own window: it is a tab of the DAG's own
+    dock, so raising it there would hide the DAG and stop the label pass."""
+    view = _widget("LinkedView", "DopeSheet.1")
+    dag = _widget("DAGNukeWindow", "DAG.1")
+    stack = view.parent()
+    state["v_dope"] = view
+    if stack is None:
+        view.show()
+        return
+    view.setParent(None)
+    view.setWindowFlags(QtCore.Qt.Window)
+    view.resize(640, 480)
+    view.move(1270, 60)
+    view.show()
+    stack.setCurrentWidget(dag)
+
+
+def _v_hide_dope_sheet():
+    """Hide the floated window rather than re-dock it: a widget inserted
+    back into the pane's stack leaves every DAG tab Nuke opens afterwards
+    (showDag on a group) hidden and unpainted, and the pane is fine with
+    the sheet staying out."""
+    state.pop("v_dope").hide()
+
+
+def _v_check_pane(want_open):
+    sheet = _widget("Dope_Sheet")
+    shown = sheet is not None and sheet.isVisible()
+    dag_shown = state["dag"].isVisible()
+    log("      Dope Sheet visible={} (want {})  DAG visible={} (want True)  ->  {}".format(
+        shown, want_open, dag_shown, "OK" if shown == want_open and dag_shown else "MISMATCH"))
+
+
+def _v_pane_snapshot(key):
+    """The previous step's census line, kept for the open-vs-closed compare."""
+    label, calls, builds, hits, action_s, settle_s, lm, deov = results[-1]
+    stats = state.get("last_stats", {})
+    state.setdefault("v_pane", {})[key] = {
+        "calls": calls, "settle": settle_s, "label_ms": lm * 1000,
+        "pokes": stats.get("pokes", 0), "poke_ms": stats.get("poke_s", 0.0) * 1000}
+
+
+def _v_check_f():
+    closed = state["v_pane"]["closed"]
+    opened = state["v_pane"]["open"]
+    ok = opened["calls"] == closed["calls"] and opened["settle"] <= 2 * closed["settle"] + 0.25
+    log("      pane open vs closed: calls {} vs {} (want equal)  settle {:.2f}s vs {:.2f}s (want open <= 2x closed + 0.25s)  "
+        "label_py {:.1f} vs {:.1f} ms  pokes {} in {:.1f} vs {} in {:.1f} ms  ->  {}".format(
+            opened["calls"], closed["calls"], opened["settle"], closed["settle"], opened["label_ms"], closed["label_ms"],
+            opened["pokes"], opened["poke_ms"], closed["pokes"], closed["poke_ms"], "OK" if ok else "SLOWER"))
+
+
+def _v_viewer_node():
+    return next(iter(nuke.allNodes("Viewer")), None)
+
+
+def _v_record_viewer():
+    viewer = _v_viewer_node()
+    if viewer is None:
+        state["v_viewer0"] = None
+        return
+    inputs = [viewer.input(i).name() if viewer.input(i) else None for i in range(2)]
+    state["v_viewer0"] = (viewer.name(), inputs, int(viewer["input_number"].value()))
+    nuke.show(viewer)
+
+
+def _v_restore_viewer():
+    rec = state.pop("v_viewer0", None)
+    if rec is None:
+        log("      (no viewer to restore)")
+        return
+    name, inputs, active = rec
+    viewer = nuke.toNode(name)
+    for i, input_name in enumerate(inputs):
+        viewer.setInput(i, nuke.toNode(input_name) if input_name else None)
+    viewer["input_number"].setValue(active)
+    log("      {} inputs back to {} active input {}".format(name, inputs, active))
+
+
+def _v_playback(seconds, tick_ms=40, step_frames=False):
+    """Viewer playback for `seconds` (frame-stepping from the timer when asked
+    or when no Viewer is active); busy until stopped, so the step's settle
+    time counts from the start of playback."""
+    viewer = None if step_frames else nuke.activeViewer()
+    play = {"mode": "activeViewer.play" if viewer else "nuke.frame step ({} ms)".format(tick_ms),
+            "seconds": seconds, "changes": 0, "t0": time.perf_counter()}
+    state["v_play"] = play
+    if viewer:
+        viewer.play(1)
+    state["busy"] = True
+    state["ticks"] = []
+    last = {"t": time.perf_counter(), "n": 0, "frame": nuke.frame()}
+
+    def tick():
+        now = time.perf_counter()
+        state["ticks"].append(now - last["t"] - tick_ms / 1000.0)
+        last["t"] = now
+        last["n"] += 1
+        if viewer is None:
+            nuke.frame(nuke.frame() + 1)
+        if nuke.frame() != last["frame"]:
+            play["changes"] += 1
+            last["frame"] = nuke.frame()
+        if last["n"] * tick_ms / 1000.0 >= seconds:
+            if viewer:
+                viewer.stop()
+            play["ran_s"] = time.perf_counter() - play["t0"]
+            state["busy"] = False
+            return
+        QtCore.QTimer.singleShot(tick_ms, tick)
+
+    QtCore.QTimer.singleShot(tick_ms, tick)
+
+
+def _v_check_g(after_stop_max_s=6.0):
+    play = state.pop("v_play")
+    label, calls, builds, hits, action_s, settle_s, lm, deov = results[-1]
+    frames = play["changes"]
+    ran_s = play.get("ran_s", play["seconds"])
+    after_stop = settle_s - ran_s
+    want_frames = int(play["seconds"] * 10)
+    ok = frames >= want_frames and after_stop <= after_stop_max_s
+    log("      playback via {}: {} frame changes seen in {:.2f}s ({:.0f}s asked; want >= {} changes)  settled {:.2f}s after playback stopped (want <= {:.0f}s)  ->  {}".format(
+        play["mode"], frames, ran_s, play["seconds"], want_frames, after_stop, after_stop_max_s, "OK" if ok else "MISMATCH"))
+
+
+def _v_check_h(impl, want_calls=20):
+    times = state.pop("v_viewer_log", [])
+    ref = state.setdefault("v_viewer_ref", {})
+    ref[impl] = times
+    n = len(times)
+    mean_ms = sum(times) / n * 1000 if n else 0.0
+    max_ms = max(times) * 1000 if n else 0.0
+    ticks = state.get("last_ticks") or []
+    lat = sorted(t * 1000 for t in ticks[1:])
+    lat_mean = sum(lat) / len(lat) if lat else 0.0
+    verdict = ["want {} calls: {}".format(want_calls, "OK" if n == want_calls else "MISMATCH")]
+    if impl == "on" and ref.get("stock"):
+        stock_mean = sum(ref["stock"]) / len(ref["stock"]) * 1000
+        verdict.append("mean <= 3x stock ({:.2f}ms): {}".format(stock_mean, "OK" if mean_ms <= 3 * stock_mean else "NO"))
+    log("      Viewer label calls={} per-call mean={:.2f}ms max={:.2f}ms  tick latency mean={:.1f}ms max={:.1f}ms  ->  {}".format(
+        n, mean_ms, max_ms, lat_mean, lat[-1] if lat else 0.0, "  ".join(verdict)))
+
+
+def _v_watch(sel):
+    """Count label requests per node for `sel` until _v_watched() reads them."""
+    state["v_watch"] = {}
+    state["v_watch_names"] = [n.fullName() for n in sel]
+
+
+def _v_watched():
+    """(nodes requested at least once, requests in all) among the watched."""
+    watch = state.pop("v_watch", {})
+    names = state.pop("v_watch_names", [])
+    return sum(1 for nm in names if watch.get(nm)), sum(watch.get(nm, 0) for nm in names)
+
+
+def _v_make_groups():
+    """A LiveGroup and a Precomp with Grades inside, and a Group whose
+    onCreate has run (pasted: paste is a creation, the knob itself is set
+    after the first creation)."""
+    state["v_warnings"] = []
+    nuke.warning = _recording_warning
+    for n in nuke.allNodes():
+        n.setSelected(False)
+    made = []
+    for kind, count in (("LiveGroup", 20), ("Precomp", 5), ("Group", 20)):
+        node = getattr(nuke.nodes, kind)(name="V" + kind)
+        with node:
+            for i in range(count):
+                nuke.nodes.Grade(xpos=i * 120, ypos=0)
+        if kind == "Group":
+            node["onCreate"].setValue("nuke.tcl('knob label \"made by [value name]\"')")
+            node.setSelected(True)
+            nuke.nodeCopy("%clipboard%")
+            nuke.delete(node)
+            for n in nuke.allNodes():
+                n.setSelected(False)
+            nuke.nodePaste("%clipboard%")
+            node = nuke.selectedNodes()[0]
+            node.setSelected(False)
+            made_by = node["label"].value()
+            log("      pasted {}: onCreate Tcl wrote label={!r}  ->  {}".format(
+                node.name(), made_by, "OK" if made_by == "made by " + node.name() else "MISMATCH"))
+        made.append((kind, node, node.nodes()))
+    state["v_groups"] = made
+    log("      created " + ", ".join("{} {} ({} inner)".format(kind, node.name(), len(inner)) for kind, node, inner in made))
+
+
+def _v_show_group(index):
+    """Enter the group's DAG (its own Node Graph tab) from root; the label
+    requests only come from a paint, so a tab that opened hidden is raised
+    by hand and the quirk logged."""
+    kind, node, inner = state["v_groups"][index]
+    _v_watch(inner)
+    nuke.showDag(node)
+    tab = _widget("DAG_Window", "DAG." + node.name())
+    if tab is None:
+        log("      (no DAG tab for {})".format(node.name()))
+        return
+    was_visible = tab.isVisible()
+    if not was_visible:
+        child, parent = tab, tab.parent()
+        while parent is not None:
+            if isinstance(parent, QtWidgets.QStackedWidget):
+                parent.setCurrentWidget(child)
+            child, parent = parent, parent.parent()
+    nuke.zoom(1.0, (1200, 0))
+    log("      DAG tab {}: visible after showDag={}{}  root DAG visible={}".format(
+        tab.objectName(), was_visible, "" if was_visible else " (raised by hand: {})".format(tab.isVisible()), state["dag"].isVisible()))
+
+
+def _v_leave_group(index):
+    kind, node, inner = state["v_groups"][index]
+    hit, total = _v_watched()
+    log("      {} {}: {}/{} inner nodes requested while shown ({} requests)".format(kind, node.name(), hit, len(inner), total))
+    nuke.showDag(nuke.root())
+    log("      root DAG visible after showDag(root)={}".format(state["dag"].isVisible()))
+
+
+def _v_edit_inner(value):
+    # a node created from Python keeps its creation-time label until a knob
+    # changes, so showing the group draws it without a label request
+    for kind, node, inner in state["v_groups"]:
+        for n in inner:
+            n["white"].setValue(value)
+
+
+def _v_check_i(impl, index):
+    kind, node, inner = state["v_groups"][index]
+    hit, total = _v_watched()
+    calls = results[-1][1]
+    if hit == len(inner):
+        verdict = "OK"
+    elif kind == "Precomp" and total == 0:
+        verdict = "n/a (Precomp DAG not entered by showDag)"
+    else:
+        verdict = "MISMATCH"
+    log("      {} {}: show DAG made {} label requests, {}/{} inner nodes requested ({} requests)  ->  {}".format(
+        kind, node.name(), calls, hit, len(inner), total, verdict))
+    if impl == "on" and hit:
+        _check_bulk(inner, "2.500")
+    nuke.showDag(nuke.root())
+
+
+def _v_finish_i(impl):
+    nuke.warning = _orig_warning
+    warned = _v_warnings("could not verify") + _v_warnings("runIn")
+    log("      'could not verify' / runIn warnings={} (want 0)  ->  {}".format(len(warned), "OK" if not warned else "MISMATCH"))
+    for w in warned:
+        log("        " + w[:140])
+    for kind, node, inner in state.pop("v_groups"):
+        nuke.delete(node)
+    log("      groups deleted; allNodes={} (recurse {})".format(len(nuke.allNodes()), len(nuke.allNodes(recurseGroups=True))))
+
+
+def _v_link_white(deps, src):
+    state["v_expr_orig"] = [(n, n["white"].value()) for n in deps]
+    state["v_expr_src"] = (src, src["white"].value())
+    for n in deps:
+        n["white"].setExpression("{}.white".format(src.name()))
+
+
+def _v_check_j(impl, deps, needle, before):
+    hit, total = _v_watched()
+    calls = results[-1][1]
+    if before:
+        # only the edited node is re-requested; the dependents' new value
+        # waits for a pass (frame change, viewer connect) under either impl
+        showing = sum(needle in autolabeller._shown.get(n.fullName(), "") for n in deps) if impl == "on" else "n/a"
+        log("      source edit: {} label requests in all, {}/{} dependents re-requested ({} requests), dependents showing {!r}: {} (0 expected: no re-request on an expression-driven change)".format(
+            calls, hit, len(deps), total, needle, showing))
+        return
+    log("      pass: {} label requests in all, {}/{} dependents re-requested ({} requests; want {}/{})  ->  {}".format(
+        calls, hit, len(deps), total, len(deps), len(deps), "OK" if hit == len(deps) else "MISMATCH"))
+    if impl == "on":
+        _check_bulk(deps, needle)
+
+
+def _v_unlink_white():
+    for n, value in state.pop("v_expr_orig", []):
+        n["white"].clearAnimated()
+        n["white"].setValue(value)
+    src, value = state.pop("v_expr_src")
+    src["white"].setValue(value)
+
+
+def _v_overlaps(names):
+    """Pairs (name, other) whose DAG boxes overlap, for the named nodes."""
+    boxes = {}
+    for n in nuke.allNodes():
+        if n.Class() in ("BackdropNode", "Viewer"):
+            continue
+        x, y = n.xpos(), n.ypos()
+        boxes[n.name()] = (x, y, x + n.screenWidth(), y + n.screenHeight())
+    by_top = sorted(boxes.items(), key=lambda kv: kv[1][1])
+    tops = [box[1] for _, box in by_top]
+    max_h = max(box[3] - box[1] for box in boxes.values())
+    pairs = set()
+    for name in names:
+        a = boxes.get(name)
+        if a is None:
+            continue
+        lo = bisect.bisect_left(tops, a[1] - max_h)
+        hi = bisect.bisect_right(tops, a[3])
+        for other, b in by_top[lo:hi]:
+            if other != name and a[0] < b[2] and b[0] < a[2] and a[1] < b[3] and b[1] < a[3]:
+                pairs.add(tuple(sorted((name, other))))
+    return pairs
+
+
+def _v_deov_edit(sel):
+    names = [n.name() for n in sel]
+    rec = {"names": names, "fires": [], "peak": 0,
+           "baseline": _v_overlaps(names),
+           "ypos0": {n.name(): n.ypos() for n in nuke.allNodes()}}
+    state["v_deov"] = rec
+
+    def sample():
+        if state.get("v_deov") is not rec:
+            return
+        rec["peak"] = max(rec["peak"], len(autolabeller._pending_deoverlap))
+        QtCore.QTimer.singleShot(20, sample)
+
+    QtCore.QTimer.singleShot(20, sample)
+    _v_set_labels(sel, "vdeov 1\nvdeov 2\nvdeov 3\nvdeov 4")
+    rec["after_edit"] = len(autolabeller._pending_deoverlap)
+    log("      pending_deoverlap right after the edit = {}".format(rec["after_edit"]))
+
+
+def _v_check_k(impl, sel):
+    rec = state.pop("v_deov")
+    after = _v_overlaps(rec["names"])
+    new = after - rec["baseline"]
+    fed = sum(pending for pending, _ in rec["fires"])
+    fires = " ".join("({} pending, {} overlapping)".format(p, o) for p, o in rec["fires"]) or "none"
+    if impl != "on":
+        log("      (stock: no de-overlap) pending after edit={} peak={} fires={}  overlapping pairs: baseline={} after={} new={}".format(
+            rec["after_edit"], rec["peak"], len(rec["fires"]), len(rec["baseline"]), len(after), len(new)))
+        return
+    ok = fed == len(sel) and not new
+    log("      pending after edit={} peak={} at fire: {}  fed in all={} (want {})  overlapping pairs: baseline={} after={} new={} (want 0)  ->  {}".format(
+        rec["after_edit"], rec["peak"], fires, fed, len(sel), len(rec["baseline"]), len(after), len(new), "OK" if ok else "MISMATCH"))
+    for pair in sorted(new)[:10]:
+        log("        new overlap: {} / {}".format(*pair))
+    state["v_deov_ypos0"] = rec["ypos0"]
+
+
+def _v_deov_restore_layout():
+    ypos0 = state.pop("v_deov_ypos0", None)
+    if ypos0 is None:
+        log("      (layout unchanged)")
+        return
+    moved = 0
+    nuke.Undo.disable()
+    try:
+        for n in nuke.allNodes():
+            y = ypos0.get(n.name())
+            if y is not None and n.ypos() != y:
+                n.setYpos(y)
+                moved += 1
+    finally:
+        nuke.Undo.enable()
+    log("      {} nodes moved back".format(moved))
 
 
 def _select(sel):
